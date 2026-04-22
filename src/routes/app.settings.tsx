@@ -1,111 +1,51 @@
-import * as React from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/settings")({
   head: () => ({ meta: [{ title: "Settings — MMA Suite" }] }),
-  component: SettingsPage,
+  component: SettingsLayout,
 });
 
-function SettingsPage() {
-  const { user, isAdmin } = useAuth();
-  const qc = useQueryClient();
+function SettingsLayout() {
+  const { isAdmin } = useAuth();
+  const location = useLocation();
+  const path = location.pathname.replace(/\/$/, "");
 
-  const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).maybeSingle();
-      return data;
-    },
-  });
-
-  const { data: org } = useQuery({
-    queryKey: ["org-settings"],
-    queryFn: async () => {
-      const { data } = await supabase.from("org_settings").select("*").eq("id", 1).maybeSingle();
-      return data;
-    },
-  });
-
-  const [fullName, setFullName] = React.useState("");
-  const [phone, setPhone] = React.useState("");
-  React.useEffect(() => {
-    if (profile) {
-      setFullName(profile.full_name ?? "");
-      setPhone(profile.phone ?? "");
-    }
-  }, [profile]);
-
-  const [orgName, setOrgName] = React.useState("");
-  const [contactEmail, setContactEmail] = React.useState("");
-  React.useEffect(() => {
-    if (org) {
-      setOrgName(org.org_name ?? "");
-      setContactEmail(org.contact_email ?? "");
-    }
-  }, [org]);
-
-  const saveProfile = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("profiles").update({ full_name: fullName, phone }).eq("id", user!.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Profile saved");
-      qc.invalidateQueries({ queryKey: ["profile"] });
-    },
-    onError: (e: any) => {
-      console.error(e);
-      toast.error("An error occurred. Please try again.");
-    },
-  });
-
-  const saveOrg = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("org_settings").update({ org_name: orgName, contact_email: contactEmail }).eq("id", 1);
-      if (error) throw error;
-    },
-    onSuccess: () => toast.success("Workspace saved"),
-    onError: (e: any) => {
-      console.error(e);
-      toast.error("An error occurred. Please try again.");
-    },
-  });
+  const tabs = [
+    { to: "/app/settings", label: "Profile & Workspace", match: (p: string) => p === "/app/settings" },
+    ...(isAdmin
+      ? [{ to: "/app/settings/team", label: "Team & Roles", match: (p: string) => p === "/app/settings/team" }]
+      : []),
+  ];
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6 p-4 md:p-8">
+    <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:p-8">
       <div>
         <p className="text-xs uppercase tracking-[0.25em] text-gold">Settings</p>
-        <h1 className="mt-1 font-display text-3xl">Profile & Workspace</h1>
+        <h1 className="mt-1 font-display text-3xl">Manage your account</h1>
       </div>
 
-      <div className="rounded-2xl glass p-6">
-        <h2 className="font-display text-xl">Your profile</h2>
-        <div className="mt-4 space-y-3">
-          <div><Label>Email</Label><Input value={user?.email ?? ""} disabled className="mt-1" /></div>
-          <div><Label>Full name</Label><Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="mt-1" /></div>
-          <div><Label>Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1" /></div>
-          <Button onClick={() => saveProfile.mutate()} className="bg-gradient-gold text-background">Save profile</Button>
-        </div>
+      <div className="flex gap-1 border-b border-border/50">
+        {tabs.map((t) => {
+          const active = t.match(path);
+          return (
+            <Link
+              key={t.to}
+              to={t.to}
+              className={cn(
+                "relative px-4 py-2.5 text-sm font-medium transition-colors",
+                active ? "text-gold" : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t.label}
+              {active && <span className="absolute inset-x-0 -bottom-px h-0.5 bg-gradient-gold" />}
+            </Link>
+          );
+        })}
       </div>
 
-      {isAdmin && (
-        <div className="rounded-2xl glass p-6">
-          <h2 className="font-display text-xl">Workspace</h2>
-          <div className="mt-4 space-y-3">
-            <div><Label>Organization name</Label><Input value={orgName} onChange={(e) => setOrgName(e.target.value)} className="mt-1" /></div>
-            <div><Label>Contact email</Label><Input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} className="mt-1" /></div>
-            <Button onClick={() => saveOrg.mutate()} className="bg-gradient-gold text-background">Save workspace</Button>
-          </div>
-        </div>
-      )}
+      <Outlet />
     </div>
   );
 }
