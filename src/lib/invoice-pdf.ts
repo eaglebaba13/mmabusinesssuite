@@ -52,6 +52,51 @@ export type InvoicePdfInput = {
   notes?: string | null;
 };
 
+// GSTIN format: 2-digit state code + 10-char PAN + 1 entity + "Z" + 1 check
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+export function isValidGSTIN(g?: string | null): boolean {
+  if (!g) return false;
+  return GSTIN_REGEX.test(g.trim().toUpperCase());
+}
+
+export function gstinStateCode(g?: string | null): string | null {
+  if (!isValidGSTIN(g)) return null;
+  return g!.trim().substring(0, 2);
+}
+
+// Indian state code → state name (for cross-checking party.state vs GSTIN)
+const STATE_CODE_TO_NAME: Record<string, string> = {
+  "01": "Jammu and Kashmir", "02": "Himachal Pradesh", "03": "Punjab",
+  "04": "Chandigarh", "05": "Uttarakhand", "06": "Haryana", "07": "Delhi",
+  "08": "Rajasthan", "09": "Uttar Pradesh", "10": "Bihar", "11": "Sikkim",
+  "12": "Arunachal Pradesh", "13": "Nagaland", "14": "Manipur", "15": "Mizoram",
+  "16": "Tripura", "17": "Meghalaya", "18": "Assam", "19": "West Bengal",
+  "20": "Jharkhand", "21": "Odisha", "22": "Chhattisgarh", "23": "Madhya Pradesh",
+  "24": "Gujarat", "26": "Dadra and Nagar Haveli and Daman and Diu",
+  "27": "Maharashtra", "29": "Karnataka", "30": "Goa", "31": "Lakshadweep",
+  "32": "Kerala", "33": "Tamil Nadu", "34": "Puducherry", "35": "Andaman and Nicobar Islands",
+  "36": "Telangana", "37": "Andhra Pradesh", "38": "Ladakh",
+};
+
+export function stateNameFromGSTIN(g?: string | null): string | null {
+  const code = gstinStateCode(g);
+  return code ? (STATE_CODE_TO_NAME[code] ?? null) : null;
+}
+
+export type InvoiceValidation = {
+  buyerGstinMissing: boolean;
+  buyerGstinInvalid: boolean;
+  sellerGstinMissing: boolean;
+  sellerGstinInvalid: boolean;
+  buyerStateMissing: boolean;
+  sellerStateMissing: boolean;
+  stateMismatch: boolean; // GSTIN state code ≠ party.state
+  isInterState: boolean;
+  taxModeMismatch: boolean; // intra-state but IGST charged, or inter-state but CGST/SGST charged
+  missingHsnRows: number[]; // 1-indexed item rows missing HSN
+};
+
 const fmtINR = (n: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -147,17 +192,82 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
   doc.text(`Status: ${inv.status}   ·   Payment: ${inv.paymentStatus}`, margin, y);
   y += 14;
 
+  // ── Compliance validation ──────────────────────────────────────────────────
+  const v: InvoiceValidation = {
+    buyerGstinMissing: !inv.buyer.gstin,
+    buyerGstinInvalid: !!inv.buyer.gstin && !isValidGSTIN(inv.buyer.gstin),
+    sellerGstinMissing: !inv.seller.gstin,
+    sellerGstinInvalid: !!inv.seller.gstin && !isValidGSTIN(inv.seller.gstin),
+    buyerStateMissing: !inv.buyer.state,
+    sellerStateMissing: !inv.seller.state,
+    stateMismatch: false,
+    isInterState: false,
+    taxModeMismatch: false,
+    missingHsnRows: inv.items
+      .map((it, i) => (it.hsn_code && it.hsn_code.trim().length >= 4 ? -1 : i + 1))
+      .filter((n) => n > 0),
+  };
+  const sellerStateFromGstin = stateNameFromGSTIN(inv.seller.gstin);
+  const buyerStateFromGstin = stateNameFromGSTIN(inv.buyer.gstin);
+  if (sellerStateFromGstin && inv.seller.state &&
+      sellerStateFromGstin.toLowerCase() !== inv.seller.state.trim().toLowerCase()) v.stateMismatch = true;
+  if (buyerStateFromGstin && inv.buyer.state &&
+      buyerStateFromGstin.toLowerCase() !== inv.buyer.state.trim().toLowerCase()) v.stateMismatch = true;
+  const sState = (sellerStateFromGstin ?? inv.seller.state ?? "").trim().toLowerCase();
+  const bState = (buyerStateFromGstin ?? inv.buyer.state ?? "").trim().toLowerCase();
+  if (sState && bState) {
+    v.isInterState = sState !== bState;
+    if (v.isInterState && (inv.totals.cgst > 0 || inv.totals.sgst > 0) && inv.totals.igst === 0) v.taxModeMismatch = true;
+    if (!v.isInterState && inv.totals.igst > 0 && (inv.totals.cgst === 0 && inv.totals.sgst === 0)) v.taxModeMismatch = true;
+  }
+
+  const warnings: string[] = [];
+  if (v.buyerGstinMissing) warnings.push("Buyer GSTIN missing");
+  else if (v.buyerGstinInvalid) warnings.push("Buyer GSTIN invalid format");
+  if (v.sellerGstinMissing) warnings.push("Seller GSTIN missing");
+  else if (v.sellerGstinInvalid) warnings.push("Seller GSTIN invalid format");
+  if (v.buyerStateMissing) warnings.push("Buyer state missing (required for intra/inter-state tax)");
+  if (v.sellerStateMissing) warnings.push("Seller state missing");
+  if (v.stateMismatch) warnings.push("State name does not match GSTIN state code");
+  if (v.taxModeMismatch)
+    warnings.push(v.isInterState ? "Inter-state supply: IGST expected, not CGST/SGST" : "Intra-state supply: CGST+SGST expected, not IGST");
+  if (v.missingHsnRows.length)
+    warnings.push(`HSN code missing/invalid on item row(s): ${v.missingHsnRows.join(", ")}`);
+
+  if (warnings.length) {
+    const bannerH = 14 + warnings.length * 11 + 8;
+    doc.setFillColor(255, 243, 224);
+    doc.setDrawColor(217, 119, 6);
+    doc.setLineWidth(0.8);
+    doc.rect(margin, y, pageWidth - margin * 2, bannerH, "FD");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(146, 64, 14);
+    doc.text("GST COMPLIANCE WARNINGS", margin + 8, y + 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(120, 53, 15);
+    warnings.forEach((w, i) => doc.text(`• ${w}`, margin + 8, y + 24 + i * 11));
+    y += bannerH + 8;
+    doc.setLineWidth(0.5);
+  }
+
   // ── Bill to / Ship from blocks ─────────────────────────────────────────────
   const colW = (pageWidth - margin * 2 - 12) / 2;
   const blockTop = y;
-  const blockH = 88;
+  const blockH = 96;
 
   doc.setDrawColor(220, 220, 220);
   doc.setFillColor(248, 246, 240);
   doc.rect(margin, blockTop, colW, blockH, "FD");
   doc.rect(margin + colW + 12, blockTop, colW, blockH, "FD");
 
-  const writeParty = (title: string, p: Party, x: number) => {
+  const writeParty = (
+    title: string,
+    p: Party,
+    x: number,
+    flags: { gstinMissing: boolean; gstinInvalid: boolean; stateMissing: boolean },
+  ) => {
     let py = blockTop + 16;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
@@ -179,6 +289,13 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
     if (cityState) {
       doc.text(cityState, x + 10, py);
       py += 10;
+    } else if (flags.stateMissing) {
+      doc.setTextColor(180, 30, 30);
+      doc.setFont("helvetica", "bold");
+      doc.text("State: MISSING", x + 10, py);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(60, 60, 60);
+      py += 10;
     }
     if (p.phone) {
       doc.text(`Phone: ${p.phone}`, x + 10, py);
@@ -188,14 +305,31 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
       doc.text(`Email: ${p.email}`, x + 10, py);
       py += 10;
     }
-    if (p.gstin) {
+    if (flags.gstinMissing) {
       doc.setFont("helvetica", "bold");
+      doc.setTextColor(180, 30, 30);
+      doc.text("GSTIN: MISSING", x + 10, py);
+    } else if (flags.gstinInvalid) {
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(180, 30, 30);
+      doc.text(`GSTIN: ${p.gstin}  (INVALID)`, x + 10, py);
+    } else if (p.gstin) {
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(20, 20, 20);
       doc.text(`GSTIN: ${p.gstin}`, x + 10, py);
     }
   };
 
-  writeParty("BILLED FROM", inv.seller, margin);
-  writeParty("BILLED TO", inv.buyer, margin + colW + 12);
+  writeParty("BILLED FROM", inv.seller, margin, {
+    gstinMissing: v.sellerGstinMissing,
+    gstinInvalid: v.sellerGstinInvalid,
+    stateMissing: v.sellerStateMissing,
+  });
+  writeParty("BILLED TO", inv.buyer, margin + colW + 12, {
+    gstinMissing: v.buyerGstinMissing,
+    gstinInvalid: v.buyerGstinInvalid,
+    stateMissing: v.buyerStateMissing,
+  });
   y = blockTop + blockH + 14;
 
   // ── Items table ────────────────────────────────────────────────────────────
@@ -207,7 +341,7 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
       return [
         String(i + 1),
         it.product_name + (it.sku ? `\n${it.sku}` : ""),
-        it.hsn_code ?? "—",
+        it.hsn_code && it.hsn_code.trim().length >= 4 ? it.hsn_code : "MISSING",
         String(it.quantity),
         fmtINR(it.unit_price),
         `${it.discount_pct}%`,
@@ -235,6 +369,13 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
     },
     alternateRowStyles: { fillColor: [250, 248, 244] },
     margin: { left: margin, right: margin },
+    didParseCell: (data: any) => {
+      if (data.section === "body" && data.column.index === 2 && v.missingHsnRows.includes(data.row.index + 1)) {
+        data.cell.styles.textColor = [180, 30, 30];
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.fillColor = [255, 235, 235];
+      }
+    },
   });
 
   y = (doc as any).lastAutoTable.finalY + 14;
