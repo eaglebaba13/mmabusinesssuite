@@ -231,10 +231,12 @@ function TeamRolesPage() {
                     <p className="truncate text-xs text-muted-foreground">{u.email}</p>
                   </div>
                   <div className="hidden flex-wrap items-center justify-end gap-1 sm:flex sm:max-w-[40%]">
-                    {u.roles.length === 0 ? (
-                      <Badge variant="outline" className="text-muted-foreground">No roles</Badge>
-                    ) : (
-                      u.roles.map((r) => (
+                    {(() => {
+                      const visible = u.roles.filter((r) => r !== "super_admin");
+                      if (visible.length === 0) {
+                        return <Badge variant="outline" className="text-muted-foreground">No roles</Badge>;
+                      }
+                      return visible.map((r) => (
                         <Badge
                           key={r}
                           variant={PRIVILEGED.includes(r) ? "default" : "secondary"}
@@ -242,8 +244,8 @@ function TeamRolesPage() {
                         >
                           {ROLE_LABELS[r]}
                         </Badge>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </div>
                   <div className="hidden text-xs text-muted-foreground md:block">
                     {new Date(u.created_at).toLocaleDateString()}
