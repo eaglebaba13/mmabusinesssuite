@@ -1360,6 +1360,209 @@ export type Database = {
           },
         ]
       }
+      sale_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          method: Database["public"]["Enums"]["pos_payment_method"]
+          order_id: string
+          paid_at: string
+          recorded_by: string | null
+          reference: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: Database["public"]["Enums"]["pos_payment_method"]
+          order_id: string
+          paid_at?: string
+          recorded_by?: string | null
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: Database["public"]["Enums"]["pos_payment_method"]
+          order_id?: string
+          paid_at?: string
+          recorded_by?: string | null
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sale_payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_order_items: {
+        Row: {
+          created_at: string
+          discount_pct: number
+          gst_pct: number
+          hsn_code: string | null
+          id: string
+          line_gst: number
+          line_subtotal: number
+          line_total: number
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity: number
+          sku: string | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          discount_pct?: number
+          gst_pct?: number
+          hsn_code?: string | null
+          id?: string
+          line_gst?: number
+          line_subtotal?: number
+          line_total?: number
+          order_id: string
+          product_id: string
+          product_name: string
+          quantity?: number
+          sku?: string | null
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          discount_pct?: number
+          gst_pct?: number
+          hsn_code?: string | null
+          id?: string
+          line_gst?: number
+          line_subtotal?: number
+          line_total?: number
+          order_id?: string
+          product_id?: string
+          product_name?: string
+          quantity?: number
+          sku?: string | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_orders: {
+        Row: {
+          amount_paid: number
+          cgst_amount: number
+          completed_at: string | null
+          created_at: string
+          customer_address: string | null
+          customer_email: string | null
+          customer_gstin: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          discount_amount: number
+          franchisee_id: string | null
+          grand_total: number
+          gst_total: number
+          id: string
+          igst_amount: number
+          invoice_number: string | null
+          notes: string | null
+          payment_status: Database["public"]["Enums"]["pos_payment_status"]
+          served_by: string | null
+          sgst_amount: number
+          status: Database["public"]["Enums"]["pos_order_status"]
+          subtotal: number
+          updated_at: string
+          warehouse_id: string | null
+        }
+        Insert: {
+          amount_paid?: number
+          cgst_amount?: number
+          completed_at?: string | null
+          created_at?: string
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_gstin?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number
+          franchisee_id?: string | null
+          grand_total?: number
+          gst_total?: number
+          id?: string
+          igst_amount?: number
+          invoice_number?: string | null
+          notes?: string | null
+          payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          served_by?: string | null
+          sgst_amount?: number
+          status?: Database["public"]["Enums"]["pos_order_status"]
+          subtotal?: number
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          cgst_amount?: number
+          completed_at?: string | null
+          created_at?: string
+          customer_address?: string | null
+          customer_email?: string | null
+          customer_gstin?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number
+          franchisee_id?: string | null
+          grand_total?: number
+          gst_total?: number
+          id?: string
+          igst_amount?: number
+          invoice_number?: string | null
+          notes?: string | null
+          payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          served_by?: string | null
+          sgst_amount?: number
+          status?: Database["public"]["Enums"]["pos_order_status"]
+          subtotal?: number
+          updated_at?: string
+          warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_orders_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stock_levels: {
         Row: {
           id: string
@@ -1983,6 +2186,15 @@ export type Database = {
         | "partially_received"
         | "received"
         | "cancelled"
+      pos_order_status: "draft" | "completed" | "cancelled" | "refunded"
+      pos_payment_method:
+        | "cash"
+        | "upi"
+        | "card"
+        | "bank_transfer"
+        | "wallet"
+        | "credit"
+      pos_payment_status: "unpaid" | "partial" | "paid" | "refunded"
       revenue_source:
         | "academy"
         | "inventory"
@@ -2212,6 +2424,16 @@ export const Constants = {
         "received",
         "cancelled",
       ],
+      pos_order_status: ["draft", "completed", "cancelled", "refunded"],
+      pos_payment_method: [
+        "cash",
+        "upi",
+        "card",
+        "bank_transfer",
+        "wallet",
+        "credit",
+      ],
+      pos_payment_status: ["unpaid", "partial", "paid", "refunded"],
       revenue_source: [
         "academy",
         "inventory",
