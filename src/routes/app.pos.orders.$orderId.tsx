@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { exportToPDF } from "@/lib/export";
+import { downloadGstInvoicePdf } from "@/lib/invoice-pdf";
 import { formatINR } from "@/lib/format";
 
 export const Route = createFileRoute("/app/pos/orders/$orderId")({
@@ -56,28 +56,53 @@ function OrderDetail() {
 
   const downloadInvoice = () => {
     if (!o) return;
-    exportToPDF({
-      filename: `invoice-${o.invoice_number ?? o.id.slice(0, 8)}`,
-      title: `Tax Invoice — ${o.invoice_number ?? "Draft"}`,
-      subtitle: `${o.customer_name ?? "Walk-in"} · ${new Date(o.created_at).toLocaleString("en-IN")}`,
-      rows: items.data ?? [],
-      columns: [
-        { header: "Item", accessor: (r: any) => r.product_name },
-        { header: "HSN", accessor: (r: any) => r.hsn_code ?? "" },
-        { header: "Qty", accessor: (r: any) => r.quantity },
-        { header: "Price", accessor: (r: any) => formatINR(Number(r.unit_price)) },
-        { header: "Disc%", accessor: (r: any) => `${Number(r.discount_pct)}%` },
-        { header: "GST%", accessor: (r: any) => `${Number(r.gst_pct)}%` },
-        { header: "Total", accessor: (r: any) => formatINR(Number(r.line_total)) },
-      ],
-      totals: [
-        { label: "Subtotal", value: formatINR(Number(o.subtotal)) },
-        { label: "Discount", value: formatINR(Number(o.discount_amount)) },
-        { label: "CGST", value: formatINR(Number(o.cgst_amount)) },
-        { label: "SGST", value: formatINR(Number(o.sgst_amount)) },
-        { label: "Grand Total", value: formatINR(Number(o.grand_total)) },
-        { label: "Amount Paid", value: formatINR(Number(o.amount_paid)) },
-      ],
+    downloadGstInvoicePdf({
+      invoiceNumber: o.invoice_number ?? `DRAFT-${o.id.slice(0, 8)}`,
+      invoiceDate: o.created_at,
+      status: o.status,
+      paymentStatus: o.payment_status,
+      seller: {
+        name: o.warehouses?.name ?? "MMA Business Suite",
+        address: o.warehouses?.address ?? null,
+        city: o.warehouses?.city ?? null,
+        state: o.warehouses?.state ?? null,
+        gstin: null,
+      },
+      buyer: {
+        name: o.customer_name ?? "Walk-in customer",
+        phone: o.customer_phone,
+        email: o.customer_email,
+        address: o.customer_address,
+        gstin: o.customer_gstin,
+      },
+      items: (items.data ?? []).map((it: any) => ({
+        product_name: it.product_name,
+        sku: it.sku,
+        hsn_code: it.hsn_code,
+        quantity: Number(it.quantity),
+        unit_price: Number(it.unit_price),
+        discount_pct: Number(it.discount_pct),
+        gst_pct: Number(it.gst_pct),
+        line_subtotal: Number(it.line_subtotal),
+        line_gst: Number(it.line_gst),
+        line_total: Number(it.line_total),
+      })),
+      totals: {
+        subtotal: Number(o.subtotal),
+        discount: Number(o.discount_amount),
+        cgst: Number(o.cgst_amount),
+        sgst: Number(o.sgst_amount),
+        igst: Number(o.igst_amount ?? 0),
+        grandTotal: Number(o.grand_total),
+        amountPaid: Number(o.amount_paid),
+      },
+      payments: (payments.data ?? []).map((p: any) => ({
+        method: p.method,
+        amount: Number(p.amount),
+        reference: p.reference,
+        paid_at: p.paid_at,
+      })),
+      notes: o.notes,
     });
   };
 
