@@ -140,6 +140,17 @@ function CategoriesPage() {
         </Dialog>
       </div>
 
+      <ExportBar
+        from=""
+        to=""
+        onFromChange={() => {}}
+        onToChange={() => {}}
+        onCSV={handleCSV}
+        onPDF={handlePDF}
+        showDateRange={false}
+        count={rows.length}
+      />
+
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {(list.data ?? []).map((c: any) => {
           const pct = c.monthly_budget > 0 ? Math.min(100, (c.spent_this_month / c.monthly_budget) * 100) : 0;
