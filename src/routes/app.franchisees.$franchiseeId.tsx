@@ -40,6 +40,9 @@ function FranchiseeDetailPage() {
   const { isAdmin, hasRole } = useAuth();
   const canManage = isAdmin || hasRole("accounts");
   const qc = useQueryClient();
+  const resetFn = useServerFn(resetFranchiseePassword);
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [resetting, setResetting] = React.useState(false);
 
   const { data: f } = useQuery({
     queryKey: ["franchisee", franchiseeId],
