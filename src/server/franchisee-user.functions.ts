@@ -102,3 +102,62 @@ export const createFranchiseeUser = createServerFn({ method: "POST" })
 
     return { success: true, user_id: authUserId };
   });
+
+const ResetInput = z.object({
+  franchisee_id: z.string().uuid(),
+});
+
+function genPassword(length = 12) {
+  const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#";
+  let pw = "";
+  const arr = new Uint32Array(length);
+  crypto.getRandomValues(arr);
+  for (let i = 0; i < length; i++) pw += chars[arr[i] % chars.length];
+  return pw;
+}
+
+export const resetFranchiseePassword = createServerFn({ method: "POST" })
+  .middleware([forwardAuthHeader, requireSupabaseAuth])
+  .inputValidator((input: unknown) => ResetInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { data: roles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    const isAdmin = (roles ?? []).some(
+      (r) =>
+        r.role === "super_admin" ||
+        r.role === "founder" ||
+        r.role === "accounts",
+    );
+    if (!isAdmin) {
+      throw new Error("Only admins can reset franchisee passwords");
+    }
+
+    const { data: franchisee, error: frErr } = await supabaseAdmin
+      .from("franchisees")
+      .select("user_id, email, full_name")
+      .eq("id", data.franchisee_id)
+      .maybeSingle();
+    if (frErr) throw new Error(frErr.message);
+    if (!franchisee?.user_id) {
+      throw new Error("This franchisee has no login account yet");
+    }
+
+    const password = genPassword(12);
+    const { error: updErr } = await supabaseAdmin.auth.admin.updateUserById(
+      franchisee.user_id,
+      { password },
+    );
+    if (updErr) throw new Error(updErr.message);
+
+    await supabaseAdmin.from("franchisee_credentials").insert({
+      franchisee_id: data.franchisee_id,
+      login_email: franchisee.email ?? "",
+      temp_password: password,
+      created_by: userId,
+    });
+
+    return { success: true, password };
+  });

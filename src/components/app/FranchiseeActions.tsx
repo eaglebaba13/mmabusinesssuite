@@ -45,11 +45,11 @@ export function FranchiseeActions({ franchisee }: Props) {
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
-  const isInactive = franchisee.status === "inactive";
+  const isInactive = franchisee.status === "suspended" || franchisee.status === "closed";
 
   const toggleStatus = useMutation({
     mutationFn: async () => {
-      const next = isInactive ? "active" : "inactive";
+      const next: "active" | "suspended" = isInactive ? "active" : "suspended";
       const { error } = await supabase
         .from("franchisees")
         .update({ status: next })
