@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
+import { ExportBar } from "@/components/app/ExportBar";
+import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/franchisees")({
   head: () => ({ meta: [{ title: "Franchisees — MMA Suite" }] }),
@@ -23,6 +25,7 @@ function FranchiseesPage() {
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState({ full_name: "", email: "", phone: "", investment_amount: "500000" });
   const [saving, setSaving] = React.useState(false);
+  const [range, setRange] = React.useState(defaultDateRange());
 
   const { data: franchisees = [] } = useQuery({
     queryKey: ["franchisees"],
@@ -33,9 +36,37 @@ function FranchiseesPage() {
     },
   });
 
-  const filtered = franchisees.filter((f) =>
-    f.full_name.toLowerCase().includes(search.toLowerCase()) || (f.email ?? "").toLowerCase().includes(search.toLowerCase()),
+  const filtered = (franchisees ?? []).filter((f) =>
+    (f.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      (f.email ?? "").toLowerCase().includes(search.toLowerCase())) &&
+    inDateRange(f.joined_at ?? f.created_at, range.from, range.to),
   );
+
+  const exportCols = [
+    { header: "Name", accessor: (f: any) => f.full_name },
+    { header: "Email", accessor: (f: any) => f.email ?? "" },
+    { header: "Phone", accessor: (f: any) => f.phone ?? "" },
+    { header: "Status", accessor: (f: any) => f.status },
+    { header: "Investment", accessor: (f: any) => Number(f.investment_amount ?? 0) },
+    { header: "Joined", accessor: (f: any) => f.joined_at ?? "" },
+  ];
+  const fileBase = `franchisees_${range.from}_to_${range.to}`;
+  const onCSV = () => exportToCSV(fileBase, filtered, exportCols);
+  const onPDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "Franchisees Roster",
+      subtitle: `${range.from} → ${range.to}`,
+      rows: filtered,
+      columns: exportCols,
+      totals: [
+        { label: "Total franchisees", value: String(filtered.length) },
+        {
+          label: "Total invested",
+          value: formatINRCompact(filtered.reduce((s, f) => s + Number(f.investment_amount ?? 0), 0)),
+        },
+      ],
+    });
 
   const create = useMutation({
     mutationFn: async () => {
@@ -99,6 +130,16 @@ function FranchiseesPage() {
           </Dialog>
         </div>
       </div>
+
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={onCSV}
+        onPDF={onPDF}
+        count={filtered.length}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((f) => (

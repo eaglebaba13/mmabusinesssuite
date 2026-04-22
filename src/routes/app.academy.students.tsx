@@ -13,6 +13,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { ExportBar } from "@/components/app/ExportBar";
+import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/academy/students")({
   head: () => ({ meta: [{ title: "Students — Academy" }] }),
@@ -25,6 +27,7 @@ function StudentsPage() {
   const canEdit = isAdmin || hasRole("academy_admin");
   const [open, setOpen] = React.useState(false);
   const [q, setQ] = React.useState("");
+  const [range, setRange] = React.useState(defaultDateRange());
   const [form, setForm] = React.useState({
     full_name: "", email: "", phone: "", city: "", gender: "", guardian_name: "", guardian_phone: "",
   });
@@ -56,10 +59,33 @@ function StudentsPage() {
   });
 
   const filtered = (students.data ?? []).filter((s: any) =>
-    !q || s.full_name?.toLowerCase().includes(q.toLowerCase()) ||
-    s.email?.toLowerCase().includes(q.toLowerCase()) ||
-    s.phone?.includes(q)
+    (!q || s.full_name?.toLowerCase().includes(q.toLowerCase()) ||
+      s.email?.toLowerCase().includes(q.toLowerCase()) ||
+      s.phone?.includes(q)) &&
+    inDateRange(s.created_at, range.from, range.to)
   );
+
+  const exportCols = [
+    { header: "Name", accessor: (s: any) => s.full_name ?? "" },
+    { header: "Email", accessor: (s: any) => s.email ?? "" },
+    { header: "Phone", accessor: (s: any) => s.phone ?? "" },
+    { header: "City", accessor: (s: any) => s.city ?? "" },
+    { header: "Gender", accessor: (s: any) => s.gender ?? "" },
+    { header: "Guardian", accessor: (s: any) => s.guardian_name ?? "" },
+    { header: "Enrollments", accessor: (s: any) => (s.enrollments ?? []).map((e: any) => `${e.batches?.batch_code ?? ""}:${e.status}`).join(" | ") },
+    { header: "Joined", accessor: (s: any) => s.created_at?.slice(0, 10) ?? "" },
+  ];
+  const fileBase = `students_${range.from}_to_${range.to}`;
+  const onCSV = () => exportToCSV(fileBase, filtered, exportCols);
+  const onPDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "Academy Students",
+      subtitle: `${range.from} → ${range.to}`,
+      rows: filtered,
+      columns: exportCols,
+      totals: [{ label: "Total students", value: String(filtered.length) }],
+    });
 
   return (
     <div className="space-y-4">
@@ -106,6 +132,16 @@ function StudentsPage() {
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, email, phone" className="pl-9" />
       </div>
+
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={onCSV}
+        onPDF={onPDF}
+        count={filtered.length}
+      />
 
       <Card className="glass overflow-hidden">
         <Table>
