@@ -181,9 +181,19 @@ function PayoutsPage() {
         </Dialog>
       </div>
 
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={handleCSV}
+        onPDF={handlePDF}
+        count={filtered.length}
+      />
+
       <Card className="glass">
         <div className="divide-y divide-border/50">
-          {(list.data ?? []).map((p: any) => (
+          {filtered.map((p: any) => (
             <div key={p.id} className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
@@ -210,8 +220,10 @@ function PayoutsPage() {
               </div>
             </div>
           ))}
-          {!list.data?.length && (
-            <div className="p-8 text-center text-sm text-muted-foreground">No payouts yet.</div>
+          {!filtered.length && (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {list.data?.length ? "No payouts in selected date range." : "No payouts yet."}
+            </div>
           )}
         </div>
       </Card>
