@@ -15,6 +15,9 @@ export const Route = createFileRoute("/login")({
       { title: "Sign in — MMA Business Suite" },
       { name: "description", content: "Sign in to your MMA Business Suite workspace." },
     ],
+    links: [
+      { rel: "preload", as: "image", href: heroBg, fetchpriority: "high" } as unknown as Record<string, string>,
+    ],
   }),
   component: LoginPage,
 });
