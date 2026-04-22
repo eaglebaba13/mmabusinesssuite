@@ -451,8 +451,10 @@ function LeadRoutingPage() {
                 <div>
                   <Label className="text-xs">Source</Label>
                   <Select
-                    value={draft.match_source ?? ""}
-                    onValueChange={(v) => setDraft({ ...draft, match_source: v || null })}
+                    value={draft.match_source ?? "__any__"}
+                    onValueChange={(v) =>
+                      setDraft({ ...draft, match_source: v === "__any__" ? null : v })
+                    }
                   >
                     <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Any source" />
