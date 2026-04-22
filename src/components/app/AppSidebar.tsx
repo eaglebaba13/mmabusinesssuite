@@ -64,6 +64,7 @@ export function AppSidebar() {
   const isTrainer = hasRole("trainer");
   const isAcademyStaff = isAdmin || hasRole("academy_admin") || hasRole("accounts");
   const isInventoryStaff = isAdmin || hasRole("inventory");
+  const isFinanceStaff = isAdmin || hasRole("accounts");
 
   const isActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
