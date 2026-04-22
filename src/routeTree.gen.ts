@@ -29,11 +29,13 @@ import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
 import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
+import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
 import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
 import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
+import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
 import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
@@ -157,6 +159,11 @@ const AppWebinarsIndexRoute = AppWebinarsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppWebinarsRoute,
 } as any)
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -181,6 +188,11 @@ const AppWebinarsWebinarIdRoute = AppWebinarsWebinarIdRouteImport.update({
   id: '/$webinarId',
   path: '/$webinarId',
   getParentRoute: () => AppWebinarsRoute,
+} as any)
+const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
@@ -311,7 +323,7 @@ export interface FileRoutesByFullPath {
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
@@ -339,11 +351,13 @@ export interface FileRoutesByFullPath {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
+  '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
@@ -356,7 +370,6 @@ export interface FileRoutesByTo {
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/verify/$code': typeof VerifyCodeRoute
@@ -383,11 +396,13 @@ export interface FileRoutesByTo {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy': typeof AppAcademyIndexRoute
   '/app/finance': typeof AppFinanceIndexRoute
   '/app/inventory': typeof AppInventoryIndexRoute
+  '/app/settings': typeof AppSettingsIndexRoute
   '/app/webinars': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
@@ -405,7 +420,7 @@ export interface FileRoutesById {
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
@@ -433,11 +448,13 @@ export interface FileRoutesById {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
+  '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
@@ -484,11 +501,13 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
     | '/app/inventory/'
+    | '/app/settings/'
     | '/app/webinars/'
     | '/app/academy/batches/$batchId'
   fileRoutesByTo: FileRoutesByTo
@@ -501,7 +520,6 @@ export interface FileRouteTypes {
     | '/app/franchisees'
     | '/app/leads'
     | '/app/my-franchise'
-    | '/app/settings'
     | '/app/support'
     | '/app/trainer'
     | '/verify/$code'
@@ -528,11 +546,13 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
     | '/app/academy'
     | '/app/finance'
     | '/app/inventory'
+    | '/app/settings'
     | '/app/webinars'
     | '/app/academy/batches/$batchId'
   id:
@@ -577,11 +597,13 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
     | '/app/inventory/'
+    | '/app/settings/'
     | '/app/webinars/'
     | '/app/academy/batches/$batchId'
   fileRoutesById: FileRoutesById
@@ -740,6 +762,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWebinarsIndexRouteImport
       parentRoute: typeof AppWebinarsRoute
     }
+    '/app/settings/': {
+      id: '/app/settings/'
+      path: '/'
+      fullPath: '/app/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/app/inventory/': {
       id: '/app/inventory/'
       path: '/'
@@ -774,6 +803,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/webinars/$webinarId'
       preLoaderRoute: typeof AppWebinarsWebinarIdRouteImport
       parentRoute: typeof AppWebinarsRoute
+    }
+    '/app/settings/team': {
+      id: '/app/settings/team'
+      path: '/team'
+      fullPath: '/app/settings/team'
+      preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppSettingsRoute
     }
     '/app/leads/$leadId': {
       id: '/app/leads/$leadId'
@@ -1037,6 +1073,20 @@ const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
   AppLeadsRouteChildren,
 )
 
+interface AppSettingsRouteChildren {
+  AppSettingsTeamRoute: typeof AppSettingsTeamRoute
+  AppSettingsIndexRoute: typeof AppSettingsIndexRoute
+}
+
+const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsTeamRoute: AppSettingsTeamRoute,
+  AppSettingsIndexRoute: AppSettingsIndexRoute,
+}
+
+const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
+  AppSettingsRouteChildren,
+)
+
 interface AppWebinarsRouteChildren {
   AppWebinarsWebinarIdRoute: typeof AppWebinarsWebinarIdRoute
   AppWebinarsAnalyticsRoute: typeof AppWebinarsAnalyticsRoute
@@ -1061,7 +1111,7 @@ interface AppRouteChildren {
   AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
-  AppSettingsRoute: typeof AppSettingsRoute
+  AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppSupportRoute: typeof AppSupportRoute
   AppTrainerRoute: typeof AppTrainerRoute
   AppWebinarsRoute: typeof AppWebinarsRouteWithChildren
@@ -1076,7 +1126,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,
-  AppSettingsRoute: AppSettingsRoute,
+  AppSettingsRoute: AppSettingsRouteWithChildren,
   AppSupportRoute: AppSupportRoute,
   AppTrainerRoute: AppTrainerRoute,
   AppWebinarsRoute: AppWebinarsRouteWithChildren,
