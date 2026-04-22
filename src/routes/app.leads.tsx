@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINRCompact } from "@/lib/format";
+import { ExportBar } from "@/components/app/ExportBar";
+import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/leads")({
   head: () => ({ meta: [{ title: "Leads — MMA Suite" }] }),
@@ -49,6 +51,7 @@ interface Lead {
   stage: StageId;
   score: number | null;
   budget: number | null;
+  created_at: string;
 }
 
 function LeadsPage() {
@@ -57,6 +60,7 @@ function LeadsPage() {
   const [search, setSearch] = React.useState("");
   const [activeId, setActiveId] = React.useState<string | null>(null);
   const [open, setOpen] = React.useState(false);
+  const [range, setRange] = React.useState(defaultDateRange());
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -88,12 +92,42 @@ function LeadsPage() {
     const q = search.toLowerCase();
     return leads.filter(
       (l) =>
-        !q ||
-        l.full_name.toLowerCase().includes(q) ||
-        (l.email ?? "").toLowerCase().includes(q) ||
-        (l.phone ?? "").includes(q),
+        (!q ||
+          l.full_name.toLowerCase().includes(q) ||
+          (l.email ?? "").toLowerCase().includes(q) ||
+          (l.phone ?? "").includes(q)) &&
+        inDateRange(l.created_at, range.from, range.to),
     );
-  }, [leads, search]);
+  }, [leads, search, range]);
+
+  const exportCols = [
+    { header: "Name", accessor: (l: Lead) => l.full_name },
+    { header: "Email", accessor: (l: Lead) => l.email ?? "" },
+    { header: "Phone", accessor: (l: Lead) => l.phone ?? "" },
+    { header: "City", accessor: (l: Lead) => l.city ?? "" },
+    { header: "Source", accessor: (l: Lead) => l.source },
+    { header: "Stage", accessor: (l: Lead) => l.stage.replace("_", " ") },
+    { header: "Budget", accessor: (l: Lead) => (l.budget ? Number(l.budget) : "") },
+    { header: "Score", accessor: (l: Lead) => l.score ?? "" },
+    { header: "Created", accessor: (l: Lead) => l.created_at?.slice(0, 10) ?? "" },
+  ];
+  const fileBase = `leads_${range.from}_to_${range.to}`;
+  const onCSV = () => exportToCSV(fileBase, filtered, exportCols);
+  const onPDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "Leads Pipeline",
+      subtitle: `${range.from} → ${range.to}`,
+      rows: filtered,
+      columns: exportCols,
+      totals: [
+        { label: "Total leads", value: String(filtered.length) },
+        {
+          label: "Pipeline value",
+          value: formatINRCompact(filtered.reduce((s, l) => s + Number(l.budget ?? 0), 0)),
+        },
+      ],
+    });
 
   const byStage = React.useMemo(() => {
     const map: Record<string, Lead[]> = {};
@@ -153,6 +187,16 @@ function LeadsPage() {
           <NewLeadDialog open={open} setOpen={setOpen} onCreated={() => qc.invalidateQueries({ queryKey: ["leads"] })} />
         </div>
       </div>
+
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={onCSV}
+        onPDF={onPDF}
+        count={filtered.length}
+      />
 
       {view === "kanban" ? (
         <DndContext
