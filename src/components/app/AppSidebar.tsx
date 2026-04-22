@@ -290,21 +290,27 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_FRANCHISEE.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive(item.url)}
-                      tooltip={item.title}
-                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
-                    >
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {NAV_FRANCHISEE.map((item) => {
+                  const active =
+                    location.pathname === item.url &&
+                    (location.search.includes(`tab=${item.search.tab}`) ||
+                      (item.search.tab === "dashboard" && !location.search.includes("tab=")));
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={item.title}
+                        className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                      >
+                        <Link to={item.url} search={item.search}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
