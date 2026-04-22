@@ -67,6 +67,7 @@ import { Route as AppAcademyCertificatesRouteImport } from './routes/app.academy
 import { Route as AppAcademyBatchesRouteImport } from './routes/app.academy.batches'
 import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
 import { Route as ApiPublicWebinarRegisterHookRouteImport } from './routes/api/public/webinar-register-hook'
+import { Route as ApiPublicSocialLeadHookRouteImport } from './routes/api/public/social-lead-hook'
 import { Route as AppPosOrdersOrderIdRouteImport } from './routes/app.pos.orders.$orderId'
 import { Route as AppAcademyBatchesBatchIdRouteImport } from './routes/app.academy.batches.$batchId'
 
@@ -364,6 +365,11 @@ const ApiPublicWebinarRegisterHookRoute =
     path: '/api/public/webinar-register-hook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSocialLeadHookRoute = ApiPublicSocialLeadHookRouteImport.update({
+  id: '/api/public/social-lead-hook',
+  path: '/api/public/social-lead-hook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppPosOrdersOrderIdRoute = AppPosOrdersOrderIdRouteImport.update({
   id: '/$orderId',
   path: '/$orderId',
@@ -398,6 +404,7 @@ export interface FileRoutesByFullPath {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/social-lead-hook': typeof ApiPublicSocialLeadHookRoute
   '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
@@ -452,6 +459,7 @@ export interface FileRoutesByTo {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app': typeof AppIndexRoute
+  '/api/public/social-lead-hook': typeof ApiPublicSocialLeadHookRoute
   '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
@@ -515,6 +523,7 @@ export interface FileRoutesById {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/social-lead-hook': typeof ApiPublicSocialLeadHookRoute
   '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
@@ -579,6 +588,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app/'
+    | '/api/public/social-lead-hook'
     | '/api/public/webinar-register-hook'
     | '/api/public/webinar-reminders'
     | '/app/academy/batches'
@@ -633,6 +643,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app'
+    | '/api/public/social-lead-hook'
     | '/api/public/webinar-register-hook'
     | '/api/public/webinar-reminders'
     | '/app/academy/batches'
@@ -695,6 +706,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app/'
+    | '/api/public/social-lead-hook'
     | '/api/public/webinar-register-hook'
     | '/api/public/webinar-reminders'
     | '/app/academy/batches'
@@ -744,6 +756,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   WebinarSlugRoute: typeof WebinarSlugRoute
+  ApiPublicSocialLeadHookRoute: typeof ApiPublicSocialLeadHookRoute
   ApiPublicWebinarRegisterHookRoute: typeof ApiPublicWebinarRegisterHookRoute
   ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
 }
@@ -1156,6 +1169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebinarRegisterHookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/social-lead-hook': {
+      id: '/api/public/social-lead-hook'
+      path: '/api/public/social-lead-hook'
+      fullPath: '/api/public/social-lead-hook'
+      preLoaderRoute: typeof ApiPublicSocialLeadHookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/pos/orders/$orderId': {
       id: '/app/pos/orders/$orderId'
       path: '/$orderId'
@@ -1397,6 +1417,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   WebinarSlugRoute: WebinarSlugRoute,
+  ApiPublicSocialLeadHookRoute: ApiPublicSocialLeadHookRoute,
   ApiPublicWebinarRegisterHookRoute: ApiPublicWebinarRegisterHookRoute,
   ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
 }
