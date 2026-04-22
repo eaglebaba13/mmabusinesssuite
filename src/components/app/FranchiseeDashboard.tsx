@@ -281,24 +281,42 @@ export function FranchiseeDashboard({
         </div>
       </div>
 
-      {/* ROI Structure card */}
-      <div className="rounded-2xl glass p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-gold" />
-            <h3 className="font-display text-lg">Your ROI structure</h3>
+      {/* ROI Structure card — hide blocks where pct is 0 */}
+      {(() => {
+        const roiBlocks = [
+          { label: "Base monthly ROI", value: baseRoiPct, hint: "Fixed every month" },
+          { label: "Nail Emporium incentive", value: emporiumPct, hint: "On Emporium sales" },
+          { label: "Academy incentive", value: academyPct, hint: "On batch fees" },
+          { label: "Mall of Salon Dark Store", value: darkPct, hint: "On dark store sales" },
+        ].filter((b) => b.value > 0);
+        if (roiBlocks.length === 0) return null;
+        const gridCols =
+          roiBlocks.length === 1
+            ? "sm:grid-cols-1"
+            : roiBlocks.length === 2
+              ? "sm:grid-cols-2"
+              : roiBlocks.length === 3
+                ? "sm:grid-cols-2 lg:grid-cols-3"
+                : "sm:grid-cols-2 lg:grid-cols-4";
+        return (
+          <div className="rounded-2xl glass p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-gold" />
+                <h3 className="font-display text-lg">Your ROI structure</h3>
+              </div>
+              <Badge variant="outline" className="border-gold/40 text-gold">
+                Fee {formatINRCompact(fee)}
+              </Badge>
+            </div>
+            <div className={`grid gap-3 ${gridCols}`}>
+              {roiBlocks.map((b) => (
+                <RoiTile key={b.label} label={b.label} value={`${b.value}%`} hint={b.hint} />
+              ))}
+            </div>
           </div>
-          <Badge variant="outline" className="border-gold/40 text-gold">
-            Fee {formatINRCompact(fee)}
-          </Badge>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <RoiTile label="Base monthly ROI" value={`${baseRoiPct}%`} hint="Fixed every month" />
-          <RoiTile label="Nail Emporium incentive" value={`${emporiumPct}%`} hint="On Emporium sales" />
-          <RoiTile label="Academy incentive" value={`${academyPct}%`} hint="On batch fees" />
-          <RoiTile label="Mall of Salon Dark Store" value={`${darkPct}%`} hint="On dark store sales" />
-        </div>
-      </div>
+        );
+      })()}
 
       {/* KPIs */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

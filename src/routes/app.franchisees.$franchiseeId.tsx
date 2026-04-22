@@ -1,8 +1,9 @@
 import * as React from "react";
 import { createFileRoute, Link, useParams, notFound } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Pencil, Power, KeyRound, Building2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,8 @@ import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { FranchiseeDashboard } from "@/components/app/FranchiseeDashboard";
+import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
+import { resetFranchiseePassword } from "@/server/franchisee-user.functions";
 
 export const Route = createFileRoute("/app/franchisees/$franchiseeId")({
   head: () => ({ meta: [{ title: "Franchisee — MMA Suite" }] }),
@@ -37,6 +40,9 @@ function FranchiseeDetailPage() {
   const { isAdmin, hasRole } = useAuth();
   const canManage = isAdmin || hasRole("accounts");
   const qc = useQueryClient();
+  const resetFn = useServerFn(resetFranchiseePassword);
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [resetting, setResetting] = React.useState(false);
 
   const { data: f } = useQuery({
     queryKey: ["franchisee", franchiseeId],

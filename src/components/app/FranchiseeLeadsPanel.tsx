@@ -1,14 +1,18 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { Users, Phone, Mail, MapPin } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { Users, Phone, Mail, MapPin, Download, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useAuth } from "@/lib/auth-context";
+import { exportLeadsCsv } from "@/lib/leads-export";
 
 interface Props {
   territoryId: string | null;
+  franchiseeName?: string;
 }
 
 const STAGES = ["new", "contacted", "qualified", "won", "lost"] as const;
@@ -22,9 +26,24 @@ const stageColor: Record<string, string> = {
   lost: "border-rose-500/40 text-rose-400",
 };
 
-export function FranchiseeLeadsPanel({ territoryId }: Props) {
+export function FranchiseeLeadsPanel({ territoryId, franchiseeName = "franchisee" }: Props) {
+  const { isAdmin } = useAuth();
   const [stageFilter, setStageFilter] = React.useState<Stage | "all">("all");
   const [openLead, setOpenLead] = React.useState<any | null>(null);
+  const [syncing, setSyncing] = React.useState(false);
+
+  const { data: lastSync } = useQuery({
+    queryKey: ["fr-last-sync", territoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("social_integrations")
+        .select("last_sync_at")
+        .order("last_sync_at", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.last_sync_at ?? null;
+    },
+  });
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["fr-leads", territoryId],
@@ -71,15 +90,58 @@ export function FranchiseeLeadsPanel({ territoryId }: Props) {
     );
   }
 
+  const onSyncNow = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-ad-leads`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: "{}",
+        },
+      );
+      if (!res.ok) throw new Error("Sync failed");
+      toast.success("Sync triggered");
+    } catch (e: any) {
+      toast.error(e.message ?? "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl glass p-5">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-gold" />
             <h3 className="font-display text-lg">My Leads</h3>
+            {lastSync && (
+              <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+                Last synced {formatDistanceToNow(new Date(lastSync), { addSuffix: true })}
+              </Badge>
+            )}
           </div>
-          <span className="text-xs text-muted-foreground">{leads.length} total in your territory</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{leads.length} in your territory</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => exportLeadsCsv(filtered, franchiseeName)}
+              disabled={filtered.length === 0}
+            >
+              <Download className="mr-1 h-3.5 w-3.5" /> CSV
+            </Button>
+            {isAdmin && (
+              <Button size="sm" variant="ghost" onClick={onSyncNow} disabled={syncing}>
+                <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="mb-4 flex flex-wrap gap-2">

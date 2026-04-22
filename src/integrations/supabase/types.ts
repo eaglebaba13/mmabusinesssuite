@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          body: string | null
+          created_at: string
+          cta_url: string | null
+          external_id: string | null
+          franchisee_id: string | null
+          headline: string | null
+          id: string
+          last_synced_at: string | null
+          name: string
+          preview_url: string | null
+          source: string
+          spend_total: number
+          status: string
+          territory_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          cta_url?: string | null
+          external_id?: string | null
+          franchisee_id?: string | null
+          headline?: string | null
+          id?: string
+          last_synced_at?: string | null
+          name: string
+          preview_url?: string | null
+          source: string
+          spend_total?: number
+          status?: string
+          territory_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          cta_url?: string | null
+          external_id?: string | null
+          franchisee_id?: string | null
+          headline?: string | null
+          id?: string
+          last_synced_at?: string | null
+          name?: string
+          preview_url?: string | null
+          source?: string
+          spend_total?: number
+          status?: string
+          territory_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaigns_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           attendance_date: string
@@ -1856,6 +1918,59 @@ export type Database = {
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_integrations: {
+        Row: {
+          active: boolean
+          created_at: string
+          credentials: Json | null
+          display_name: string | null
+          franchisee_id: string | null
+          id: string
+          last_sync_at: string | null
+          last_sync_error: string | null
+          last_sync_status: string | null
+          source: string
+          territory_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          credentials?: Json | null
+          display_name?: string | null
+          franchisee_id?: string | null
+          id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          source: string
+          territory_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          credentials?: Json | null
+          display_name?: string | null
+          franchisee_id?: string | null
+          id?: string
+          last_sync_at?: string | null
+          last_sync_error?: string | null
+          last_sync_status?: string | null
+          source?: string
+          territory_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_integrations_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
             referencedColumns: ["id"]
           },
         ]
