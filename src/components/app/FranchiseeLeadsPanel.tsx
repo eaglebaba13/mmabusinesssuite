@@ -1,14 +1,18 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { Users, Phone, Mail, MapPin } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import { Users, Phone, Mail, MapPin, Download, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useAuth } from "@/lib/auth-context";
+import { exportLeadsCsv } from "@/lib/leads-export";
 
 interface Props {
   territoryId: string | null;
+  franchiseeName?: string;
 }
 
 const STAGES = ["new", "contacted", "qualified", "won", "lost"] as const;
@@ -22,9 +26,24 @@ const stageColor: Record<string, string> = {
   lost: "border-rose-500/40 text-rose-400",
 };
 
-export function FranchiseeLeadsPanel({ territoryId }: Props) {
+export function FranchiseeLeadsPanel({ territoryId, franchiseeName = "franchisee" }: Props) {
+  const { isAdmin } = useAuth();
   const [stageFilter, setStageFilter] = React.useState<Stage | "all">("all");
   const [openLead, setOpenLead] = React.useState<any | null>(null);
+  const [syncing, setSyncing] = React.useState(false);
+
+  const { data: lastSync } = useQuery({
+    queryKey: ["fr-last-sync", territoryId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("social_integrations")
+        .select("last_sync_at")
+        .order("last_sync_at", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.last_sync_at ?? null;
+    },
+  });
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["fr-leads", territoryId],

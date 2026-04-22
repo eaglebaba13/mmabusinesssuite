@@ -3,6 +3,7 @@ import { format, subDays } from "date-fns";
 import { Megaphone, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { ActiveCampaignsGrid } from "./ActiveCampaignsGrid";
 
 interface Props {
   territoryId: string | null;
