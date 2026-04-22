@@ -10,6 +10,10 @@ import {
   Package,
   Clock,
   CheckCircle2,
+  XCircle,
+  Sparkles,
+  Boxes,
+  GraduationCap,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -43,10 +47,21 @@ export function FranchiseeDashboard({
   status,
 }: Props) {
   const since = React.useMemo(() => subMonths(new Date(), 5), []);
-  const sinceISO = since.toISOString();
   const since6mStart = startOfMonth(since).toISOString().slice(0, 10);
 
-  // Revenue entries (academy fees, dark store, etc. attributed to franchisee)
+  // Full franchisee record for spec/equipment fields
+  const { data: franchisee } = useQuery({
+    queryKey: ["fr-dash-record", franchiseeId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("franchisees")
+        .select("*")
+        .eq("id", franchiseeId)
+        .maybeSingle();
+      return data;
+    },
+  });
+
   const { data: revenue = [] } = useQuery({
     queryKey: ["fr-dash-revenue", franchiseeId],
     queryFn: async () => {
@@ -60,7 +75,6 @@ export function FranchiseeDashboard({
     },
   });
 
-  // POS / sales orders for this franchisee
   const { data: orders = [] } = useQuery({
     queryKey: ["fr-dash-orders", franchiseeId],
     queryFn: async () => {
@@ -74,7 +88,6 @@ export function FranchiseeDashboard({
     },
   });
 
-  // Expenses booked against this franchisee
   const { data: expenses = [] } = useQuery({
     queryKey: ["fr-dash-expenses", franchiseeId],
     queryFn: async () => {
@@ -88,7 +101,6 @@ export function FranchiseeDashboard({
     },
   });
 
-  // ROI payouts
   const { data: payouts = [] } = useQuery({
     queryKey: ["fr-dash-payouts", franchiseeId],
     queryFn: async () => {
@@ -101,7 +113,22 @@ export function FranchiseeDashboard({
     },
   });
 
-  // Aggregate metrics
+  // Inventory snapshot — only when franchisee has a linked warehouse
+  const warehouseId = franchisee?.warehouse_id ?? null;
+  const { data: stockRows = [] } = useQuery({
+    queryKey: ["fr-dash-stock", warehouseId],
+    enabled: !!warehouseId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("stock_levels")
+        .select("quantity, products!inner(id, name, sku, low_stock_threshold)")
+        .eq("warehouse_id", warehouseId!)
+        .order("quantity", { ascending: true })
+        .limit(50);
+      return (data ?? []) as any[];
+    },
+  });
+
   const totalRevenue = revenue.reduce((s, r) => s + Number(r.amount), 0);
   const completedOrders = orders.filter((o) => o.status === "completed");
   const grossSales = completedOrders.reduce((s, o) => s + Number(o.grand_total), 0);
@@ -110,7 +137,6 @@ export function FranchiseeDashboard({
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
   const pendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
 
-  // Current month KPIs
   const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
   const monthEnd = endOfMonth(new Date()).toISOString().slice(0, 10);
   const monthRevenue = revenue
@@ -121,11 +147,38 @@ export function FranchiseeDashboard({
     return d >= monthStart && d <= monthEnd && o.status === "completed";
   });
   const monthGross = monthOrders.reduce((s, o) => s + Number(o.grand_total), 0);
+  const monthExpenses = expenses
+    .filter((e) => e.expense_date >= monthStart && e.expense_date <= monthEnd)
+    .reduce((s, e) => s + Number(e.amount), 0);
+  const monthRoiPaid = payouts
+    .filter((p) => p.status === "paid" && p.paid_at && p.paid_at.slice(0, 10) >= monthStart && p.paid_at.slice(0, 10) <= monthEnd)
+    .reduce((s, p) => s + Number(p.total_amount), 0);
 
-  // ROI yield (lifetime paid / investment)
+  const monthPL = monthRevenue + monthGross - monthExpenses - monthRoiPaid;
+  const lifetimePL = totalRevenue + grossSales - totalExpenses - lifetimePaid;
+
   const roiYieldPct = investment > 0 ? (lifetimePaid / investment) * 100 : 0;
 
-  // Build 6-month series
+  // ROI structure pulled from franchisee record (with sensible defaults)
+  const fee = Number(franchisee?.franchise_fee ?? 500000);
+  const baseRoiPct = Number(franchisee?.base_roi_pct ?? 3);
+  const emporiumPct = Number(franchisee?.emporium_pct ?? 10);
+  const academyPct = Number(franchisee?.academy_pct ?? 3);
+  const darkPct = Number(franchisee?.dark_store_pct ?? 3);
+
+  // Equipment compliance
+  const equipment = [
+    { label: "Area ≥ 150 sq ft", ok: Number(franchisee?.area_sqft ?? 0) >= 150, value: franchisee?.area_sqft ? `${franchisee.area_sqft} sq ft` : "—" },
+    { label: "Chairs (≥ 2)", ok: Number(franchisee?.chairs ?? 0) >= 2, value: String(franchisee?.chairs ?? 0) },
+    { label: "Table (≥ 1)", ok: Number(franchisee?.tables_count ?? 0) >= 1, value: String(franchisee?.tables_count ?? 0) },
+    { label: "CCTV camera (≥ 1)", ok: Number(franchisee?.cctv_count ?? 0) >= 1, value: String(franchisee?.cctv_count ?? 0) },
+    { label: "Computer (≥ 1)", ok: Number(franchisee?.computer_count ?? 0) >= 1, value: String(franchisee?.computer_count ?? 0) },
+    { label: "Printer (≥ 1)", ok: Number(franchisee?.printer_count ?? 0) >= 1, value: String(franchisee?.printer_count ?? 0) },
+  ];
+  const compliantCount = equipment.filter((e) => e.ok).length;
+  const fullyCompliant = compliantCount === equipment.length;
+
+  // 6-month series
   const months = React.useMemo(() => {
     const arr: { key: string; label: string }[] = [];
     for (let i = 5; i >= 0; i--) {
@@ -148,7 +201,6 @@ export function FranchiseeDashboard({
     return { month: m.label, revenue: rev, sales, expenses: exp };
   });
 
-  // Source breakdown for revenue
   const sourceBreakdown = React.useMemo(() => {
     const map = new Map<string, number>();
     revenue.forEach((r) => {
@@ -179,36 +231,57 @@ export function FranchiseeDashboard({
         </div>
       </div>
 
+      {/* ROI Structure card */}
+      <div className="rounded-2xl glass p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">Your ROI structure</h3>
+          </div>
+          <Badge variant="outline" className="border-gold/40 text-gold">
+            Fee {formatINRCompact(fee)}
+          </Badge>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <RoiTile label="Base monthly ROI" value={`${baseRoiPct}%`} hint="Fixed every month" />
+          <RoiTile label="Nail Emporium incentive" value={`${emporiumPct}%`} hint="On Emporium sales" />
+          <RoiTile label="Academy incentive" value={`${academyPct}%`} hint="On batch fees" />
+          <RoiTile label="Mall of Salon Dark Store" value={`${darkPct}%`} hint="On dark store sales" />
+        </div>
+      </div>
+
       {/* KPIs */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          label="This month revenue"
-          value={formatINRCompact(monthRevenue + monthGross)}
-          icon={TrendingUp}
-          hint={`${monthOrders.length} orders`}
-          delay={0}
-        />
-        <KpiCard
-          label="Lifetime ROI paid"
-          value={formatINRCompact(lifetimePaid)}
-          icon={Wallet}
-          hint={`${payouts.filter((p) => p.status === "paid").length} payouts`}
-          delay={0.05}
-        />
-        <KpiCard
-          label="Pending payouts"
-          value={formatINRCompact(pendingPayout)}
-          icon={Clock}
-          hint={`${payouts.filter((p) => p.status === "pending").length} pending`}
-          delay={0.1}
-        />
-        <KpiCard
-          label="Total POS sales"
-          value={formatINRCompact(grossSales)}
-          icon={ShoppingCart}
-          hint={`${completedOrders.length} completed`}
-          delay={0.15}
-        />
+        <KpiCard label="This month revenue" value={formatINRCompact(monthRevenue + monthGross)} icon={TrendingUp} hint={`${monthOrders.length} orders`} delay={0} />
+        <KpiCard label="Lifetime ROI paid" value={formatINRCompact(lifetimePaid)} icon={Wallet} hint={`${payouts.filter((p) => p.status === "paid").length} payouts`} delay={0.05} />
+        <KpiCard label="Pending payouts" value={formatINRCompact(pendingPayout)} icon={Clock} hint={`${payouts.filter((p) => p.status === "pending").length} pending`} delay={0.1} />
+        <KpiCard label="Total POS sales" value={formatINRCompact(grossSales)} icon={ShoppingCart} hint={`${completedOrders.length} completed`} delay={0.15} />
+      </div>
+
+      {/* P&L block */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="rounded-2xl glass p-6">
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">This month P&amp;L</div>
+          <div className={`mt-2 font-display text-4xl ${monthPL >= 0 ? "text-gradient-gold" : "text-rose-400"}`}>
+            {monthPL >= 0 ? "+" : ""}{formatINRCompact(monthPL)}
+          </div>
+          <div className="mt-4 space-y-1.5 text-sm">
+            <PLRow label="Revenue + POS" value={formatINRCompact(monthRevenue + monthGross)} positive />
+            <PLRow label="− Expenses" value={formatINRCompact(monthExpenses)} />
+            <PLRow label="− ROI paid out" value={formatINRCompact(monthRoiPaid)} />
+          </div>
+        </div>
+        <div className="rounded-2xl glass p-6">
+          <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Lifetime P&amp;L</div>
+          <div className={`mt-2 font-display text-4xl ${lifetimePL >= 0 ? "text-gradient-gold" : "text-rose-400"}`}>
+            {lifetimePL >= 0 ? "+" : ""}{formatINRCompact(lifetimePL)}
+          </div>
+          <div className="mt-4 space-y-1.5 text-sm">
+            <PLRow label="Revenue + POS" value={formatINRCompact(totalRevenue + grossSales)} positive />
+            <PLRow label="− Expenses" value={formatINRCompact(totalExpenses)} />
+            <PLRow label="− ROI paid out" value={formatINRCompact(lifetimePaid)} />
+          </div>
+        </div>
       </div>
 
       {/* Charts */}
@@ -252,9 +325,7 @@ export function FranchiseeDashboard({
             <Receipt className="h-4 w-4 text-gold" />
           </div>
           {sourceBreakdown.length === 0 ? (
-            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">
-              No revenue recorded yet.
-            </div>
+            <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">No revenue recorded yet.</div>
           ) : (
             <div className="h-[220px]">
               <ResponsiveContainer width="100%" height="100%">
@@ -269,6 +340,80 @@ export function FranchiseeDashboard({
                   <Bar dataKey="amount" fill="#c9a84c" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Equipment compliance + Inventory snapshot */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Package className="h-4 w-4 text-gold" />
+              <h3 className="font-display text-lg">Equipment & premises</h3>
+            </div>
+            <Badge
+              variant="outline"
+              className={fullyCompliant ? "border-emerald-500/40 text-emerald-400" : "border-amber-500/40 text-amber-400"}
+            >
+              {compliantCount}/{equipment.length} compliant
+            </Badge>
+          </div>
+          <div className="space-y-2">
+            {equipment.map((e) => (
+              <div key={e.label} className="flex items-center justify-between rounded-lg bg-background/40 px-3 py-2 text-sm">
+                <div className="flex items-center gap-2">
+                  {e.ok ? (
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-rose-400" />
+                  )}
+                  <span>{e.label}</span>
+                </div>
+                <span className="text-muted-foreground">{e.value}</span>
+              </div>
+            ))}
+          </div>
+          {franchisee?.equipment_verified && franchisee?.equipment_verified_at && (
+            <div className="mt-3 text-xs text-emerald-400">
+              ✓ Verified by admin on {format(new Date(franchisee.equipment_verified_at), "dd MMM yyyy")}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Boxes className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">Dark store inventory</h3>
+          </div>
+          {!warehouseId ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No warehouse linked yet. Ask admin to assign your dark store.
+            </p>
+          ) : stockRows.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No stock recorded yet.</p>
+          ) : (
+            <div className="max-h-[280px] space-y-1.5 overflow-y-auto pr-1">
+              {stockRows.map((row, i) => {
+                const p = row.products;
+                const qty = Number(row.quantity);
+                const low = qty <= Number(p?.low_stock_threshold ?? 0);
+                return (
+                  <div key={i} className="flex items-center justify-between rounded-lg bg-background/40 px-3 py-2 text-sm">
+                    <div>
+                      <div className="font-medium">{p?.name ?? "—"}</div>
+                      <div className="text-xs text-muted-foreground">{p?.sku ?? ""}</div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className={low ? "border-rose-500/40 text-rose-400" : "border-emerald-500/40 text-emerald-400"}
+                    >
+                      {qty} {low ? "· low" : ""}
+                    </Badge>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
@@ -308,7 +453,7 @@ export function FranchiseeDashboard({
             <Row label="Pending payouts" value={formatINRCompact(pendingPayout)} />
             <Row
               label="Net (rev − exp − ROI)"
-              value={formatINRCompact(totalRevenue + grossSales - totalExpenses - lifetimePaid)}
+              value={formatINRCompact(lifetimePL)}
               accent
             />
           </div>
@@ -424,6 +569,25 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{label}</span>
       <span className={accent ? "font-display text-gold" : "font-medium"}>{value}</span>
+    </div>
+  );
+}
+
+function PLRow({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={positive ? "font-medium text-emerald-400" : "font-medium"}>{value}</span>
+    </div>
+  );
+}
+
+function RoiTile({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <div className="rounded-xl bg-background/40 p-4">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-1 font-display text-3xl text-gradient-gold">{value}</div>
+      <div className="mt-1 text-[11px] text-muted-foreground">{hint}</div>
     </div>
   );
 }

@@ -630,51 +630,134 @@ export type Database = {
           },
         ]
       }
+      franchisee_credentials: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delivered: boolean
+          delivered_at: string | null
+          franchisee_id: string
+          id: string
+          login_email: string
+          temp_password: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delivered?: boolean
+          delivered_at?: string | null
+          franchisee_id: string
+          id?: string
+          login_email: string
+          temp_password: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delivered?: boolean
+          delivered_at?: string | null
+          franchisee_id?: string
+          id?: string
+          login_email?: string
+          temp_password?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchisee_credentials_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       franchisees: {
         Row: {
+          academy_pct: number
           agreement_url: string | null
+          area_sqft: number | null
+          base_roi_pct: number
+          cctv_count: number
+          chairs: number
+          computer_count: number
           created_at: string
+          dark_store_pct: number
           email: string | null
+          emporium_pct: number
+          equipment_verified: boolean
+          equipment_verified_at: string | null
+          franchise_fee: number
           full_name: string
           id: string
           investment_amount: number
           joined_at: string
           notes: string | null
           phone: string | null
+          printer_count: number
           status: Database["public"]["Enums"]["franchisee_status"]
+          tables_count: number
           territory_id: string | null
           updated_at: string
           user_id: string | null
+          warehouse_id: string | null
         }
         Insert: {
+          academy_pct?: number
           agreement_url?: string | null
+          area_sqft?: number | null
+          base_roi_pct?: number
+          cctv_count?: number
+          chairs?: number
+          computer_count?: number
           created_at?: string
+          dark_store_pct?: number
           email?: string | null
+          emporium_pct?: number
+          equipment_verified?: boolean
+          equipment_verified_at?: string | null
+          franchise_fee?: number
           full_name: string
           id?: string
           investment_amount?: number
           joined_at?: string
           notes?: string | null
           phone?: string | null
+          printer_count?: number
           status?: Database["public"]["Enums"]["franchisee_status"]
+          tables_count?: number
           territory_id?: string | null
           updated_at?: string
           user_id?: string | null
+          warehouse_id?: string | null
         }
         Update: {
+          academy_pct?: number
           agreement_url?: string | null
+          area_sqft?: number | null
+          base_roi_pct?: number
+          cctv_count?: number
+          chairs?: number
+          computer_count?: number
           created_at?: string
+          dark_store_pct?: number
           email?: string | null
+          emporium_pct?: number
+          equipment_verified?: boolean
+          equipment_verified_at?: string | null
+          franchise_fee?: number
           full_name?: string
           id?: string
           investment_amount?: number
           joined_at?: string
           notes?: string | null
           phone?: string | null
+          printer_count?: number
           status?: Database["public"]["Enums"]["franchisee_status"]
+          tables_count?: number
           territory_id?: string | null
           updated_at?: string
           user_id?: string | null
+          warehouse_id?: string | null
         }
         Relationships: [
           {
@@ -682,6 +765,13 @@ export type Database = {
             columns: ["territory_id"]
             isOneToOne: false
             referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "franchisees_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
