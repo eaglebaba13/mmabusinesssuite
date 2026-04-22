@@ -50,6 +50,10 @@ const NAV_WEBINARS = [
   { title: "Webinars", url: "/app/webinars" as const, icon: Megaphone },
 ] as const;
 
+const NAV_POS = [
+  { title: "POS / Billing", url: "/app/pos" as const, icon: ShoppingCart },
+] as const;
+
 const NAV_TRAINER = [
   { title: "Trainer Portal", url: "/app/trainer" as const, icon: UserCog },
 ] as const;
