@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { formatINR } from "@/lib/format";
+import { ExportBar } from "@/components/app/ExportBar";
+import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/finance/revenue")({
   component: RevenuePage,
@@ -69,7 +71,35 @@ function RevenuePage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const total = (list.data ?? []).reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0);
+  const [range, setRange] = React.useState(defaultDateRange());
+  const filtered = React.useMemo(
+    () => (list.data ?? []).filter((r: any) => inDateRange(r.received_on, range.from, range.to)),
+    [list.data, range],
+  );
+  const total = filtered.reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0);
+
+  const exportCols = [
+    { header: "Date", accessor: (r: any) => new Date(r.received_on).toLocaleDateString("en-IN") },
+    { header: "Source", accessor: (r: any) => r.source.replace("_", " ") },
+    { header: "Description", accessor: (r: any) => r.source_label ?? "" },
+    { header: "Reference", accessor: (r: any) => r.reference ?? "" },
+    { header: "Amount (INR)", accessor: (r: any) => Number(r.amount ?? 0).toFixed(2) },
+    { header: "Notes", accessor: (r: any) => r.notes ?? "" },
+  ];
+  const fileBase = `revenue_${range.from}_to_${range.to}`;
+  const handleCSV = () => exportToCSV(fileBase, filtered, exportCols);
+  const handlePDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "Revenue Ledger",
+      subtitle: `${range.from} → ${range.to}`,
+      rows: filtered,
+      columns: exportCols,
+      totals: [
+        { label: "Entries", value: String(filtered.length) },
+        { label: "Total Revenue", value: formatINR(total) },
+      ],
+    });
 
   return (
     <div className="space-y-5">
@@ -77,7 +107,7 @@ function RevenuePage() {
         <div>
           <h2 className="font-display text-xl">Revenue Ledger</h2>
           <p className="text-xs text-muted-foreground">
-            {list.data?.length ?? 0} entries · Total {formatINR(total)}
+            {filtered.length} entries in range · Total {formatINR(total)}
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -128,9 +158,19 @@ function RevenuePage() {
         </Dialog>
       </div>
 
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={handleCSV}
+        onPDF={handlePDF}
+        count={filtered.length}
+      />
+
       <Card className="glass">
         <div className="divide-y divide-border/50">
-          {(list.data ?? []).map((r: any) => (
+          {filtered.map((r: any) => (
             <div key={r.id} className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
@@ -150,8 +190,10 @@ function RevenuePage() {
               </div>
             </div>
           ))}
-          {!list.data?.length && (
-            <div className="p-8 text-center text-sm text-muted-foreground">No revenue entries yet. Click "Add Revenue" to begin.</div>
+          {!filtered.length && (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {list.data?.length ? "No entries in selected date range." : "No revenue entries yet. Click \"Add Revenue\" to begin."}
+            </div>
           )}
         </div>
       </Card>
