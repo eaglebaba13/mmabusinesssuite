@@ -52,6 +52,51 @@ export type InvoicePdfInput = {
   notes?: string | null;
 };
 
+// GSTIN format: 2-digit state code + 10-char PAN + 1 entity + "Z" + 1 check
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+export function isValidGSTIN(g?: string | null): boolean {
+  if (!g) return false;
+  return GSTIN_REGEX.test(g.trim().toUpperCase());
+}
+
+export function gstinStateCode(g?: string | null): string | null {
+  if (!isValidGSTIN(g)) return null;
+  return g!.trim().substring(0, 2);
+}
+
+// Indian state code → state name (for cross-checking party.state vs GSTIN)
+const STATE_CODE_TO_NAME: Record<string, string> = {
+  "01": "Jammu and Kashmir", "02": "Himachal Pradesh", "03": "Punjab",
+  "04": "Chandigarh", "05": "Uttarakhand", "06": "Haryana", "07": "Delhi",
+  "08": "Rajasthan", "09": "Uttar Pradesh", "10": "Bihar", "11": "Sikkim",
+  "12": "Arunachal Pradesh", "13": "Nagaland", "14": "Manipur", "15": "Mizoram",
+  "16": "Tripura", "17": "Meghalaya", "18": "Assam", "19": "West Bengal",
+  "20": "Jharkhand", "21": "Odisha", "22": "Chhattisgarh", "23": "Madhya Pradesh",
+  "24": "Gujarat", "26": "Dadra and Nagar Haveli and Daman and Diu",
+  "27": "Maharashtra", "29": "Karnataka", "30": "Goa", "31": "Lakshadweep",
+  "32": "Kerala", "33": "Tamil Nadu", "34": "Puducherry", "35": "Andaman and Nicobar Islands",
+  "36": "Telangana", "37": "Andhra Pradesh", "38": "Ladakh",
+};
+
+export function stateNameFromGSTIN(g?: string | null): string | null {
+  const code = gstinStateCode(g);
+  return code ? (STATE_CODE_TO_NAME[code] ?? null) : null;
+}
+
+export type InvoiceValidation = {
+  buyerGstinMissing: boolean;
+  buyerGstinInvalid: boolean;
+  sellerGstinMissing: boolean;
+  sellerGstinInvalid: boolean;
+  buyerStateMissing: boolean;
+  sellerStateMissing: boolean;
+  stateMismatch: boolean; // GSTIN state code ≠ party.state
+  isInterState: boolean;
+  taxModeMismatch: boolean; // intra-state but IGST charged, or inter-state but CGST/SGST charged
+  missingHsnRows: number[]; // 1-indexed item rows missing HSN
+};
+
 const fmtINR = (n: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
