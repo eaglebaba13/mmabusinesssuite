@@ -1,103 +1,102 @@
 
-# MMA Business Suite — Phase 1 (Approved Build Plan)
 
-Building the luxury Noir & Gold foundation: marketing site + auth + Master Dashboard + Lead CRM + Franchisee module, with real Lovable Cloud backend and seeded demo data.
+## Problem
 
-## Design system
-- **Palette:** Black `#0d0d0d`, charcoal `#1a1a1a`, gold `#c9a84c`, soft gold `#f0d78c`, ivory text `#f5f3ee`
-- **Typography:** Playfair Display (headings) + Inter (body)
-- **Style:** Glassmorphism cards, gold hairline borders, subtle gold glow on hover, smooth Framer Motion transitions, dark-first
-- **Components:** Premium KPI cards, Recharts for graphs, shadcn data tables, Kanban via dnd-kit
+Your app has no UI to assign roles. Roles only get inserted via SQL migrations, so any new signup (like `remedystore01@gmail.com`) lands with whatever default role the trigger gives them (currently `sales`) and the sidebar hides Academy / Inventory / Finance / Webinars / etc.
 
-## Routes (TanStack file-based, each with own head/meta)
+Current state in DB:
+- `lwillshivansh@gmail.com` → `super_admin` ✅
+- `vikas@mallofsalon.com` → `sales`
+- `remedystore01@gmail.com` → `sales` ← this is you
+
+## Solution — Two parts
+
+### Part 1: Immediate fix (one-click)
+Promote `remedystore01@gmail.com` to `super_admin` via a migration so you can see and manage everything right now.
+
+### Part 2: Build a proper "Team & Roles" admin UI
+Add a new section inside **Settings** (visible only to `super_admin` / `founder`) where admins can:
+
+1. **List all users** — full name, email, current roles, joined date
+2. **Assign / revoke roles** — multi-select chips for the 13 app roles (`super_admin`, `founder`, `franchisee`, `sales`, `accounts`, `inventory`, `academy_admin`, `webinar`, `hr`, `white_label`, `trainer`, `support`, `package_sales`)
+3. **Search & filter** by name / email / role
+4. **Safety guards**:
+   - Cannot revoke your own `super_admin` role (prevents lockout)
+   - Confirmation dialog before granting `super_admin` / `founder`
+   - Toast feedback on every action
+
+### Where it lives
+New route: `/app/settings/team` (child of existing `app.settings.tsx` layout) with a tab switcher at the top of Settings → **Profile | Workspace | Team & Roles**.
+
+Sidebar entry stays under "Settings" — no new top-level item needed.
+
+## Technical Details
+
+**Migration (one file):**
+```sql
+-- 1. Promote remedystore01 to super_admin (idempotent)
+insert into public.user_roles (user_id, role)
+select id, 'super_admin'::app_role from auth.users
+where email = 'remedystore01@gmail.com'
+on conflict (user_id, role) do nothing;
+
+-- 2. Admin RPCs (SECURITY DEFINER, gated by has_role check)
+create or replace function public.admin_list_users()
+returns table(id uuid, email text, full_name text, phone text,
+              created_at timestamptz, roles app_role[])
+language plpgsql security definer set search_path = public as $$
+begin
+  if not (has_role(auth.uid(),'super_admin') or has_role(auth.uid(),'founder')) then
+    raise exception 'Forbidden';
+  end if;
+  return query
+    select p.id, p.email, p.full_name, p.phone, p.created_at,
+           coalesce(array_agg(ur.role) filter (where ur.role is not null), '{}')
+    from public.profiles p
+    left join public.user_roles ur on ur.user_id = p.id
+    group by p.id order by p.created_at desc;
+end$$;
+
+create or replace function public.admin_grant_role(_user_id uuid, _role app_role)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not (has_role(auth.uid(),'super_admin') or has_role(auth.uid(),'founder')) then
+    raise exception 'Forbidden';
+  end if;
+  insert into public.user_roles(user_id, role) values (_user_id, _role)
+  on conflict do nothing;
+end$$;
+
+create or replace function public.admin_revoke_role(_user_id uuid, _role app_role)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not (has_role(auth.uid(),'super_admin') or has_role(auth.uid(),'founder')) then
+    raise exception 'Forbidden';
+  end if;
+  -- prevent self-lockout
+  if _user_id = auth.uid() and _role = 'super_admin' then
+    raise exception 'Cannot revoke your own super_admin role';
+  end if;
+  delete from public.user_roles where user_id=_user_id and role=_role;
+end$$;
 ```
-/                    Landing page (hero, modules, social proof, CTA)
-/pricing             3 tiers — Starter / Growth / Enterprise White-Label
-/login               Email + password
-/signup              Account creation
-/app                 Authenticated layout (sidebar + topbar + Outlet)
-/app/dashboard       Master Dashboard (KPIs, charts, leaderboard)
-/app/leads           Lead CRM (table + Kanban toggle)
-/app/leads/$leadId   Lead detail drawer/page
-/app/franchisees     Franchisee directory
-/app/franchisees/$id Franchisee profile + ROI ledger
-/app/my-franchise    Franchisee's own dashboard (when logged in as franchisee)
-/app/settings        Org info, profile, branding placeholders
-/app/support         Tickets list
-```
 
-## Database (Lovable Cloud + RLS on every table)
-- `profiles` — links to `auth.users`, basic user info
-- `app_role` enum: `super_admin`, `founder`, `franchisee`, `sales`, `accounts`, `inventory`, `academy_admin`, `webinar`, `hr`, `white_label`, `trainer`, `support`, `package_sales`
-- `user_roles` + `has_role(uuid, app_role)` security-definer function
-- `audit_logs` — all sensitive actions
-- `territories` — state/region
-- `leads` — contact, source, stage, score, assigned_to, territory_id
-- `lead_activities` — notes, calls, status changes, followup reminders
-- `franchisees` — investor info, fee, join date, territory, status
-- `roi_payouts` — month, base ROI 3%, incentives breakdown, status
-- `incentives` — emporium 10% / academy 3% / dark store 3%
-- `documents` — agreements, KYC (Cloud Storage)
-- `tickets` + `ticket_messages`
-- `notifications`
-- `org_settings` — single row, branding placeholders
+**Frontend files:**
+- **Edit** `src/routes/app.settings.tsx` → convert into a tab layout with `Outlet` (Profile / Workspace / Team)
+- **Create** `src/routes/app.settings.index.tsx` → existing Profile + Workspace content
+- **Create** `src/routes/app.settings.team.tsx` → new Team & Roles page (admin-gated, redirects non-admins)
 
-RLS: super_admin/founder see all; franchisees see only their own rows; sales sees assigned leads; etc.
+**Team page UX:**
+- Table: Avatar | Name + Email | Current roles (badges) | Joined | Actions
+- Click any user → side sheet with multi-select role checkboxes + Save
+- Search box at top, role filter dropdown
+- Empty state if no other users yet
 
-## Module details
+**Files unchanged:** Sidebar (Settings link already there), all other modules.
 
-### Landing page
-Hero with gold-on-black headline, animated KPI strip, business model cards (Franchise / Academy / Emporium / Webinar / White Label), testimonial quotes, pricing teaser, CTA. Replaces placeholder index.
+## Outcome
 
-### Auth
-- Lovable Cloud email+password
-- Auto-create profile via trigger
-- After signup: assigns default role
-- Super admin can change roles in Settings
+After this turn:
+1. You log in as `remedystore01@gmail.com` and immediately see every section in the sidebar.
+2. Go to **Settings → Team & Roles** to grant/revoke any role for any user from the UI — no more SQL needed.
 
-### Master Dashboard
-KPI cards: Total Revenue, MRR, Franchise Fees, Total Leads, Closing Ratio, Net Profit, Active Franchisees, Pending ROI Payouts.
-Charts: Monthly revenue line, sales-by-source donut, state-wise bar, sales-team leaderboard table.
-All driven by real seeded data via TanStack Query.
-
-### Lead CRM
-- Table view (sortable, filterable, search) + Kanban view toggle
-- Pipeline: New → Interested → Followup → Hot → Payment Pending → Closed → Lost
-- Drag-to-move stages (writes to DB)
-- Add/edit lead modal, CSV import (client-side parse)
-- Lead detail: timeline, notes, followup scheduler, activity log
-- AI lead score column (Lovable AI Gateway, on-demand button per lead)
-- Source tracking, territory & rep assignment
-
-### Franchisee module
-- Directory with status, territory, investment, lifetime ROI paid
-- Profile page: investment ledger, monthly ROI history, incentives breakdown, documents vault, tickets
-- "Mark payout done" action for accounts role
-- Franchisee self-view (`/app/my-franchise`): same data scoped to themselves via RLS
-
-### Shared chrome
-- Collapsible luxury sidebar (gold accent on active route)
-- Topbar: global search, notifications bell, profile menu, theme toggle
-- Toaster for actions
-- Role-aware nav (hides modules user can't access)
-
-## Seed data
-- 1 super admin (uses signup), 2 founders, 5 sales reps, 8 franchisees, 3 accounts users
-- 200 leads across all stages, 6 sources, 12 territories
-- 8 franchisees with 6 months of ROI history + incentives
-- 15 sample tickets, 30 notifications
-
-## Tech notes
-- TanStack Start routes with per-route `head()` meta
-- TanStack Query for all data fetching, QueryClient via router context
-- Framer Motion for page transitions and card hovers
-- Recharts for all graphs styled to gold/dark theme
-- dnd-kit for Kanban
-- Zod for form validation, react-hook-form for forms
-- Every loader route gets `errorComponent` + `notFoundComponent`
-
-## Out of scope (Phase 2/3)
-Academy, Inventory, Finance, Webinar, HR, white-label multi-tenancy, Razorpay/WhatsApp/Meta/Zoom integrations, full automation engine, AI Suite (beyond lead scoring), super-admin impersonation, landing page builder.
-
-## Done criteria
-Sign up → land on luxury dashboard with real KPIs → manage 200 seeded leads via Kanban → onboard a franchisee → log out, log back in as that franchisee → see scoped ROI dashboard. Looks like a ₹100Cr product.
