@@ -50,6 +50,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "MMA Business Suite — Enterprise CRM, ERP & Franchise OS" },
+      { name: "description", content: "Luxe Salon Suite is an enterprise-grade SaaS platform automating multi-business operations." },
+      { property: "og:description", content: "Luxe Salon Suite is an enterprise-grade SaaS platform automating multi-business operations." },
+      { name: "twitter:description", content: "Luxe Salon Suite is an enterprise-grade SaaS platform automating multi-business operations." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bd964fd4-f091-4808-99bd-3e204ec75b0f/id-preview-197ffddc--c6e00624-2a00-4902-b083-04207782db49.lovable.app-1776854167490.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/bd964fd4-f091-4808-99bd-3e204ec75b0f/id-preview-197ffddc--c6e00624-2a00-4902-b083-04207782db49.lovable.app-1776854167490.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
