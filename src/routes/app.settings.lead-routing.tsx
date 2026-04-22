@@ -570,7 +570,7 @@ function LeadRoutingPage() {
                 <div>
                   <Label className="text-xs">Franchisee</Label>
                   <Select
-                    value={draft.assign_franchisee_id ?? ""}
+                    value={draft.assign_franchisee_id ?? "__none__"}
                     onValueChange={(v) =>
                       setDraft({ ...draft, assign_franchisee_id: v === "__none__" ? null : v })
                     }
@@ -591,7 +591,7 @@ function LeadRoutingPage() {
                 <div>
                   <Label className="text-xs">Initial stage</Label>
                   <Select
-                    value={draft.set_stage ?? ""}
+                    value={draft.set_stage ?? "__default__"}
                     onValueChange={(v) => setDraft({ ...draft, set_stage: v === "__default__" ? null : v })}
                   >
                     <SelectTrigger className="mt-1.5">
