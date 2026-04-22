@@ -1,7 +1,19 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createMiddleware } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { supabase as browserSupabase } from "@/integrations/supabase/client";
+
+// Forwards the user's access token to the server so requireSupabaseAuth can read it.
+const forwardAuthHeader = createMiddleware({ type: "function" }).client(
+  async ({ next }) => {
+    const { data } = await browserSupabase.auth.getSession();
+    const token = data.session?.access_token;
+    return next({
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+);
 
 const Input = z.object({
   franchisee_id: z.string().uuid(),
@@ -11,7 +23,7 @@ const Input = z.object({
 });
 
 export const createFranchiseeUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([forwardAuthHeader, requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data, context }) => {
     // Verify caller is admin/founder
