@@ -31,9 +31,12 @@ const ALL_ROLES: AppRole[] = [
   "academy_admin", "webinar", "hr", "white_label", "trainer", "support", "package_sales",
 ];
 
+// Roles visible in the UI (super_admin is hidden from selection & filters)
+const VISIBLE_ROLES: AppRole[] = ALL_ROLES.filter((r) => r !== "super_admin");
+
 const ROLE_LABELS: Record<AppRole, string> = {
   super_admin: "Super Admin",
-  founder: "Founder",
+  founder: "Admin",
   franchisee: "Franchisee",
   sales: "Sales",
   accounts: "Accounts",
