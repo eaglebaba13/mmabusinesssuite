@@ -24,6 +24,7 @@ import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppInventoryRouteImport } from './routes/app.inventory'
+import { Route as AppHrRouteImport } from './routes/app.hr'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
@@ -31,6 +32,7 @@ import { Route as AppAcademyRouteImport } from './routes/app.academy'
 import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
+import { Route as AppHrIndexRouteImport } from './routes/app.hr.index'
 import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
@@ -44,6 +46,10 @@ import { Route as AppInventoryPurchaseOrdersRouteImport } from './routes/app.inv
 import { Route as AppInventoryProductsRouteImport } from './routes/app.inventory.products'
 import { Route as AppInventoryMovementsRouteImport } from './routes/app.inventory.movements'
 import { Route as AppInventoryCategoriesRouteImport } from './routes/app.inventory.categories'
+import { Route as AppHrPayrollRouteImport } from './routes/app.hr.payroll'
+import { Route as AppHrLeaveRouteImport } from './routes/app.hr.leave'
+import { Route as AppHrEmployeesRouteImport } from './routes/app.hr.employees'
+import { Route as AppHrAttendanceRouteImport } from './routes/app.hr.attendance'
 import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
 import { Route as AppFinanceRevenueRouteImport } from './routes/app.finance.revenue'
 import { Route as AppFinancePayoutsRouteImport } from './routes/app.finance.payouts'
@@ -134,6 +140,11 @@ const AppInventoryRoute = AppInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AppRoute,
 } as any)
+const AppHrRoute = AppHrRouteImport.update({
+  id: '/hr',
+  path: '/hr',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
   id: '/franchisees',
   path: '/franchisees',
@@ -168,6 +179,11 @@ const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppHrIndexRoute = AppHrIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppHrRoute,
 } as any)
 const AppFinanceIndexRoute = AppFinanceIndexRouteImport.update({
   id: '/',
@@ -234,6 +250,26 @@ const AppInventoryCategoriesRoute = AppInventoryCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
   getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppHrPayrollRoute = AppHrPayrollRouteImport.update({
+  id: '/payroll',
+  path: '/payroll',
+  getParentRoute: () => AppHrRoute,
+} as any)
+const AppHrLeaveRoute = AppHrLeaveRouteImport.update({
+  id: '/leave',
+  path: '/leave',
+  getParentRoute: () => AppHrRoute,
+} as any)
+const AppHrEmployeesRoute = AppHrEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => AppHrRoute,
+} as any)
+const AppHrAttendanceRoute = AppHrAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AppHrRoute,
 } as any)
 const AppFranchiseesFranchiseeIdRoute =
   AppFranchiseesFranchiseeIdRouteImport.update({
@@ -320,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/hr': typeof AppHrRouteWithChildren
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
@@ -343,6 +380,10 @@ export interface FileRoutesByFullPath {
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
   '/app/finance/revenue': typeof AppFinanceRevenueRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/hr/attendance': typeof AppHrAttendanceRoute
+  '/app/hr/employees': typeof AppHrEmployeesRoute
+  '/app/hr/leave': typeof AppHrLeaveRoute
+  '/app/hr/payroll': typeof AppHrPayrollRoute
   '/app/inventory/categories': typeof AppInventoryCategoriesRoute
   '/app/inventory/movements': typeof AppInventoryMovementsRoute
   '/app/inventory/products': typeof AppInventoryProductsRoute
@@ -356,6 +397,7 @@ export interface FileRoutesByFullPath {
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
+  '/app/hr/': typeof AppHrIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
@@ -388,6 +430,10 @@ export interface FileRoutesByTo {
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
   '/app/finance/revenue': typeof AppFinanceRevenueRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/hr/attendance': typeof AppHrAttendanceRoute
+  '/app/hr/employees': typeof AppHrEmployeesRoute
+  '/app/hr/leave': typeof AppHrLeaveRoute
+  '/app/hr/payroll': typeof AppHrPayrollRoute
   '/app/inventory/categories': typeof AppInventoryCategoriesRoute
   '/app/inventory/movements': typeof AppInventoryMovementsRoute
   '/app/inventory/products': typeof AppInventoryProductsRoute
@@ -401,6 +447,7 @@ export interface FileRoutesByTo {
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy': typeof AppAcademyIndexRoute
   '/app/finance': typeof AppFinanceIndexRoute
+  '/app/hr': typeof AppHrIndexRoute
   '/app/inventory': typeof AppInventoryIndexRoute
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/webinars': typeof AppWebinarsIndexRoute
@@ -417,6 +464,7 @@ export interface FileRoutesById {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/hr': typeof AppHrRouteWithChildren
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
@@ -440,6 +488,10 @@ export interface FileRoutesById {
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
   '/app/finance/revenue': typeof AppFinanceRevenueRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/hr/attendance': typeof AppHrAttendanceRoute
+  '/app/hr/employees': typeof AppHrEmployeesRoute
+  '/app/hr/leave': typeof AppHrLeaveRoute
+  '/app/hr/payroll': typeof AppHrPayrollRoute
   '/app/inventory/categories': typeof AppInventoryCategoriesRoute
   '/app/inventory/movements': typeof AppInventoryMovementsRoute
   '/app/inventory/products': typeof AppInventoryProductsRoute
@@ -453,6 +505,7 @@ export interface FileRoutesById {
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
+  '/app/hr/': typeof AppHrIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
@@ -470,6 +523,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/finance'
     | '/app/franchisees'
+    | '/app/hr'
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
@@ -493,6 +547,10 @@ export interface FileRouteTypes {
     | '/app/finance/payouts'
     | '/app/finance/revenue'
     | '/app/franchisees/$franchiseeId'
+    | '/app/hr/attendance'
+    | '/app/hr/employees'
+    | '/app/hr/leave'
+    | '/app/hr/payroll'
     | '/app/inventory/categories'
     | '/app/inventory/movements'
     | '/app/inventory/products'
@@ -506,6 +564,7 @@ export interface FileRouteTypes {
     | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
+    | '/app/hr/'
     | '/app/inventory/'
     | '/app/settings/'
     | '/app/webinars/'
@@ -538,6 +597,10 @@ export interface FileRouteTypes {
     | '/app/finance/payouts'
     | '/app/finance/revenue'
     | '/app/franchisees/$franchiseeId'
+    | '/app/hr/attendance'
+    | '/app/hr/employees'
+    | '/app/hr/leave'
+    | '/app/hr/payroll'
     | '/app/inventory/categories'
     | '/app/inventory/movements'
     | '/app/inventory/products'
@@ -551,6 +614,7 @@ export interface FileRouteTypes {
     | '/app/webinars/analytics'
     | '/app/academy'
     | '/app/finance'
+    | '/app/hr'
     | '/app/inventory'
     | '/app/settings'
     | '/app/webinars'
@@ -566,6 +630,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/finance'
     | '/app/franchisees'
+    | '/app/hr'
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
@@ -589,6 +654,10 @@ export interface FileRouteTypes {
     | '/app/finance/payouts'
     | '/app/finance/revenue'
     | '/app/franchisees/$franchiseeId'
+    | '/app/hr/attendance'
+    | '/app/hr/employees'
+    | '/app/hr/leave'
+    | '/app/hr/payroll'
     | '/app/inventory/categories'
     | '/app/inventory/movements'
     | '/app/inventory/products'
@@ -602,6 +671,7 @@ export interface FileRouteTypes {
     | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
+    | '/app/hr/'
     | '/app/inventory/'
     | '/app/settings/'
     | '/app/webinars/'
@@ -727,6 +797,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInventoryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/hr': {
+      id: '/app/hr'
+      path: '/hr'
+      fullPath: '/app/hr'
+      preLoaderRoute: typeof AppHrRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/franchisees': {
       id: '/app/franchisees'
       path: '/franchisees'
@@ -775,6 +852,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/inventory/'
       preLoaderRoute: typeof AppInventoryIndexRouteImport
       parentRoute: typeof AppInventoryRoute
+    }
+    '/app/hr/': {
+      id: '/app/hr/'
+      path: '/'
+      fullPath: '/app/hr/'
+      preLoaderRoute: typeof AppHrIndexRouteImport
+      parentRoute: typeof AppHrRoute
     }
     '/app/finance/': {
       id: '/app/finance/'
@@ -866,6 +950,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/inventory/categories'
       preLoaderRoute: typeof AppInventoryCategoriesRouteImport
       parentRoute: typeof AppInventoryRoute
+    }
+    '/app/hr/payroll': {
+      id: '/app/hr/payroll'
+      path: '/payroll'
+      fullPath: '/app/hr/payroll'
+      preLoaderRoute: typeof AppHrPayrollRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/hr/leave': {
+      id: '/app/hr/leave'
+      path: '/leave'
+      fullPath: '/app/hr/leave'
+      preLoaderRoute: typeof AppHrLeaveRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/hr/employees': {
+      id: '/app/hr/employees'
+      path: '/employees'
+      fullPath: '/app/hr/employees'
+      preLoaderRoute: typeof AppHrEmployeesRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/hr/attendance': {
+      id: '/app/hr/attendance'
+      path: '/attendance'
+      fullPath: '/app/hr/attendance'
+      preLoaderRoute: typeof AppHrAttendanceRouteImport
+      parentRoute: typeof AppHrRoute
     }
     '/app/franchisees/$franchiseeId': {
       id: '/app/franchisees/$franchiseeId'
@@ -1035,6 +1147,24 @@ const AppFranchiseesRouteWithChildren = AppFranchiseesRoute._addFileChildren(
   AppFranchiseesRouteChildren,
 )
 
+interface AppHrRouteChildren {
+  AppHrAttendanceRoute: typeof AppHrAttendanceRoute
+  AppHrEmployeesRoute: typeof AppHrEmployeesRoute
+  AppHrLeaveRoute: typeof AppHrLeaveRoute
+  AppHrPayrollRoute: typeof AppHrPayrollRoute
+  AppHrIndexRoute: typeof AppHrIndexRoute
+}
+
+const AppHrRouteChildren: AppHrRouteChildren = {
+  AppHrAttendanceRoute: AppHrAttendanceRoute,
+  AppHrEmployeesRoute: AppHrEmployeesRoute,
+  AppHrLeaveRoute: AppHrLeaveRoute,
+  AppHrPayrollRoute: AppHrPayrollRoute,
+  AppHrIndexRoute: AppHrIndexRoute,
+}
+
+const AppHrRouteWithChildren = AppHrRoute._addFileChildren(AppHrRouteChildren)
+
 interface AppInventoryRouteChildren {
   AppInventoryCategoriesRoute: typeof AppInventoryCategoriesRoute
   AppInventoryMovementsRoute: typeof AppInventoryMovementsRoute
@@ -1108,6 +1238,7 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppFinanceRoute: typeof AppFinanceRouteWithChildren
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
+  AppHrRoute: typeof AppHrRouteWithChildren
   AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
@@ -1123,6 +1254,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppFinanceRoute: AppFinanceRouteWithChildren,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
+  AppHrRoute: AppHrRouteWithChildren,
   AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,
