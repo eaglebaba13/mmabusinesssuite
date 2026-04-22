@@ -131,6 +131,16 @@ function FranchiseesPage() {
         </div>
       </div>
 
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={onCSV}
+        onPDF={onPDF}
+        count={filtered.length}
+      />
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((f) => (
           <Link
