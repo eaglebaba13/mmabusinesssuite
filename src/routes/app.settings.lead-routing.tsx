@@ -549,7 +549,7 @@ function LeadRoutingPage() {
                 <div>
                   <Label className="text-xs">Territory</Label>
                   <Select
-                    value={draft.assign_territory_id ?? ""}
+                    value={draft.assign_territory_id ?? "__none__"}
                     onValueChange={(v) =>
                       setDraft({ ...draft, assign_territory_id: v === "__none__" ? null : v })
                     }
