@@ -282,6 +282,108 @@ export type Database = {
           },
         ]
       }
+      expense_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          monthly_budget: number
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          monthly_budget?: number
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          monthly_budget?: number
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          description: string | null
+          expense_date: string
+          franchisee_id: string | null
+          id: string
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          receipt_url: string | null
+          recorded_by: string | null
+          reference: string | null
+          status: Database["public"]["Enums"]["expense_status"]
+          updated_at: string
+          vendor: string | null
+        }
+        Insert: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          expense_date?: string
+          franchisee_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_url?: string | null
+          recorded_by?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
+          updated_at?: string
+          vendor?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          expense_date?: string
+          franchisee_id?: string | null
+          id?: string
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          receipt_url?: string | null
+          recorded_by?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["expense_status"]
+          updated_at?: string
+          vendor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fee_payments: {
         Row: {
           amount: number
@@ -789,6 +891,56 @@ export type Database = {
           },
         ]
       }
+      revenue_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          franchisee_id: string | null
+          id: string
+          notes: string | null
+          received_on: string
+          recorded_by: string | null
+          reference: string | null
+          source: Database["public"]["Enums"]["revenue_source"]
+          source_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          franchisee_id?: string | null
+          id?: string
+          notes?: string | null
+          received_on?: string
+          recorded_by?: string | null
+          reference?: string | null
+          source?: Database["public"]["Enums"]["revenue_source"]
+          source_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          franchisee_id?: string | null
+          id?: string
+          notes?: string | null
+          received_on?: string
+          recorded_by?: string | null
+          reference?: string | null
+          source?: Database["public"]["Enums"]["revenue_source"]
+          source_label?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenue_entries_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roi_payouts: {
         Row: {
           academy_incentive: number
@@ -1237,6 +1389,7 @@ export type Database = {
       batch_status: "upcoming" | "ongoing" | "completed" | "cancelled"
       course_status: "draft" | "published" | "archived"
       enrollment_status: "active" | "completed" | "dropped" | "suspended"
+      expense_status: "pending" | "paid" | "cancelled"
       fee_status: "pending" | "paid" | "partial" | "overdue" | "waived"
       franchisee_status: "active" | "onboarding" | "suspended" | "closed"
       lead_source:
@@ -1255,6 +1408,13 @@ export type Database = {
         | "closed"
         | "lost"
       movement_type: "purchase_in" | "sale_out" | "transfer" | "adjustment"
+      payment_method:
+        | "cash"
+        | "bank_transfer"
+        | "upi"
+        | "card"
+        | "cheque"
+        | "other"
       payout_status: "pending" | "paid" | "overdue"
       po_status:
         | "draft"
@@ -1262,6 +1422,13 @@ export type Database = {
         | "partially_received"
         | "received"
         | "cancelled"
+      revenue_source:
+        | "academy"
+        | "inventory"
+        | "franchise_fee"
+        | "consulting"
+        | "event"
+        | "other"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       warehouse_type: "dark_store" | "central_warehouse" | "outlet"
@@ -1412,6 +1579,7 @@ export const Constants = {
       batch_status: ["upcoming", "ongoing", "completed", "cancelled"],
       course_status: ["draft", "published", "archived"],
       enrollment_status: ["active", "completed", "dropped", "suspended"],
+      expense_status: ["pending", "paid", "cancelled"],
       fee_status: ["pending", "paid", "partial", "overdue", "waived"],
       franchisee_status: ["active", "onboarding", "suspended", "closed"],
       lead_source: [
@@ -1432,6 +1600,14 @@ export const Constants = {
         "lost",
       ],
       movement_type: ["purchase_in", "sale_out", "transfer", "adjustment"],
+      payment_method: [
+        "cash",
+        "bank_transfer",
+        "upi",
+        "card",
+        "cheque",
+        "other",
+      ],
       payout_status: ["pending", "paid", "overdue"],
       po_status: [
         "draft",
@@ -1439,6 +1615,14 @@ export const Constants = {
         "partially_received",
         "received",
         "cancelled",
+      ],
+      revenue_source: [
+        "academy",
+        "inventory",
+        "franchise_fee",
+        "consulting",
+        "event",
+        "other",
       ],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
