@@ -15,6 +15,14 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppSupportRouteImport } from './routes/app.support'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
+import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
+import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -46,6 +54,47 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSupportRoute = AppSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMyFranchiseRoute = AppMyFranchiseRouteImport.update({
+  id: '/my-franchise',
+  path: '/my-franchise',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLeadsRoute = AppLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
+  id: '/franchisees',
+  path: '/franchisees',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
+  id: '/$leadId',
+  path: '/$leadId',
+  getParentRoute: () => AppLeadsRoute,
+} as any)
+const AppFranchiseesFranchiseeIdRoute =
+  AppFranchiseesFranchiseeIdRouteImport.update({
+    id: '/$franchiseeId',
+    path: '/$franchiseeId',
+    getParentRoute: () => AppFranchiseesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -53,14 +102,30 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/leads': typeof AppLeadsRouteWithChildren
+  '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/support': typeof AppSupportRoute
   '/app/': typeof AppIndexRoute
+  '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/leads': typeof AppLeadsRouteWithChildren
+  '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/support': typeof AppSupportRoute
   '/app': typeof AppIndexRoute
+  '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,14 +134,64 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/app/dashboard': typeof AppDashboardRoute
+  '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/leads': typeof AppLeadsRouteWithChildren
+  '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/settings': typeof AppSettingsRoute
+  '/app/support': typeof AppSupportRoute
   '/app/': typeof AppIndexRoute
+  '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/app' | '/login' | '/pricing' | '/signup' | '/app/'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/login'
+    | '/pricing'
+    | '/signup'
+    | '/app/dashboard'
+    | '/app/franchisees'
+    | '/app/leads'
+    | '/app/my-franchise'
+    | '/app/settings'
+    | '/app/support'
+    | '/app/'
+    | '/app/franchisees/$franchiseeId'
+    | '/app/leads/$leadId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/pricing' | '/signup' | '/app'
-  id: '__root__' | '/' | '/app' | '/login' | '/pricing' | '/signup' | '/app/'
+  to:
+    | '/'
+    | '/login'
+    | '/pricing'
+    | '/signup'
+    | '/app/dashboard'
+    | '/app/franchisees'
+    | '/app/leads'
+    | '/app/my-franchise'
+    | '/app/settings'
+    | '/app/support'
+    | '/app'
+    | '/app/franchisees/$franchiseeId'
+    | '/app/leads/$leadId'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/login'
+    | '/pricing'
+    | '/signup'
+    | '/app/dashboard'
+    | '/app/franchisees'
+    | '/app/leads'
+    | '/app/my-franchise'
+    | '/app/settings'
+    | '/app/support'
+    | '/app/'
+    | '/app/franchisees/$franchiseeId'
+    | '/app/leads/$leadId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -131,14 +246,106 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/support': {
+      id: '/app/support'
+      path: '/support'
+      fullPath: '/app/support'
+      preLoaderRoute: typeof AppSupportRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/my-franchise': {
+      id: '/app/my-franchise'
+      path: '/my-franchise'
+      fullPath: '/app/my-franchise'
+      preLoaderRoute: typeof AppMyFranchiseRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/leads': {
+      id: '/app/leads'
+      path: '/leads'
+      fullPath: '/app/leads'
+      preLoaderRoute: typeof AppLeadsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchisees': {
+      id: '/app/franchisees'
+      path: '/franchisees'
+      fullPath: '/app/franchisees'
+      preLoaderRoute: typeof AppFranchiseesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/leads/$leadId': {
+      id: '/app/leads/$leadId'
+      path: '/$leadId'
+      fullPath: '/app/leads/$leadId'
+      preLoaderRoute: typeof AppLeadsLeadIdRouteImport
+      parentRoute: typeof AppLeadsRoute
+    }
+    '/app/franchisees/$franchiseeId': {
+      id: '/app/franchisees/$franchiseeId'
+      path: '/$franchiseeId'
+      fullPath: '/app/franchisees/$franchiseeId'
+      preLoaderRoute: typeof AppFranchiseesFranchiseeIdRouteImport
+      parentRoute: typeof AppFranchiseesRoute
+    }
   }
 }
 
+interface AppFranchiseesRouteChildren {
+  AppFranchiseesFranchiseeIdRoute: typeof AppFranchiseesFranchiseeIdRoute
+}
+
+const AppFranchiseesRouteChildren: AppFranchiseesRouteChildren = {
+  AppFranchiseesFranchiseeIdRoute: AppFranchiseesFranchiseeIdRoute,
+}
+
+const AppFranchiseesRouteWithChildren = AppFranchiseesRoute._addFileChildren(
+  AppFranchiseesRouteChildren,
+)
+
+interface AppLeadsRouteChildren {
+  AppLeadsLeadIdRoute: typeof AppLeadsLeadIdRoute
+}
+
+const AppLeadsRouteChildren: AppLeadsRouteChildren = {
+  AppLeadsLeadIdRoute: AppLeadsLeadIdRoute,
+}
+
+const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
+  AppLeadsRouteChildren,
+)
+
 interface AppRouteChildren {
+  AppDashboardRoute: typeof AppDashboardRoute
+  AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
+  AppLeadsRoute: typeof AppLeadsRouteWithChildren
+  AppMyFranchiseRoute: typeof AppMyFranchiseRoute
+  AppSettingsRoute: typeof AppSettingsRoute
+  AppSupportRoute: typeof AppSupportRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppDashboardRoute: AppDashboardRoute,
+  AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
+  AppLeadsRoute: AppLeadsRouteWithChildren,
+  AppMyFranchiseRoute: AppMyFranchiseRoute,
+  AppSettingsRoute: AppSettingsRoute,
+  AppSupportRoute: AppSupportRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
