@@ -21,9 +21,11 @@ import { Route as AppSupportRouteImport } from './routes/app.support'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppInventoryRouteImport } from './routes/app.inventory'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
+import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
@@ -95,6 +97,11 @@ const AppLeadsRoute = AppLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
   id: '/franchisees',
   path: '/franchisees',
@@ -109,6 +116,11 @@ const AppAcademyRoute = AppAcademyRouteImport.update({
   id: '/academy',
   path: '/academy',
   getParentRoute: () => AppRoute,
+} as any)
+const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppInventoryRoute,
 } as any)
 const AppAcademyIndexRoute = AppAcademyIndexRouteImport.update({
   id: '/',
@@ -172,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/settings': typeof AppSettingsRoute
@@ -188,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesByTo {
@@ -213,6 +227,7 @@ export interface FileRoutesByTo {
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy': typeof AppAcademyIndexRoute
+  '/app/inventory': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesById {
@@ -225,6 +240,7 @@ export interface FileRoutesById {
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/settings': typeof AppSettingsRoute
@@ -241,6 +257,7 @@ export interface FileRoutesById {
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRouteTypes {
@@ -254,6 +271,7 @@ export interface FileRouteTypes {
     | '/app/academy'
     | '/app/dashboard'
     | '/app/franchisees'
+    | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/settings'
@@ -270,6 +288,7 @@ export interface FileRouteTypes {
     | '/app/franchisees/$franchiseeId'
     | '/app/leads/$leadId'
     | '/app/academy/'
+    | '/app/inventory/'
     | '/app/academy/batches/$batchId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -295,6 +314,7 @@ export interface FileRouteTypes {
     | '/app/franchisees/$franchiseeId'
     | '/app/leads/$leadId'
     | '/app/academy'
+    | '/app/inventory'
     | '/app/academy/batches/$batchId'
   id:
     | '__root__'
@@ -306,6 +326,7 @@ export interface FileRouteTypes {
     | '/app/academy'
     | '/app/dashboard'
     | '/app/franchisees'
+    | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/settings'
@@ -322,6 +343,7 @@ export interface FileRouteTypes {
     | '/app/franchisees/$franchiseeId'
     | '/app/leads/$leadId'
     | '/app/academy/'
+    | '/app/inventory/'
     | '/app/academy/batches/$batchId'
   fileRoutesById: FileRoutesById
 }
@@ -420,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inventory': {
+      id: '/app/inventory'
+      path: '/inventory'
+      fullPath: '/app/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/franchisees': {
       id: '/app/franchisees'
       path: '/franchisees'
@@ -440,6 +469,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/academy'
       preLoaderRoute: typeof AppAcademyRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/app/inventory/': {
+      id: '/app/inventory/'
+      path: '/'
+      fullPath: '/app/inventory/'
+      preLoaderRoute: typeof AppInventoryIndexRouteImport
+      parentRoute: typeof AppInventoryRoute
     }
     '/app/academy/': {
       id: '/app/academy/'
@@ -561,6 +597,18 @@ const AppFranchiseesRouteWithChildren = AppFranchiseesRoute._addFileChildren(
   AppFranchiseesRouteChildren,
 )
 
+interface AppInventoryRouteChildren {
+  AppInventoryIndexRoute: typeof AppInventoryIndexRoute
+}
+
+const AppInventoryRouteChildren: AppInventoryRouteChildren = {
+  AppInventoryIndexRoute: AppInventoryIndexRoute,
+}
+
+const AppInventoryRouteWithChildren = AppInventoryRoute._addFileChildren(
+  AppInventoryRouteChildren,
+)
+
 interface AppLeadsRouteChildren {
   AppLeadsLeadIdRoute: typeof AppLeadsLeadIdRoute
 }
@@ -577,6 +625,7 @@ interface AppRouteChildren {
   AppAcademyRoute: typeof AppAcademyRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
+  AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -589,6 +638,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAcademyRoute: AppAcademyRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
+  AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,
   AppSettingsRoute: AppSettingsRoute,
