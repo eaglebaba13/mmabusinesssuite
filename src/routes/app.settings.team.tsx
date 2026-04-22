@@ -233,8 +233,13 @@ function TeamRolesPage() {
                   <div className="hidden flex-wrap items-center justify-end gap-1 sm:flex sm:max-w-[40%]">
                     {(() => {
                       const visible = u.roles.filter((r) => r !== "super_admin");
+                      const hasHidden = u.roles.length > visible.length;
                       if (visible.length === 0) {
-                        return <Badge variant="outline" className="text-muted-foreground">No roles</Badge>;
+                        return (
+                          <Badge variant="outline" className="text-muted-foreground">
+                            {hasHidden ? "Admin (system)" : "No roles"}
+                          </Badge>
+                        );
                       }
                       return visible.map((r) => (
                         <Badge
