@@ -6,6 +6,8 @@ import {
   Settings,
   LifeBuoy,
   Briefcase,
+  GraduationCap,
+  UserCog,
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,6 +30,14 @@ const NAV_MAIN = [
   { title: "Franchisees", url: "/app/franchisees" as const, icon: Building2 },
 ] as const;
 
+const NAV_ACADEMY = [
+  { title: "Academy", url: "/app/academy" as const, icon: GraduationCap },
+] as const;
+
+const NAV_TRAINER = [
+  { title: "Trainer Portal", url: "/app/trainer" as const, icon: UserCog },
+] as const;
+
 const NAV_FRANCHISEE = [
   { title: "My Franchise", url: "/app/my-franchise" as const, icon: Briefcase },
 ] as const;
@@ -41,6 +51,8 @@ export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
   const isFranchisee = hasRole("franchisee");
+  const isTrainer = hasRole("trainer");
+  const isAcademyStaff = isAdmin || hasRole("academy_admin") || hasRole("accounts");
 
   const isActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
@@ -62,6 +74,60 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {NAV_MAIN.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isAcademyStaff && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Academy
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_ACADEMY.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isTrainer && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Trainer
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_TRAINER.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild

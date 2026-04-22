@@ -15,14 +15,25 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as AppTrainerRouteImport } from './routes/app.trainer'
 import { Route as AppSupportRouteImport } from './routes/app.support'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppAcademyRouteImport } from './routes/app.academy'
+import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
+import { Route as AppAcademyTrainersRouteImport } from './routes/app.academy.trainers'
+import { Route as AppAcademyStudentsRouteImport } from './routes/app.academy.students'
+import { Route as AppAcademyFeesRouteImport } from './routes/app.academy.fees'
+import { Route as AppAcademyCoursesRouteImport } from './routes/app.academy.courses'
+import { Route as AppAcademyCertificatesRouteImport } from './routes/app.academy.certificates'
+import { Route as AppAcademyBatchesRouteImport } from './routes/app.academy.batches'
+import { Route as AppAcademyBatchesBatchIdRouteImport } from './routes/app.academy.batches.$batchId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -52,6 +63,16 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const VerifyCodeRoute = VerifyCodeRouteImport.update({
+  id: '/verify/$code',
+  path: '/verify/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppTrainerRoute = AppTrainerRouteImport.update({
+  id: '/trainer',
+  path: '/trainer',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSupportRoute = AppSupportRouteImport.update({
@@ -84,6 +105,16 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAcademyRoute = AppAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAcademyIndexRoute = AppAcademyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
   path: '/$leadId',
@@ -95,6 +126,42 @@ const AppFranchiseesFranchiseeIdRoute =
     path: '/$franchiseeId',
     getParentRoute: () => AppFranchiseesRoute,
   } as any)
+const AppAcademyTrainersRoute = AppAcademyTrainersRouteImport.update({
+  id: '/trainers',
+  path: '/trainers',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyStudentsRoute = AppAcademyStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyFeesRoute = AppAcademyFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyCoursesRoute = AppAcademyCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyCertificatesRoute = AppAcademyCertificatesRouteImport.update({
+  id: '/certificates',
+  path: '/certificates',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyBatchesRoute = AppAcademyBatchesRouteImport.update({
+  id: '/batches',
+  path: '/batches',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyBatchesBatchIdRoute =
+  AppAcademyBatchesBatchIdRouteImport.update({
+    id: '/$batchId',
+    path: '/$batchId',
+    getParentRoute: () => AppAcademyBatchesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,15 +169,26 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/support': typeof AppSupportRoute
+  '/app/trainer': typeof AppTrainerRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/app/': typeof AppIndexRoute
+  '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
+  '/app/academy/certificates': typeof AppAcademyCertificatesRoute
+  '/app/academy/courses': typeof AppAcademyCoursesRoute
+  '/app/academy/fees': typeof AppAcademyFeesRoute
+  '/app/academy/students': typeof AppAcademyStudentsRoute
+  '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,9 +201,19 @@ export interface FileRoutesByTo {
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/support': typeof AppSupportRoute
+  '/app/trainer': typeof AppTrainerRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/app': typeof AppIndexRoute
+  '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
+  '/app/academy/certificates': typeof AppAcademyCertificatesRoute
+  '/app/academy/courses': typeof AppAcademyCoursesRoute
+  '/app/academy/fees': typeof AppAcademyFeesRoute
+  '/app/academy/students': typeof AppAcademyStudentsRoute
+  '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/academy': typeof AppAcademyIndexRoute
+  '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,15 +222,26 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/settings': typeof AppSettingsRoute
   '/app/support': typeof AppSupportRoute
+  '/app/trainer': typeof AppTrainerRoute
+  '/verify/$code': typeof VerifyCodeRoute
   '/app/': typeof AppIndexRoute
+  '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
+  '/app/academy/certificates': typeof AppAcademyCertificatesRoute
+  '/app/academy/courses': typeof AppAcademyCoursesRoute
+  '/app/academy/fees': typeof AppAcademyFeesRoute
+  '/app/academy/students': typeof AppAcademyStudentsRoute
+  '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -152,15 +251,26 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/app/academy'
     | '/app/dashboard'
     | '/app/franchisees'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/settings'
     | '/app/support'
+    | '/app/trainer'
+    | '/verify/$code'
     | '/app/'
+    | '/app/academy/batches'
+    | '/app/academy/certificates'
+    | '/app/academy/courses'
+    | '/app/academy/fees'
+    | '/app/academy/students'
+    | '/app/academy/trainers'
     | '/app/franchisees/$franchiseeId'
     | '/app/leads/$leadId'
+    | '/app/academy/'
+    | '/app/academy/batches/$batchId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -173,9 +283,19 @@ export interface FileRouteTypes {
     | '/app/my-franchise'
     | '/app/settings'
     | '/app/support'
+    | '/app/trainer'
+    | '/verify/$code'
     | '/app'
+    | '/app/academy/batches'
+    | '/app/academy/certificates'
+    | '/app/academy/courses'
+    | '/app/academy/fees'
+    | '/app/academy/students'
+    | '/app/academy/trainers'
     | '/app/franchisees/$franchiseeId'
     | '/app/leads/$leadId'
+    | '/app/academy'
+    | '/app/academy/batches/$batchId'
   id:
     | '__root__'
     | '/'
@@ -183,15 +303,26 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/app/academy'
     | '/app/dashboard'
     | '/app/franchisees'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/settings'
     | '/app/support'
+    | '/app/trainer'
+    | '/verify/$code'
     | '/app/'
+    | '/app/academy/batches'
+    | '/app/academy/certificates'
+    | '/app/academy/courses'
+    | '/app/academy/fees'
+    | '/app/academy/students'
+    | '/app/academy/trainers'
     | '/app/franchisees/$franchiseeId'
     | '/app/leads/$leadId'
+    | '/app/academy/'
+    | '/app/academy/batches/$batchId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -200,6 +331,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  VerifyCodeRoute: typeof VerifyCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +378,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/verify/$code': {
+      id: '/verify/$code'
+      path: '/verify/$code'
+      fullPath: '/verify/$code'
+      preLoaderRoute: typeof VerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/trainer': {
+      id: '/app/trainer'
+      path: '/trainer'
+      fullPath: '/app/trainer'
+      preLoaderRoute: typeof AppTrainerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/support': {
       id: '/app/support'
       path: '/support'
@@ -288,6 +434,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/academy': {
+      id: '/app/academy'
+      path: '/academy'
+      fullPath: '/app/academy'
+      preLoaderRoute: typeof AppAcademyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/academy/': {
+      id: '/app/academy/'
+      path: '/'
+      fullPath: '/app/academy/'
+      preLoaderRoute: typeof AppAcademyIndexRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
     '/app/leads/$leadId': {
       id: '/app/leads/$leadId'
       path: '/$leadId'
@@ -302,8 +462,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFranchiseesFranchiseeIdRouteImport
       parentRoute: typeof AppFranchiseesRoute
     }
+    '/app/academy/trainers': {
+      id: '/app/academy/trainers'
+      path: '/trainers'
+      fullPath: '/app/academy/trainers'
+      preLoaderRoute: typeof AppAcademyTrainersRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/students': {
+      id: '/app/academy/students'
+      path: '/students'
+      fullPath: '/app/academy/students'
+      preLoaderRoute: typeof AppAcademyStudentsRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/fees': {
+      id: '/app/academy/fees'
+      path: '/fees'
+      fullPath: '/app/academy/fees'
+      preLoaderRoute: typeof AppAcademyFeesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/courses': {
+      id: '/app/academy/courses'
+      path: '/courses'
+      fullPath: '/app/academy/courses'
+      preLoaderRoute: typeof AppAcademyCoursesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/certificates': {
+      id: '/app/academy/certificates'
+      path: '/certificates'
+      fullPath: '/app/academy/certificates'
+      preLoaderRoute: typeof AppAcademyCertificatesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/batches': {
+      id: '/app/academy/batches'
+      path: '/batches'
+      fullPath: '/app/academy/batches'
+      preLoaderRoute: typeof AppAcademyBatchesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/batches/$batchId': {
+      id: '/app/academy/batches/$batchId'
+      path: '/$batchId'
+      fullPath: '/app/academy/batches/$batchId'
+      preLoaderRoute: typeof AppAcademyBatchesBatchIdRouteImport
+      parentRoute: typeof AppAcademyBatchesRoute
+    }
   }
 }
+
+interface AppAcademyBatchesRouteChildren {
+  AppAcademyBatchesBatchIdRoute: typeof AppAcademyBatchesBatchIdRoute
+}
+
+const AppAcademyBatchesRouteChildren: AppAcademyBatchesRouteChildren = {
+  AppAcademyBatchesBatchIdRoute: AppAcademyBatchesBatchIdRoute,
+}
+
+const AppAcademyBatchesRouteWithChildren =
+  AppAcademyBatchesRoute._addFileChildren(AppAcademyBatchesRouteChildren)
+
+interface AppAcademyRouteChildren {
+  AppAcademyBatchesRoute: typeof AppAcademyBatchesRouteWithChildren
+  AppAcademyCertificatesRoute: typeof AppAcademyCertificatesRoute
+  AppAcademyCoursesRoute: typeof AppAcademyCoursesRoute
+  AppAcademyFeesRoute: typeof AppAcademyFeesRoute
+  AppAcademyStudentsRoute: typeof AppAcademyStudentsRoute
+  AppAcademyTrainersRoute: typeof AppAcademyTrainersRoute
+  AppAcademyIndexRoute: typeof AppAcademyIndexRoute
+}
+
+const AppAcademyRouteChildren: AppAcademyRouteChildren = {
+  AppAcademyBatchesRoute: AppAcademyBatchesRouteWithChildren,
+  AppAcademyCertificatesRoute: AppAcademyCertificatesRoute,
+  AppAcademyCoursesRoute: AppAcademyCoursesRoute,
+  AppAcademyFeesRoute: AppAcademyFeesRoute,
+  AppAcademyStudentsRoute: AppAcademyStudentsRoute,
+  AppAcademyTrainersRoute: AppAcademyTrainersRoute,
+  AppAcademyIndexRoute: AppAcademyIndexRoute,
+}
+
+const AppAcademyRouteWithChildren = AppAcademyRoute._addFileChildren(
+  AppAcademyRouteChildren,
+)
 
 interface AppFranchiseesRouteChildren {
   AppFranchiseesFranchiseeIdRoute: typeof AppFranchiseesFranchiseeIdRoute
@@ -330,22 +574,26 @@ const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppAcademyRoute: typeof AppAcademyRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSupportRoute: typeof AppSupportRoute
+  AppTrainerRoute: typeof AppTrainerRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAcademyRoute: AppAcademyRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSupportRoute: AppSupportRoute,
+  AppTrainerRoute: AppTrainerRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
@@ -357,7 +605,17 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  VerifyCodeRoute: VerifyCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
