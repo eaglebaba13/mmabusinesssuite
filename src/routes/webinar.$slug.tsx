@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Calendar, Clock, Users, Video, CheckCircle2 } from "lucide-react";
+import { Calendar, Clock, Users, Video, CheckCircle2, ExternalLink } from "lucide-react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 export const Route = createFileRoute("/webinar/$slug")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -45,7 +46,7 @@ function PublicRegister() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("webinars")
-        .select("id, title, description, host_name, scheduled_at, duration_minutes, capacity, platform, status, cover_url")
+        .select("id, title, description, host_name, scheduled_at, duration_minutes, capacity, platform, status, cover_url, join_url")
         .eq("slug", slug)
         .maybeSingle();
       if (error) throw error;
@@ -53,21 +54,41 @@ function PublicRegister() {
     },
   });
 
+  const seats = useQuery({
+    queryKey: ["pub-webinar-seats", webinar.data?.id],
+    enabled: !!webinar.data?.id,
+    queryFn: async () => {
+      const { data } = await supabase.rpc("webinar_seats_taken", { _webinar_id: webinar.data!.id });
+      return (data as number) ?? 0;
+    },
+    refetchInterval: 30000,
+  });
+
   const register = useMutation({
     mutationFn: async () => {
       const parsed = formSchema.parse(form);
       if (!webinar.data) throw new Error("Webinar not found");
-      const { error } = await supabase.from("webinar_registrations").insert({
-        webinar_id: webinar.data.id,
-        full_name: parsed.full_name,
-        email: parsed.email,
-        phone: parsed.phone || null,
-        city: parsed.city || null,
-        utm_source: search.utm_source ?? null,
-        utm_medium: search.utm_medium ?? null,
-        utm_campaign: search.utm_campaign ?? null,
-      });
+      const { data, error } = await supabase
+        .from("webinar_registrations")
+        .insert({
+          webinar_id: webinar.data.id,
+          full_name: parsed.full_name,
+          email: parsed.email,
+          phone: parsed.phone || null,
+          city: parsed.city || null,
+          utm_source: search.utm_source ?? null,
+          utm_medium: search.utm_medium ?? null,
+          utm_campaign: search.utm_campaign ?? null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      // Fire confirmation webhook (non-blocking)
+      fetch("/api/public/webinar-register-hook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ registration_id: data.id }),
+      }).catch(() => {});
     },
     onSuccess: () => {
       setDone(true);
@@ -75,7 +96,9 @@ function PublicRegister() {
     },
     onError: (e: any) => {
       const msg = e?.message ?? "Registration failed";
-      if (msg.includes("duplicate") || msg.includes("unique")) {
+      if (msg.toLowerCase().includes("capacity")) {
+        toast.error("Sorry — this webinar is now full.");
+      } else if (msg.includes("duplicate") || msg.includes("unique")) {
         toast.error("You are already registered with this email.");
       } else {
         toast.error(msg);
@@ -98,6 +121,12 @@ function PublicRegister() {
   const w = webinar.data;
   const isCancelled = w.status === "cancelled";
   const isCompleted = w.status === "completed";
+  const taken = seats.data ?? 0;
+  const remaining = Math.max(0, w.capacity - taken);
+  const fillPct = w.capacity ? Math.min(100, Math.round((taken / w.capacity) * 100)) : 0;
+  const isFull = remaining <= 0;
+  const minsUntil = (new Date(w.scheduled_at).getTime() - Date.now()) / 60000;
+  const joinOpen = w.join_url && minsUntil <= 30 && minsUntil >= -((w.duration_minutes ?? 60) + 30);
 
   return (
     <div className="min-h-screen bg-background">
@@ -117,11 +146,16 @@ function PublicRegister() {
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="h-3.5 w-3.5" />Duration</div>
               <div className="mt-1 font-medium">{w.duration_minutes} minutes</div>
             </div>
-            <div className="rounded-xl border border-border/50 bg-card/40 p-3">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground"><Users className="h-3.5 w-3.5" />Seats</div>
-              <div className="mt-1 font-medium">{w.capacity}</div>
+            <div className="col-span-2 rounded-xl border border-border/50 bg-card/40 p-3">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-2"><Users className="h-3.5 w-3.5" />Seats</span>
+                <span className={isFull ? "font-medium text-rose-400" : "font-medium text-foreground"}>
+                  {isFull ? "Sold out" : `${remaining} of ${w.capacity} left`}
+                </span>
+              </div>
+              <Progress value={fillPct} className="mt-2 h-1.5" />
             </div>
-            <div className="rounded-xl border border-border/50 bg-card/40 p-3">
+            <div className="col-span-2 rounded-xl border border-border/50 bg-card/40 p-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground"><Video className="h-3.5 w-3.5" />Format</div>
               <div className="mt-1 font-medium capitalize">Live online</div>
             </div>
@@ -130,14 +164,21 @@ function PublicRegister() {
 
         <Card className="glass h-fit p-7">
           {done ? (
-            <div className="space-y-3 text-center">
+            <div className="space-y-4 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15">
                 <CheckCircle2 className="h-7 w-7 text-emerald-400" />
               </div>
               <h2 className="font-display text-2xl">You're in!</h2>
               <p className="text-sm text-muted-foreground">
-                We've saved your spot for <span className="text-foreground">{w.title}</span>. Check your inbox for joining details before {format(new Date(w.scheduled_at), "dd MMM, HH:mm")}.
+                We've saved your spot for <span className="text-foreground">{w.title}</span> on {format(new Date(w.scheduled_at), "dd MMM, HH:mm")}. We'll send a reminder 24 hours and 1 hour before it starts.
               </p>
+              {w.join_url && (
+                <a href={w.join_url} target="_blank" rel="noreferrer">
+                  <Button className="w-full bg-gradient-gold text-background shadow-gold">
+                    <ExternalLink className="mr-1 h-3.5 w-3.5" />Save the join link
+                  </Button>
+                </a>
+              )}
             </div>
           ) : isCancelled ? (
             <div className="text-center">
@@ -149,10 +190,23 @@ function PublicRegister() {
               <h2 className="font-display text-xl">This webinar has ended</h2>
               <p className="mt-2 text-sm text-muted-foreground">Registration is closed. Stay tuned for the next session.</p>
             </div>
+          ) : isFull ? (
+            <div className="text-center">
+              <h2 className="font-display text-xl">Sold out</h2>
+              <p className="mt-2 text-sm text-muted-foreground">All {w.capacity} seats have been taken. Check back later in case of cancellations.</p>
+            </div>
           ) : (
             <>
               <h2 className="font-display text-2xl">Reserve your seat</h2>
               <p className="mt-1 text-sm text-muted-foreground">It's free. Takes 30 seconds.</p>
+              {joinOpen && (
+                <a href={w.join_url ?? "#"} target="_blank" rel="noreferrer" className="mt-3 block">
+                  <div className="flex items-center justify-between rounded-lg border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">
+                    <span>Already registered? Session starts soon — join now.</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </div>
+                </a>
+              )}
               <form
                 className="mt-5 space-y-3"
                 onSubmit={(e) => {
