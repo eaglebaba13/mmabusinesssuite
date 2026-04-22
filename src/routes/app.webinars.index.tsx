@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
@@ -47,6 +48,7 @@ function WebinarsIndex() {
     capacity: "500",
     price: "0",
     status: "scheduled",
+    webhook_url: "",
   });
 
   const list = useQuery({
@@ -76,6 +78,7 @@ function WebinarsIndex() {
         capacity: Number(form.capacity),
         price: Number(form.price),
         status: form.status as any,
+        webhook_url: form.webhook_url || null,
       });
       if (error) throw error;
     },
@@ -129,6 +132,7 @@ function WebinarsIndex() {
                 </div>
               </div>
               <div><Label>Join URL</Label><Input placeholder="https://…" value={form.join_url} onChange={(e) => setForm({ ...form, join_url: e.target.value })} /></div>
+              <div><Label>Webhook URL <span className="text-[10px] text-muted-foreground">(optional · receives registration & reminder events)</span></Label><Input placeholder="https://your-automation/webhook" value={form.webhook_url} onChange={(e) => setForm({ ...form, webhook_url: e.target.value })} /></div>
               <div className="grid grid-cols-2 gap-3">
                 <div><Label>Scheduled at *</Label><Input type="datetime-local" value={form.scheduled_at} onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })} /></div>
                 <div><Label>Duration (min)</Label><Input type="number" value={form.duration_minutes} onChange={(e) => setForm({ ...form, duration_minutes: e.target.value })} /></div>
@@ -177,6 +181,13 @@ function WebinarsIndex() {
               <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{format(new Date(w.scheduled_at), "dd MMM, HH:mm")}</span>
                 <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{regs.length}/{w.capacity}</span>
+              </div>
+              <div className="mt-2">
+                <Progress value={w.capacity ? Math.min(100, Math.round((regs.length / w.capacity) * 100)) : 0} className="h-1" />
+                <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                  <span>{w.capacity ? Math.min(100, Math.round((regs.length / w.capacity) * 100)) : 0}% full</span>
+                  <span>{Math.max(0, w.capacity - regs.length)} left</span>
+                </div>
               </div>
               <div className="mt-4 flex items-center justify-between gap-2">
                 <Link to="/app/webinars/$webinarId" params={{ webinarId: w.id }} className="flex-1">
