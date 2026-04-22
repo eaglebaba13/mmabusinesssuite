@@ -8,6 +8,7 @@ import {
   Briefcase,
   GraduationCap,
   UserCog,
+  Package,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,6 +33,10 @@ const NAV_MAIN = [
 
 const NAV_ACADEMY = [
   { title: "Academy", url: "/app/academy" as const, icon: GraduationCap },
+] as const;
+
+const NAV_INVENTORY = [
+  { title: "Inventory", url: "/app/inventory" as const, icon: Package },
 ] as const;
 
 const NAV_TRAINER = [
