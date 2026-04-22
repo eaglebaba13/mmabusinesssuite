@@ -155,6 +155,19 @@ function WebinarDetail() {
         <KpiCard label="Capacity used" value={`${total ? Math.round((total / w.capacity) * 100) : 0}%`} icon={Video} delay={0.15} />
       </div>
 
+      <Card className="glass p-4">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Capacity</span>
+          <span className="font-medium">{total} / {w.capacity} <span className="text-muted-foreground">· {Math.max(0, w.capacity - total)} seats left</span></span>
+        </div>
+        <Progress value={w.capacity ? Math.min(100, Math.round((total / w.capacity) * 100)) : 0} className="mt-2 h-1.5" />
+        {w.webhook_url && (
+          <div className="mt-3 text-[11px] text-muted-foreground">
+            🔔 Webhook active — registration & T-24h / T-1h reminder events will POST to <code className="text-foreground">{w.webhook_url}</code>
+          </div>
+        )}
+      </Card>
+
       <ExportBar
         from={range.from}
         to={range.to}
@@ -205,9 +218,22 @@ function WebinarDetail() {
                 </TableCell>
                 <TableCell>
                   {r.lead_id ? (
-                    <Link to="/app/leads/$leadId" params={{ leadId: r.lead_id }}>
-                      <Badge variant="outline" className="border-gold/40 text-gold capitalize">{r.leads?.stage ?? "lead"}</Badge>
-                    </Link>
+                    <div className="flex items-center gap-1.5">
+                      <Select
+                        value={r.leads?.stage ?? "new"}
+                        onValueChange={(v) => updateLeadStage.mutate({ leadId: r.lead_id, stage: v })}
+                      >
+                        <SelectTrigger className="h-7 w-32 border-gold/40 text-xs capitalize text-gold">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LEAD_STAGES.map((s) => (
+                            <SelectItem key={s} value={s} className="capitalize">{s.replace("_", " ")}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Link to="/app/leads/$leadId" params={{ leadId: r.lead_id }} className="text-[10px] text-muted-foreground underline-offset-2 hover:underline">open</Link>
+                    </div>
                   ) : <span className="text-xs text-muted-foreground">—</span>}
                 </TableCell>
               </TableRow>
