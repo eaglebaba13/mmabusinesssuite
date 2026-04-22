@@ -15,9 +15,12 @@ function SettingsLayout() {
   const tabs = [
     { to: "/app/settings", label: "Profile & Workspace", match: (p: string) => p === "/app/settings" },
     ...(isAdmin
-      ? [{ to: "/app/settings/team", label: "Team & Roles", match: (p: string) => p === "/app/settings/team" }]
+      ? [
+          { to: "/app/settings/team", label: "Team & Roles", match: (p: string) => p === "/app/settings/team" },
+          { to: "/app/settings/social", label: "Social & Integrations", match: (p: string) => p === "/app/settings/social" },
+        ]
       : []),
-  ];
+  ] as const;
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:p-8">

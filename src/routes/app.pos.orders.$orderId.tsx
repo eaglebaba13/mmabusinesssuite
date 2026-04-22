@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { downloadGstInvoicePdf } from "@/lib/invoice-pdf";
 import { formatINR } from "@/lib/format";
+import { ShareButtons } from "@/components/marketing/ShareButtons";
 
 export const Route = createFileRoute("/app/pos/orders/$orderId")({
   component: OrderDetail,
@@ -129,7 +130,13 @@ function OrderDetail() {
         >
           <ArrowLeft className="h-4 w-4" /> Back to orders
         </Link>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ShareButtons
+            url={typeof window !== "undefined" ? window.location.href : ""}
+            title={`Invoice ${o.invoice_number ?? ""}`}
+            text={`Invoice ${o.invoice_number ?? ""} for ${formatINR(Number(o.grand_total))}`}
+            variant="compact"
+          />
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-1 h-4 w-4" /> Print
           </Button>

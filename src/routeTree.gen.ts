@@ -40,6 +40,7 @@ import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
 import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
 import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
+import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.social'
 import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
 import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
@@ -67,6 +68,7 @@ import { Route as AppAcademyCertificatesRouteImport } from './routes/app.academy
 import { Route as AppAcademyBatchesRouteImport } from './routes/app.academy.batches'
 import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
 import { Route as ApiPublicWebinarRegisterHookRouteImport } from './routes/api/public/webinar-register-hook'
+import { Route as ApiPublicSocialLeadHookRouteImport } from './routes/api/public/social-lead-hook'
 import { Route as AppPosOrdersOrderIdRouteImport } from './routes/app.pos.orders.$orderId'
 import { Route as AppAcademyBatchesBatchIdRouteImport } from './routes/app.academy.batches.$batchId'
 
@@ -225,6 +227,11 @@ const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppSettingsSocialRoute = AppSettingsSocialRouteImport.update({
+  id: '/social',
+  path: '/social',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
 const AppPosOrdersRoute = AppPosOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -364,6 +371,11 @@ const ApiPublicWebinarRegisterHookRoute =
     path: '/api/public/webinar-register-hook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicSocialLeadHookRoute = ApiPublicSocialLeadHookRouteImport.update({
+  id: '/api/public/social-lead-hook',
+  path: '/api/public/social-lead-hook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppPosOrdersOrderIdRoute = AppPosOrdersOrderIdRouteImport.update({
   id: '/$orderId',
   path: '/$orderId',
@@ -398,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/social-lead-hook': typeof ApiPublicSocialLeadHookRoute
   '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
@@ -425,6 +438,7 @@ export interface FileRoutesByFullPath {
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
+  '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
@@ -452,6 +466,7 @@ export interface FileRoutesByTo {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app': typeof AppIndexRoute
+  '/api/public/social-lead-hook': typeof ApiPublicSocialLeadHookRoute
   '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
@@ -479,6 +494,7 @@ export interface FileRoutesByTo {
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
+  '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
@@ -515,6 +531,7 @@ export interface FileRoutesById {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/social-lead-hook': typeof ApiPublicSocialLeadHookRoute
   '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
   '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
@@ -542,6 +559,7 @@ export interface FileRoutesById {
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
+  '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
@@ -579,6 +597,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app/'
+    | '/api/public/social-lead-hook'
     | '/api/public/webinar-register-hook'
     | '/api/public/webinar-reminders'
     | '/app/academy/batches'
@@ -606,6 +625,7 @@ export interface FileRouteTypes {
     | '/app/leads/$leadId'
     | '/app/pos/analytics'
     | '/app/pos/orders'
+    | '/app/settings/social'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
@@ -633,6 +653,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app'
+    | '/api/public/social-lead-hook'
     | '/api/public/webinar-register-hook'
     | '/api/public/webinar-reminders'
     | '/app/academy/batches'
@@ -660,6 +681,7 @@ export interface FileRouteTypes {
     | '/app/leads/$leadId'
     | '/app/pos/analytics'
     | '/app/pos/orders'
+    | '/app/settings/social'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
@@ -695,6 +717,7 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app/'
+    | '/api/public/social-lead-hook'
     | '/api/public/webinar-register-hook'
     | '/api/public/webinar-reminders'
     | '/app/academy/batches'
@@ -722,6 +745,7 @@ export interface FileRouteTypes {
     | '/app/leads/$leadId'
     | '/app/pos/analytics'
     | '/app/pos/orders'
+    | '/app/settings/social'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
@@ -744,6 +768,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   WebinarSlugRoute: typeof WebinarSlugRoute
+  ApiPublicSocialLeadHookRoute: typeof ApiPublicSocialLeadHookRoute
   ApiPublicWebinarRegisterHookRoute: typeof ApiPublicWebinarRegisterHookRoute
   ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
 }
@@ -967,6 +992,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsTeamRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/app/settings/social': {
+      id: '/app/settings/social'
+      path: '/social'
+      fullPath: '/app/settings/social'
+      preLoaderRoute: typeof AppSettingsSocialRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
     '/app/pos/orders': {
       id: '/app/pos/orders'
       path: '/orders'
@@ -1156,6 +1188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebinarRegisterHookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/social-lead-hook': {
+      id: '/api/public/social-lead-hook'
+      path: '/api/public/social-lead-hook'
+      fullPath: '/api/public/social-lead-hook'
+      preLoaderRoute: typeof ApiPublicSocialLeadHookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/pos/orders/$orderId': {
       id: '/app/pos/orders/$orderId'
       path: '/$orderId'
@@ -1324,11 +1363,13 @@ const AppPosRouteWithChildren =
   AppPosRoute._addFileChildren(AppPosRouteChildren)
 
 interface AppSettingsRouteChildren {
+  AppSettingsSocialRoute: typeof AppSettingsSocialRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsSocialRoute: AppSettingsSocialRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
 }
@@ -1397,6 +1438,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   WebinarSlugRoute: WebinarSlugRoute,
+  ApiPublicSocialLeadHookRoute: ApiPublicSocialLeadHookRoute,
   ApiPublicWebinarRegisterHookRoute: ApiPublicWebinarRegisterHookRoute,
   ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
 }
