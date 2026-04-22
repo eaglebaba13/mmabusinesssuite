@@ -40,6 +40,10 @@ const NAV_INVENTORY = [
   { title: "Inventory", url: "/app/inventory" as const, icon: Package },
 ] as const;
 
+const NAV_FINANCE = [
+  { title: "Finance", url: "/app/finance" as const, icon: Wallet },
+] as const;
+
 const NAV_TRAINER = [
   { title: "Trainer Portal", url: "/app/trainer" as const, icon: UserCog },
 ] as const;
