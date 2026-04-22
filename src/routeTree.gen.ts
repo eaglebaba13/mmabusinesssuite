@@ -23,9 +23,11 @@ import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppInventoryRouteImport } from './routes/app.inventory'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
+import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
 import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
+import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
@@ -36,6 +38,10 @@ import { Route as AppInventoryProductsRouteImport } from './routes/app.inventory
 import { Route as AppInventoryMovementsRouteImport } from './routes/app.inventory.movements'
 import { Route as AppInventoryCategoriesRouteImport } from './routes/app.inventory.categories'
 import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
+import { Route as AppFinanceRevenueRouteImport } from './routes/app.finance.revenue'
+import { Route as AppFinancePayoutsRouteImport } from './routes/app.finance.payouts'
+import { Route as AppFinanceExpensesRouteImport } from './routes/app.finance.expenses'
+import { Route as AppFinanceCategoriesRouteImport } from './routes/app.finance.categories'
 import { Route as AppAcademyTrainersRouteImport } from './routes/app.academy.trainers'
 import { Route as AppAcademyStudentsRouteImport } from './routes/app.academy.students'
 import { Route as AppAcademyFeesRouteImport } from './routes/app.academy.fees'
@@ -114,6 +120,11 @@ const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
   path: '/franchisees',
   getParentRoute: () => AppRoute,
 } as any)
+const AppFinanceRoute = AppFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -128,6 +139,11 @@ const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppFinanceIndexRoute = AppFinanceIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppFinanceRoute,
 } as any)
 const AppAcademyIndexRoute = AppAcademyIndexRouteImport.update({
   id: '/',
@@ -181,6 +197,26 @@ const AppFranchiseesFranchiseeIdRoute =
     path: '/$franchiseeId',
     getParentRoute: () => AppFranchiseesRoute,
   } as any)
+const AppFinanceRevenueRoute = AppFinanceRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => AppFinanceRoute,
+} as any)
+const AppFinancePayoutsRoute = AppFinancePayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => AppFinanceRoute,
+} as any)
+const AppFinanceExpensesRoute = AppFinanceExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => AppFinanceRoute,
+} as any)
+const AppFinanceCategoriesRoute = AppFinanceCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AppFinanceRoute,
+} as any)
 const AppAcademyTrainersRoute = AppAcademyTrainersRouteImport.update({
   id: '/trainers',
   path: '/trainers',
@@ -226,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -241,6 +278,10 @@ export interface FileRoutesByFullPath {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
+  '/app/finance/categories': typeof AppFinanceCategoriesRoute
+  '/app/finance/expenses': typeof AppFinanceExpensesRoute
+  '/app/finance/payouts': typeof AppFinancePayoutsRoute
+  '/app/finance/revenue': typeof AppFinanceRevenueRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/inventory/categories': typeof AppInventoryCategoriesRoute
   '/app/inventory/movements': typeof AppInventoryMovementsRoute
@@ -251,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/finance/': typeof AppFinanceIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
@@ -274,6 +316,10 @@ export interface FileRoutesByTo {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
+  '/app/finance/categories': typeof AppFinanceCategoriesRoute
+  '/app/finance/expenses': typeof AppFinanceExpensesRoute
+  '/app/finance/payouts': typeof AppFinancePayoutsRoute
+  '/app/finance/revenue': typeof AppFinanceRevenueRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/inventory/categories': typeof AppInventoryCategoriesRoute
   '/app/inventory/movements': typeof AppInventoryMovementsRoute
@@ -284,6 +330,7 @@ export interface FileRoutesByTo {
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy': typeof AppAcademyIndexRoute
+  '/app/finance': typeof AppFinanceIndexRoute
   '/app/inventory': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
@@ -296,6 +343,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -311,6 +359,10 @@ export interface FileRoutesById {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
+  '/app/finance/categories': typeof AppFinanceCategoriesRoute
+  '/app/finance/expenses': typeof AppFinanceExpensesRoute
+  '/app/finance/payouts': typeof AppFinancePayoutsRoute
+  '/app/finance/revenue': typeof AppFinanceRevenueRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/inventory/categories': typeof AppInventoryCategoriesRoute
   '/app/inventory/movements': typeof AppInventoryMovementsRoute
@@ -321,6 +373,7 @@ export interface FileRoutesById {
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/finance/': typeof AppFinanceIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
@@ -334,6 +387,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/academy'
     | '/app/dashboard'
+    | '/app/finance'
     | '/app/franchisees'
     | '/app/inventory'
     | '/app/leads'
@@ -349,6 +403,10 @@ export interface FileRouteTypes {
     | '/app/academy/fees'
     | '/app/academy/students'
     | '/app/academy/trainers'
+    | '/app/finance/categories'
+    | '/app/finance/expenses'
+    | '/app/finance/payouts'
+    | '/app/finance/revenue'
     | '/app/franchisees/$franchiseeId'
     | '/app/inventory/categories'
     | '/app/inventory/movements'
@@ -359,6 +417,7 @@ export interface FileRouteTypes {
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
     | '/app/academy/'
+    | '/app/finance/'
     | '/app/inventory/'
     | '/app/academy/batches/$batchId'
   fileRoutesByTo: FileRoutesByTo
@@ -382,6 +441,10 @@ export interface FileRouteTypes {
     | '/app/academy/fees'
     | '/app/academy/students'
     | '/app/academy/trainers'
+    | '/app/finance/categories'
+    | '/app/finance/expenses'
+    | '/app/finance/payouts'
+    | '/app/finance/revenue'
     | '/app/franchisees/$franchiseeId'
     | '/app/inventory/categories'
     | '/app/inventory/movements'
@@ -392,6 +455,7 @@ export interface FileRouteTypes {
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
     | '/app/academy'
+    | '/app/finance'
     | '/app/inventory'
     | '/app/academy/batches/$batchId'
   id:
@@ -403,6 +467,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app/academy'
     | '/app/dashboard'
+    | '/app/finance'
     | '/app/franchisees'
     | '/app/inventory'
     | '/app/leads'
@@ -418,6 +483,10 @@ export interface FileRouteTypes {
     | '/app/academy/fees'
     | '/app/academy/students'
     | '/app/academy/trainers'
+    | '/app/finance/categories'
+    | '/app/finance/expenses'
+    | '/app/finance/payouts'
+    | '/app/finance/revenue'
     | '/app/franchisees/$franchiseeId'
     | '/app/inventory/categories'
     | '/app/inventory/movements'
@@ -428,6 +497,7 @@ export interface FileRouteTypes {
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
     | '/app/academy/'
+    | '/app/finance/'
     | '/app/inventory/'
     | '/app/academy/batches/$batchId'
   fileRoutesById: FileRoutesById
@@ -541,6 +611,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFranchiseesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/finance': {
+      id: '/app/finance'
+      path: '/finance'
+      fullPath: '/app/finance'
+      preLoaderRoute: typeof AppFinanceRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/dashboard': {
       id: '/app/dashboard'
       path: '/dashboard'
@@ -561,6 +638,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/inventory/'
       preLoaderRoute: typeof AppInventoryIndexRouteImport
       parentRoute: typeof AppInventoryRoute
+    }
+    '/app/finance/': {
+      id: '/app/finance/'
+      path: '/'
+      fullPath: '/app/finance/'
+      preLoaderRoute: typeof AppFinanceIndexRouteImport
+      parentRoute: typeof AppFinanceRoute
     }
     '/app/academy/': {
       id: '/app/academy/'
@@ -631,6 +715,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/franchisees/$franchiseeId'
       preLoaderRoute: typeof AppFranchiseesFranchiseeIdRouteImport
       parentRoute: typeof AppFranchiseesRoute
+    }
+    '/app/finance/revenue': {
+      id: '/app/finance/revenue'
+      path: '/revenue'
+      fullPath: '/app/finance/revenue'
+      preLoaderRoute: typeof AppFinanceRevenueRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/payouts': {
+      id: '/app/finance/payouts'
+      path: '/payouts'
+      fullPath: '/app/finance/payouts'
+      preLoaderRoute: typeof AppFinancePayoutsRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/expenses': {
+      id: '/app/finance/expenses'
+      path: '/expenses'
+      fullPath: '/app/finance/expenses'
+      preLoaderRoute: typeof AppFinanceExpensesRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/categories': {
+      id: '/app/finance/categories'
+      path: '/categories'
+      fullPath: '/app/finance/categories'
+      preLoaderRoute: typeof AppFinanceCategoriesRouteImport
+      parentRoute: typeof AppFinanceRoute
     }
     '/app/academy/trainers': {
       id: '/app/academy/trainers'
@@ -719,6 +831,26 @@ const AppAcademyRouteWithChildren = AppAcademyRoute._addFileChildren(
   AppAcademyRouteChildren,
 )
 
+interface AppFinanceRouteChildren {
+  AppFinanceCategoriesRoute: typeof AppFinanceCategoriesRoute
+  AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
+  AppFinancePayoutsRoute: typeof AppFinancePayoutsRoute
+  AppFinanceRevenueRoute: typeof AppFinanceRevenueRoute
+  AppFinanceIndexRoute: typeof AppFinanceIndexRoute
+}
+
+const AppFinanceRouteChildren: AppFinanceRouteChildren = {
+  AppFinanceCategoriesRoute: AppFinanceCategoriesRoute,
+  AppFinanceExpensesRoute: AppFinanceExpensesRoute,
+  AppFinancePayoutsRoute: AppFinancePayoutsRoute,
+  AppFinanceRevenueRoute: AppFinanceRevenueRoute,
+  AppFinanceIndexRoute: AppFinanceIndexRoute,
+}
+
+const AppFinanceRouteWithChildren = AppFinanceRoute._addFileChildren(
+  AppFinanceRouteChildren,
+)
+
 interface AppFranchiseesRouteChildren {
   AppFranchiseesFranchiseeIdRoute: typeof AppFranchiseesFranchiseeIdRoute
 }
@@ -772,6 +904,7 @@ const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
 interface AppRouteChildren {
   AppAcademyRoute: typeof AppAcademyRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
+  AppFinanceRoute: typeof AppFinanceRouteWithChildren
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
   AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
@@ -785,6 +918,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAcademyRoute: AppAcademyRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
+  AppFinanceRoute: AppFinanceRouteWithChildren,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
   AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
