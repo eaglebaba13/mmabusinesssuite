@@ -57,6 +57,7 @@ import { Route as AppHrLeaveRouteImport } from './routes/app.hr.leave'
 import { Route as AppHrEmployeesRouteImport } from './routes/app.hr.employees'
 import { Route as AppHrAttendanceRouteImport } from './routes/app.hr.attendance'
 import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
+import { Route as AppFinanceRevenueModelRouteImport } from './routes/app.finance.revenue-model'
 import { Route as AppFinanceRevenueRouteImport } from './routes/app.finance.revenue'
 import { Route as AppFinancePayoutsRouteImport } from './routes/app.finance.payouts'
 import { Route as AppFinanceExpensesRouteImport } from './routes/app.finance.expenses'
@@ -315,6 +316,11 @@ const AppFranchiseesFranchiseeIdRoute =
     path: '/$franchiseeId',
     getParentRoute: () => AppFranchiseesRoute,
   } as any)
+const AppFinanceRevenueModelRoute = AppFinanceRevenueModelRouteImport.update({
+  id: '/revenue-model',
+  path: '/revenue-model',
+  getParentRoute: () => AppFinanceRoute,
+} as any)
 const AppFinanceRevenueRoute = AppFinanceRevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
@@ -429,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
   '/app/finance/revenue': typeof AppFinanceRevenueRoute
+  '/app/finance/revenue-model': typeof AppFinanceRevenueModelRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/hr/attendance': typeof AppHrAttendanceRoute
   '/app/hr/employees': typeof AppHrEmployeesRoute
@@ -486,6 +493,7 @@ export interface FileRoutesByTo {
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
   '/app/finance/revenue': typeof AppFinanceRevenueRoute
+  '/app/finance/revenue-model': typeof AppFinanceRevenueModelRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/hr/attendance': typeof AppHrAttendanceRoute
   '/app/hr/employees': typeof AppHrEmployeesRoute
@@ -552,6 +560,7 @@ export interface FileRoutesById {
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
   '/app/finance/revenue': typeof AppFinanceRevenueRoute
+  '/app/finance/revenue-model': typeof AppFinanceRevenueModelRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
   '/app/hr/attendance': typeof AppHrAttendanceRoute
   '/app/hr/employees': typeof AppHrEmployeesRoute
@@ -619,6 +628,7 @@ export interface FileRouteTypes {
     | '/app/finance/expenses'
     | '/app/finance/payouts'
     | '/app/finance/revenue'
+    | '/app/finance/revenue-model'
     | '/app/franchisees/$franchiseeId'
     | '/app/hr/attendance'
     | '/app/hr/employees'
@@ -676,6 +686,7 @@ export interface FileRouteTypes {
     | '/app/finance/expenses'
     | '/app/finance/payouts'
     | '/app/finance/revenue'
+    | '/app/finance/revenue-model'
     | '/app/franchisees/$franchiseeId'
     | '/app/hr/attendance'
     | '/app/hr/employees'
@@ -741,6 +752,7 @@ export interface FileRouteTypes {
     | '/app/finance/expenses'
     | '/app/finance/payouts'
     | '/app/finance/revenue'
+    | '/app/finance/revenue-model'
     | '/app/franchisees/$franchiseeId'
     | '/app/hr/attendance'
     | '/app/hr/employees'
@@ -1123,6 +1135,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFranchiseesFranchiseeIdRouteImport
       parentRoute: typeof AppFranchiseesRoute
     }
+    '/app/finance/revenue-model': {
+      id: '/app/finance/revenue-model'
+      path: '/revenue-model'
+      fullPath: '/app/finance/revenue-model'
+      preLoaderRoute: typeof AppFinanceRevenueModelRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
     '/app/finance/revenue': {
       id: '/app/finance/revenue'
       path: '/revenue'
@@ -1271,6 +1290,7 @@ interface AppFinanceRouteChildren {
   AppFinanceExpensesRoute: typeof AppFinanceExpensesRoute
   AppFinancePayoutsRoute: typeof AppFinancePayoutsRoute
   AppFinanceRevenueRoute: typeof AppFinanceRevenueRoute
+  AppFinanceRevenueModelRoute: typeof AppFinanceRevenueModelRoute
   AppFinanceIndexRoute: typeof AppFinanceIndexRoute
 }
 
@@ -1279,6 +1299,7 @@ const AppFinanceRouteChildren: AppFinanceRouteChildren = {
   AppFinanceExpensesRoute: AppFinanceExpensesRoute,
   AppFinancePayoutsRoute: AppFinancePayoutsRoute,
   AppFinanceRevenueRoute: AppFinanceRevenueRoute,
+  AppFinanceRevenueModelRoute: AppFinanceRevenueModelRoute,
   AppFinanceIndexRoute: AppFinanceIndexRoute,
 }
 
