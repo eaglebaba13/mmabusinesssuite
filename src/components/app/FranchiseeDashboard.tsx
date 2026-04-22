@@ -105,7 +105,7 @@ export function FranchiseeDashboard({
   const totalRevenue = revenue.reduce((s, r) => s + Number(r.amount), 0);
   const completedOrders = orders.filter((o) => o.status === "completed");
   const grossSales = completedOrders.reduce((s, o) => s + Number(o.grand_total), 0);
-  const pendingOrders = orders.filter((o) => o.status !== "completed" && o.status !== "void").length;
+  const pendingOrders = orders.filter((o) => o.status !== "completed" && o.status !== "cancelled").length;
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
   const pendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
