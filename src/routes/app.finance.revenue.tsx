@@ -1,0 +1,160 @@
+import * as React from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, TrendingUp } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { formatINR } from "@/lib/format";
+
+export const Route = createFileRoute("/app/finance/revenue")({
+  component: RevenuePage,
+});
+
+const SOURCES = ["academy", "inventory", "franchise_fee", "consulting", "event", "other"] as const;
+
+function RevenuePage() {
+  const qc = useQueryClient();
+  const [open, setOpen] = React.useState(false);
+  const [form, setForm] = React.useState({
+    source: "other" as (typeof SOURCES)[number],
+    source_label: "",
+    amount: "",
+    received_on: new Date().toISOString().slice(0, 10),
+    reference: "",
+    notes: "",
+  });
+
+  const list = useQuery({
+    queryKey: ["revenue-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("revenue_entries")
+        .select("*")
+        .order("received_on", { ascending: false })
+        .limit(200);
+      return data ?? [];
+    },
+  });
+
+  const create = useMutation({
+    mutationFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("revenue_entries").insert({
+        source: form.source,
+        source_label: form.source_label || null,
+        amount: Number(form.amount),
+        received_on: form.received_on,
+        reference: form.reference || null,
+        notes: form.notes || null,
+        recorded_by: u.user?.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Revenue entry added");
+      setOpen(false);
+      setForm({ source: "other", source_label: "", amount: "", received_on: new Date().toISOString().slice(0, 10), reference: "", notes: "" });
+      qc.invalidateQueries({ queryKey: ["revenue-list"] });
+      qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["fin-recent"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const total = (list.data ?? []).reduce((s: number, r: any) => s + Number(r.amount ?? 0), 0);
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display text-xl">Revenue Ledger</h2>
+          <p className="text-xs text-muted-foreground">
+            {list.data?.length ?? 0} entries · Total {formatINR(total)}
+          </p>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />Add Revenue</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader><DialogTitle>New Revenue Entry</DialogTitle></DialogHeader>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Source</Label>
+                  <Select value={form.source} onValueChange={(v: any) => setForm({ ...form, source: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {SOURCES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s.replace("_", " ")}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Date</Label>
+                  <Input type="date" value={form.received_on} onChange={(e) => setForm({ ...form, received_on: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Input value={form.source_label} onChange={(e) => setForm({ ...form, source_label: e.target.value })} placeholder="e.g. New franchise — Pune" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Amount (₹)</Label>
+                  <Input type="number" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+                </div>
+                <div>
+                  <Label>Reference</Label>
+                  <Input value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} placeholder="INV-001" />
+                </div>
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
+              </div>
+              <Button className="w-full bg-gradient-gold text-background" disabled={!form.amount || create.isPending} onClick={() => create.mutate()}>
+                {create.isPending ? "Saving..." : "Save Entry"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card className="glass">
+        <div className="divide-y divide-border/50">
+          {(list.data ?? []).map((r: any) => (
+            <div key={r.id} className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
+                  <TrendingUp className="h-4 w-4 text-emerald-500" />
+                </div>
+                <div>
+                  <div className="text-sm font-medium">{r.source_label || <span className="capitalize">{r.source.replace("_", " ")}</span>}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {new Date(r.received_on).toLocaleDateString("en-IN")}
+                    {r.reference && ` · ${r.reference}`}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="border-primary/30 capitalize">{r.source.replace("_", " ")}</Badge>
+                <span className="font-mono text-sm font-medium text-emerald-500">+{formatINR(r.amount)}</span>
+              </div>
+            </div>
+          ))}
+          {!list.data?.length && (
+            <div className="p-8 text-center text-sm text-muted-foreground">No revenue entries yet. Click "Add Revenue" to begin.</div>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
+}
