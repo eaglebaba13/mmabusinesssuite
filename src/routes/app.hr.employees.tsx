@@ -176,8 +176,27 @@ function EmployeesPage() {
         onToChange={() => {}}
         showDateRange={false}
         count={filtered.length}
-        onCSV={() => exportToCSV(exportRows, "employees")}
-        onPDF={() => exportToPDF(exportRows, "Employees", "employees")}
+        onCSV={() => exportToCSV("employees", exportRows, [
+          { header: "Code", accessor: (r: any) => r.code },
+          { header: "Name", accessor: (r: any) => r.name },
+          { header: "Email", accessor: (r: any) => r.email },
+          { header: "Phone", accessor: (r: any) => r.phone },
+          { header: "Designation", accessor: (r: any) => r.designation },
+          { header: "Department", accessor: (r: any) => r.department },
+          { header: "Type", accessor: (r: any) => r.employment_type },
+          { header: "Status", accessor: (r: any) => r.status },
+          { header: "Joined", accessor: (r: any) => r.date_of_joining },
+          { header: "CTC", accessor: (r: any) => r.monthly_ctc },
+        ])}
+        onPDF={() => exportToPDF({ filename: "employees", title: "Employees", rows: exportRows, columns: [
+          { header: "Code", accessor: (r: any) => r.code },
+          { header: "Name", accessor: (r: any) => r.name },
+          { header: "Department", accessor: (r: any) => r.department },
+          { header: "Designation", accessor: (r: any) => r.designation },
+          { header: "Status", accessor: (r: any) => r.status },
+          { header: "Joined", accessor: (r: any) => r.date_of_joining },
+          { header: "CTC", accessor: (r: any) => r.monthly_ctc },
+        ] })}
       />
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

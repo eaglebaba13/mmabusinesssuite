@@ -145,12 +145,24 @@ function AttendancePage() {
         onToChange={() => {}}
         showDateRange={false}
         count={rows.length}
-        onCSV={() => exportToCSV(rows.map((r: any) => ({
+        onCSV={() => exportToCSV(`attendance-${date}`, rows.map((r: any) => ({
           code: r.employee_code, name: r.full_name, dept: r.departments?.name ?? "", date, status: r.status,
-        })), `attendance-${date}`)}
-        onPDF={() => exportToPDF(rows.map((r: any) => ({
+        })), [
+          { header: "Code", accessor: (r: any) => r.code },
+          { header: "Name", accessor: (r: any) => r.name },
+          { header: "Department", accessor: (r: any) => r.dept },
+          { header: "Date", accessor: (r: any) => r.date },
+          { header: "Status", accessor: (r: any) => r.status },
+        ])}
+        onPDF={() => exportToPDF({ filename: `attendance-${date}`, title: `Attendance ${date}`, rows: rows.map((r: any) => ({
           code: r.employee_code, name: r.full_name, dept: r.departments?.name ?? "", date, status: r.status,
-        })), `Attendance ${date}`, `attendance-${date}`)}
+        })), columns: [
+          { header: "Code", accessor: (r: any) => r.code },
+          { header: "Name", accessor: (r: any) => r.name },
+          { header: "Department", accessor: (r: any) => r.dept },
+          { header: "Date", accessor: (r: any) => r.date },
+          { header: "Status", accessor: (r: any) => r.status },
+        ] })}
       />
 
       <div className="rounded-2xl glass overflow-hidden">
