@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatINR } from "@/lib/format";
+import { ExportBar } from "@/components/app/ExportBar";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 
 export const Route = createFileRoute("/app/finance/categories")({
   component: CategoriesPage,
@@ -63,6 +65,40 @@ function CategoriesPage() {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const rows = list.data ?? [];
+  const exportCols = [
+    { header: "Name", accessor: (c: any) => c.name },
+    { header: "Slug", accessor: (c: any) => c.slug },
+    { header: "Monthly Budget (INR)", accessor: (c: any) => Number(c.monthly_budget ?? 0).toFixed(2) },
+    { header: "Spent This Month (INR)", accessor: (c: any) => Number(c.spent_this_month ?? 0).toFixed(2) },
+    {
+      header: "Utilization %",
+      accessor: (c: any) => (c.monthly_budget > 0 ? ((c.spent_this_month / c.monthly_budget) * 100).toFixed(1) : "—"),
+    },
+  ];
+  const today = new Date().toISOString().slice(0, 10);
+  const fileBase = `expense_categories_${today}`;
+  const handleCSV = () => exportToCSV(fileBase, rows, exportCols);
+  const handlePDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "Expense Categories & Budgets",
+      subtitle: `Snapshot as of ${today}`,
+      rows,
+      columns: exportCols,
+      totals: [
+        { label: "Categories", value: String(rows.length) },
+        {
+          label: "Total Budget",
+          value: formatINR(rows.reduce((s: number, c: any) => s + Number(c.monthly_budget ?? 0), 0)),
+        },
+        {
+          label: "Total Spent (MTD)",
+          value: formatINR(rows.reduce((s: number, c: any) => s + Number(c.spent_this_month ?? 0), 0)),
+        },
+      ],
+    });
 
   return (
     <div className="space-y-5">
