@@ -1,89 +1,61 @@
 
 
-# Franchisee Portal — Separate Login Dashboard + Onboarding Spec
+# Franchisee Login → Live, Self-Scoped Dashboard
 
-The franchisee `remedystore01` is currently seeing the **Master Dashboard** ("Empire at a glance") because `/app` redirects everyone to `/app/dashboard` and that page has no role guard. We'll fully separate the franchisee experience and capture the new onboarding spec (₹5L fee, 3% ROI, equipment requirements, login credentials).
+## The bug you're seeing right now
 
-## What franchisees will see (after fix)
-
-When a franchisee logs in, they will land directly on **My Franchise** — never the Master Dashboard. They will see:
-
-- Their own revenue, ROI paid, pending payouts, POS sales (already built)
-- Their P&L summary (revenue − expenses − ROI paid)
-- Stock inventory of their dark store
-- Academy batch performance attributable to them
-- Equipment & infrastructure compliance checklist
-- Their ROI structure card (Fee ₹5,00,000 · 3% fixed ROI · 10% Emporium · 3% Academy · 3% Dark Store)
-
-The Master Dashboard, Leads, full Franchisees roster, Finance, etc. will be **blocked** for the `franchisee` role.
+`remedystore01@gmail.com` is logged in with the `franchisee` role, but `/app/my-franchise` shows **"No franchise on record"**. Reason: the `franchisees` row for "Sidhhartha" exists with the same email, but its `user_id` column is `NULL` — the onboarding wizard saved credentials and created the auth user, but the link step didn't bind because the row was created earlier without going through the wizard. Same problem for the other 9 seed franchisees.
 
 ## Plan
 
-### 1. Route guards — stop franchisees seeing Master Dashboard
+### 1. Auto-heal the link (one-time + future-proof)
 
-- **`/app/index.tsx`**: redirect franchisees → `/app/my-franchise`, others → `/app/dashboard`.
-- **`/app/dashboard`**, **`/app/franchisees`**, **`/app/leads`**, **`/app/finance`**, **`/app/hr`**, **`/app/settings`**: add a `beforeLoad` / role check that redirects the `franchisee` role to `/app/my-franchise`.
-- Top bar search ("Search leads, franchisees, tickets…") will be hidden for the franchisee role (it leaks admin scope).
+- Migration: backfill `franchisees.user_id` for any row where `user_id IS NULL` and `lower(franchisees.email) = lower(auth.users.email)`. This fixes Sidhhartha and the 9 other seed records immediately.
+- Add a database trigger on `auth.users` (after insert) that auto-links a new franchisee user to a matching `franchisees` row by email if `user_id` is null. Future logins created outside the wizard will self-bind.
+- `/app/my-franchise` fallback: if `user_id` lookup misses, also try `email = auth.user.email` so the page never shows "No franchise on record" when a row clearly exists.
 
-### 2. Capture onboarding spec in the database
+### 2. Confirm "only their own data" (RLS audit)
 
-New migration adds franchisee operational fields:
+Verify and tighten RLS on every table the dashboard reads, scoped to `franchisees.user_id = auth.uid()`:
+- `franchisees` · `revenue_entries` · `sales_orders` · `expenses` · `roi_payouts` · `franchisee_targets` · `stock_levels` (via linked `warehouse_id`) · `leads` (via `territory_id`) · `lead_activities`
+- For each, ensure SELECT policy is: row's `franchisee_id` (or derived) belongs to a franchisee where `user_id = auth.uid()`. Migration adds/replaces the missing policies.
 
-```text
-franchisees + columns:
-  franchise_fee numeric default 500000
-  base_roi_pct numeric default 3.00
-  emporium_pct numeric default 10.00
-  academy_pct numeric default 3.00
-  dark_store_pct numeric default 3.00
-  area_sqft numeric
-  chairs int default 2
-  tables int default 1
-  cctv_count int default 1
-  computer_count int default 1
-  printer_count int default 1
-  equipment_verified bool default false
-  equipment_verified_at timestamptz
-```
+### 3. New franchisee-only sections on `/app/my-franchise`
 
-A second table `franchisee_credentials` (admin-only RLS) stores the **generated email + temporary password** issued at onboarding so admins can hand them to the partner.
+The dashboard already shows revenue, P&L, ROI, POS sales, equipment, inventory. Add three new live blocks scoped to **their** franchisee only:
 
-### 3. Upgrade onboarding flow (admin side)
+- **My Leads** — table of leads from `leads` joined on the franchisee's `territory_id` (from `franchisees.territory_id`). Columns: name, phone, source, stage, score, created. Read-only. Click → small drawer with activity timeline. Stage filter chips (New / Contacted / Qualified / Won / Lost) + counts.
+- **My Ads & Campaigns** — pulls from `social_lead_events` filtered to leads in their territory; shows last 30 days: ad source (Meta / Google / Instagram), leads generated, cost-per-lead (if `spend` field present), conversion %. If the table has no `spend` column we show only volume + conversion.
+- **Account update timeline** — single feed: newest 25 events across `lead_activities`, `revenue_entries`, `sales_orders`, `roi_payouts`, `expenses` for this franchisee, so they can see "kaha tak update hua hai" at a glance.
 
-The "Onboard" dialog on `/app/franchisees` will be expanded to a 3-step form:
+### 4. Sidebar additions for franchisee role
 
-1. **Partner details** — name, email, phone, territory
-2. **Investment & ROI** — Franchise fee (default ₹5L), Base ROI %, incentive %s
-3. **Premises & equipment** — Area (sq ft, min 150), chairs, table, CCTV, computer, printer checklist
-4. **Login** — auto-generates an email (e.g. `partner_<phone>@franchisee.mma`) + 12-char password, calls a server function to (a) create the auth user, (b) assign `franchisee` role, (c) link `franchisees.user_id`, (d) save credentials in `franchisee_credentials` so the admin can copy & share
+Add three read-only entries under the existing "Franchisee" group: **My Franchise** (existing) · **My Leads** · **My Campaigns**. Both new entries point to in-page tabs on `/app/my-franchise` (`?tab=leads` / `?tab=campaigns`) so we don't need new protected routes — keeps RBAC simple.
 
-### 4. Build the dedicated franchisee dashboard
+### 5. Realtime sync (live data, no refresh)
 
-`/app/my-franchise` already shows revenue/orders/payouts. We'll add:
+Subscribe via Supabase Realtime in `FranchiseeDashboard` for `revenue_entries`, `sales_orders`, `roi_payouts`, `leads` filtered by `franchisee_id` / `territory_id` → on event, invalidate the matching React Query keys. Dashboard updates within ~2s when admins record new revenue/orders/payouts or when a new lead lands in their territory.
 
-- **Hero card**: ROI structure (3% fix + 10/3/3 incentives), franchise fee paid, equipment compliance badge
-- **P&L block**: This month + lifetime (revenue − expenses − ROI paid out)
-- **Inventory snapshot**: stock levels for products tagged to this franchisee's warehouse (read-only)
-- **Academy performance**: batches/students under their territory with completion %
-- **Equipment checklist**: ticked items with "✓ Verified by admin" timestamp
+### 6. Admin click-through stays the same
 
-### 5. Sidebar cleanup for franchisee role
+Admin `/app/franchisees/$id` already renders the same `FranchiseeDashboard` component → admins automatically get all new sections (Leads, Campaigns, Timeline) for any franchisee they click.
 
-Franchisee sidebar will only show:
-- My Franchise (dashboard)
-- My Inventory (read-only stock view)
-- Academy Performance (read-only)
-- Support
-- Settings (profile only — change password)
+## Files
 
-The "Operations / Academy / Inventory / Finance / Marketing / Sales" groups will be hidden for franchisees.
+**Migration** (one file):
+- Backfill `franchisees.user_id` by email
+- Trigger `auto_link_franchisee_on_user_signup`
+- RLS audit / add missing policies for `leads`, `lead_activities`, `social_lead_events`, `stock_levels`, `franchisee_targets`
 
-## Technical details
+**Edit:**
+- `src/routes/app.my-franchise.tsx` — add tabs (Dashboard / Leads / Campaigns / Timeline) + email-fallback lookup
+- `src/components/app/FranchiseeDashboard.tsx` — add Realtime subscriptions, "Account update timeline" feed
+- `src/components/app/AppSidebar.tsx` — add "My Leads" and "My Campaigns" entries for franchisee role
 
-- **Files created**: `src/routes/app.my-franchise.tsx` (rewrite with new sections), `src/routes/api/admin/create-franchisee-user.ts` (server route to create auth user + role + link), one migration file.
-- **Files edited**: `app.tsx` (role-based default landing), `app.dashboard.tsx` / `app.leads.tsx` / `app.franchisees.tsx` / `app.finance.tsx` / `app.hr.tsx` (add `beforeLoad` redirect for franchisee role), `AppSidebar.tsx` (franchisee-only nav), `app.franchisees.tsx` (multi-step onboarding form), `TopBar.tsx` (hide global search for franchisee), `FranchiseeDashboard.tsx` (add P&L, inventory, academy, equipment sections, ROI structure card).
-- **Auth user creation**: uses Supabase Admin API inside a server function with the service role key (already available via Lovable Cloud). The temp password is shown **once** in the onboarding dialog and stored hashed in `franchisee_credentials.temp_password` (encrypted at rest, viewable only by `super_admin`/`accounts`).
-- **RLS**: existing franchisee RLS already restricts row-level data to `user_id = auth.uid()`. We'll add similar policies for the new `inventory_warehouses`/`stock_movements` reads scoped by `franchisee_id`.
+**Create:**
+- `src/components/app/FranchiseeLeadsPanel.tsx` — leads list scoped by territory
+- `src/components/app/FranchiseeCampaignsPanel.tsx` — ads/source breakdown from `social_lead_events`
+- `src/components/app/FranchiseeTimeline.tsx` — unified activity feed
 
-After approval I'll run the migration, build the new dashboard sections, and ship the role-aware routing in one pass.
+After approval I'll run the migration first (so Sidhhartha sees their data on the very next refresh), then ship the three new panels and Realtime sync in one pass.
 
