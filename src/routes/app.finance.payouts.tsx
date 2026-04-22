@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINR } from "@/lib/format";
+import { ExportBar } from "@/components/app/ExportBar";
+import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/finance/payouts")({
   component: PayoutsPage,
@@ -89,13 +91,52 @@ function PayoutsPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const [range, setRange] = React.useState(() => {
+    const d = defaultDateRange();
+    const fromD = new Date();
+    fromD.setMonth(fromD.getMonth() - 12);
+    return { from: fromD.toISOString().slice(0, 10), to: d.to };
+  });
+
+  const filtered = React.useMemo(
+    () => (list.data ?? []).filter((p: any) => inDateRange(p.payout_month, range.from, range.to)),
+    [list.data, range],
+  );
+
   const grouped = React.useMemo(() => {
-    const pending = (list.data ?? []).filter((p: any) => p.status === "pending");
-    const paid = (list.data ?? []).filter((p: any) => p.status === "paid");
+    const pending = filtered.filter((p: any) => p.status === "pending");
+    const paid = filtered.filter((p: any) => p.status === "paid");
     const pendingTotal = pending.reduce((s: number, p: any) => s + Number(p.total_amount ?? 0), 0);
     const paidTotal = paid.reduce((s: number, p: any) => s + Number(p.total_amount ?? 0), 0);
     return { pending, paid, pendingTotal, paidTotal };
-  }, [list.data]);
+  }, [filtered]);
+
+  const exportCols = [
+    { header: "Payout Month", accessor: (p: any) => new Date(p.payout_month).toLocaleString("en-IN", { month: "long", year: "numeric" }) },
+    { header: "Franchisee", accessor: (p: any) => p.franchisees?.full_name ?? "" },
+    { header: "Base ROI", accessor: (p: any) => Number(p.base_roi ?? 0).toFixed(2) },
+    { header: "Academy Incentive", accessor: (p: any) => Number(p.academy_incentive ?? 0).toFixed(2) },
+    { header: "Dark Store Incentive", accessor: (p: any) => Number(p.dark_store_incentive ?? 0).toFixed(2) },
+    { header: "Emporium Incentive", accessor: (p: any) => Number(p.emporium_incentive ?? 0).toFixed(2) },
+    { header: "Total (INR)", accessor: (p: any) => Number(p.total_amount ?? 0).toFixed(2) },
+    { header: "Status", accessor: (p: any) => p.status },
+    { header: "Paid At", accessor: (p: any) => (p.paid_at ? new Date(p.paid_at).toLocaleDateString("en-IN") : "") },
+  ];
+  const fileBase = `roi_payouts_${range.from}_to_${range.to}`;
+  const handleCSV = () => exportToCSV(fileBase, filtered, exportCols);
+  const handlePDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "ROI Payouts",
+      subtitle: `${range.from} → ${range.to}`,
+      rows: filtered,
+      columns: exportCols,
+      totals: [
+        { label: "Payouts", value: String(filtered.length) },
+        { label: "Paid", value: `${grouped.paid.length} (${formatINR(grouped.paidTotal)})` },
+        { label: "Pending", value: `${grouped.pending.length} (${formatINR(grouped.pendingTotal)})` },
+      ],
+    });
 
   return (
     <div className="space-y-5">
@@ -140,9 +181,19 @@ function PayoutsPage() {
         </Dialog>
       </div>
 
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={handleCSV}
+        onPDF={handlePDF}
+        count={filtered.length}
+      />
+
       <Card className="glass">
         <div className="divide-y divide-border/50">
-          {(list.data ?? []).map((p: any) => (
+          {filtered.map((p: any) => (
             <div key={p.id} className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
@@ -169,8 +220,10 @@ function PayoutsPage() {
               </div>
             </div>
           ))}
-          {!list.data?.length && (
-            <div className="p-8 text-center text-sm text-muted-foreground">No payouts yet.</div>
+          {!filtered.length && (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {list.data?.length ? "No payouts in selected date range." : "No payouts yet."}
+            </div>
           )}
         </div>
       </Card>
