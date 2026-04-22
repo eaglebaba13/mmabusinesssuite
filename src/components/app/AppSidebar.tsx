@@ -8,6 +8,7 @@ import {
   Briefcase,
   GraduationCap,
   UserCog,
+  Package,
 } from "lucide-react";
 import {
   Sidebar,
@@ -34,6 +35,10 @@ const NAV_ACADEMY = [
   { title: "Academy", url: "/app/academy" as const, icon: GraduationCap },
 ] as const;
 
+const NAV_INVENTORY = [
+  { title: "Inventory", url: "/app/inventory" as const, icon: Package },
+] as const;
+
 const NAV_TRAINER = [
   { title: "Trainer Portal", url: "/app/trainer" as const, icon: UserCog },
 ] as const;
@@ -53,6 +58,7 @@ export function AppSidebar() {
   const isFranchisee = hasRole("franchisee");
   const isTrainer = hasRole("trainer");
   const isAcademyStaff = isAdmin || hasRole("academy_admin") || hasRole("accounts");
+  const isInventoryStaff = isAdmin || hasRole("inventory");
 
   const isActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
@@ -101,6 +107,33 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {NAV_ACADEMY.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isInventoryStaff && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Inventory
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_INVENTORY.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild

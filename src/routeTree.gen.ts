@@ -21,11 +21,20 @@ import { Route as AppSupportRouteImport } from './routes/app.support'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppInventoryRouteImport } from './routes/app.inventory'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
+import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
+import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
+import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
+import { Route as AppInventoryStockRouteImport } from './routes/app.inventory.stock'
+import { Route as AppInventoryPurchaseOrdersRouteImport } from './routes/app.inventory.purchase-orders'
+import { Route as AppInventoryProductsRouteImport } from './routes/app.inventory.products'
+import { Route as AppInventoryMovementsRouteImport } from './routes/app.inventory.movements'
+import { Route as AppInventoryCategoriesRouteImport } from './routes/app.inventory.categories'
 import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
 import { Route as AppAcademyTrainersRouteImport } from './routes/app.academy.trainers'
 import { Route as AppAcademyStudentsRouteImport } from './routes/app.academy.students'
@@ -95,6 +104,11 @@ const AppLeadsRoute = AppLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
   id: '/franchisees',
   path: '/franchisees',
@@ -110,6 +124,11 @@ const AppAcademyRoute = AppAcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
 const AppAcademyIndexRoute = AppAcademyIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -119,6 +138,42 @@ const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
   path: '/$leadId',
   getParentRoute: () => AppLeadsRoute,
+} as any)
+const AppInventoryWarehousesRoute = AppInventoryWarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppInventorySuppliersRoute = AppInventorySuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppInventoryStockRoute = AppInventoryStockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppInventoryPurchaseOrdersRoute =
+  AppInventoryPurchaseOrdersRouteImport.update({
+    id: '/purchase-orders',
+    path: '/purchase-orders',
+    getParentRoute: () => AppInventoryRoute,
+  } as any)
+const AppInventoryProductsRoute = AppInventoryProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppInventoryMovementsRoute = AppInventoryMovementsRouteImport.update({
+  id: '/movements',
+  path: '/movements',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppInventoryCategoriesRoute = AppInventoryCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AppInventoryRoute,
 } as any)
 const AppFranchiseesFranchiseeIdRoute =
   AppFranchiseesFranchiseeIdRouteImport.update({
@@ -172,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/settings': typeof AppSettingsRoute
@@ -186,8 +242,16 @@ export interface FileRoutesByFullPath {
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/inventory/categories': typeof AppInventoryCategoriesRoute
+  '/app/inventory/movements': typeof AppInventoryMovementsRoute
+  '/app/inventory/products': typeof AppInventoryProductsRoute
+  '/app/inventory/purchase-orders': typeof AppInventoryPurchaseOrdersRoute
+  '/app/inventory/stock': typeof AppInventoryStockRoute
+  '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
+  '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesByTo {
@@ -211,8 +275,16 @@ export interface FileRoutesByTo {
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/inventory/categories': typeof AppInventoryCategoriesRoute
+  '/app/inventory/movements': typeof AppInventoryMovementsRoute
+  '/app/inventory/products': typeof AppInventoryProductsRoute
+  '/app/inventory/purchase-orders': typeof AppInventoryPurchaseOrdersRoute
+  '/app/inventory/stock': typeof AppInventoryStockRoute
+  '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
+  '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy': typeof AppAcademyIndexRoute
+  '/app/inventory': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesById {
@@ -225,6 +297,7 @@ export interface FileRoutesById {
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/dashboard': typeof AppDashboardRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/settings': typeof AppSettingsRoute
@@ -239,8 +312,16 @@ export interface FileRoutesById {
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/franchisees/$franchiseeId': typeof AppFranchiseesFranchiseeIdRoute
+  '/app/inventory/categories': typeof AppInventoryCategoriesRoute
+  '/app/inventory/movements': typeof AppInventoryMovementsRoute
+  '/app/inventory/products': typeof AppInventoryProductsRoute
+  '/app/inventory/purchase-orders': typeof AppInventoryPurchaseOrdersRoute
+  '/app/inventory/stock': typeof AppInventoryStockRoute
+  '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
+  '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/academy/': typeof AppAcademyIndexRoute
+  '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRouteTypes {
@@ -254,6 +335,7 @@ export interface FileRouteTypes {
     | '/app/academy'
     | '/app/dashboard'
     | '/app/franchisees'
+    | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/settings'
@@ -268,8 +350,16 @@ export interface FileRouteTypes {
     | '/app/academy/students'
     | '/app/academy/trainers'
     | '/app/franchisees/$franchiseeId'
+    | '/app/inventory/categories'
+    | '/app/inventory/movements'
+    | '/app/inventory/products'
+    | '/app/inventory/purchase-orders'
+    | '/app/inventory/stock'
+    | '/app/inventory/suppliers'
+    | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
     | '/app/academy/'
+    | '/app/inventory/'
     | '/app/academy/batches/$batchId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -293,8 +383,16 @@ export interface FileRouteTypes {
     | '/app/academy/students'
     | '/app/academy/trainers'
     | '/app/franchisees/$franchiseeId'
+    | '/app/inventory/categories'
+    | '/app/inventory/movements'
+    | '/app/inventory/products'
+    | '/app/inventory/purchase-orders'
+    | '/app/inventory/stock'
+    | '/app/inventory/suppliers'
+    | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
     | '/app/academy'
+    | '/app/inventory'
     | '/app/academy/batches/$batchId'
   id:
     | '__root__'
@@ -306,6 +404,7 @@ export interface FileRouteTypes {
     | '/app/academy'
     | '/app/dashboard'
     | '/app/franchisees'
+    | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/settings'
@@ -320,8 +419,16 @@ export interface FileRouteTypes {
     | '/app/academy/students'
     | '/app/academy/trainers'
     | '/app/franchisees/$franchiseeId'
+    | '/app/inventory/categories'
+    | '/app/inventory/movements'
+    | '/app/inventory/products'
+    | '/app/inventory/purchase-orders'
+    | '/app/inventory/stock'
+    | '/app/inventory/suppliers'
+    | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
     | '/app/academy/'
+    | '/app/inventory/'
     | '/app/academy/batches/$batchId'
   fileRoutesById: FileRoutesById
 }
@@ -420,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLeadsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inventory': {
+      id: '/app/inventory'
+      path: '/inventory'
+      fullPath: '/app/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/franchisees': {
       id: '/app/franchisees'
       path: '/franchisees'
@@ -441,6 +555,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAcademyRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/inventory/': {
+      id: '/app/inventory/'
+      path: '/'
+      fullPath: '/app/inventory/'
+      preLoaderRoute: typeof AppInventoryIndexRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
     '/app/academy/': {
       id: '/app/academy/'
       path: '/'
@@ -454,6 +575,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/leads/$leadId'
       preLoaderRoute: typeof AppLeadsLeadIdRouteImport
       parentRoute: typeof AppLeadsRoute
+    }
+    '/app/inventory/warehouses': {
+      id: '/app/inventory/warehouses'
+      path: '/warehouses'
+      fullPath: '/app/inventory/warehouses'
+      preLoaderRoute: typeof AppInventoryWarehousesRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/suppliers': {
+      id: '/app/inventory/suppliers'
+      path: '/suppliers'
+      fullPath: '/app/inventory/suppliers'
+      preLoaderRoute: typeof AppInventorySuppliersRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/stock': {
+      id: '/app/inventory/stock'
+      path: '/stock'
+      fullPath: '/app/inventory/stock'
+      preLoaderRoute: typeof AppInventoryStockRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/purchase-orders': {
+      id: '/app/inventory/purchase-orders'
+      path: '/purchase-orders'
+      fullPath: '/app/inventory/purchase-orders'
+      preLoaderRoute: typeof AppInventoryPurchaseOrdersRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/products': {
+      id: '/app/inventory/products'
+      path: '/products'
+      fullPath: '/app/inventory/products'
+      preLoaderRoute: typeof AppInventoryProductsRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/movements': {
+      id: '/app/inventory/movements'
+      path: '/movements'
+      fullPath: '/app/inventory/movements'
+      preLoaderRoute: typeof AppInventoryMovementsRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/categories': {
+      id: '/app/inventory/categories'
+      path: '/categories'
+      fullPath: '/app/inventory/categories'
+      preLoaderRoute: typeof AppInventoryCategoriesRouteImport
+      parentRoute: typeof AppInventoryRoute
     }
     '/app/franchisees/$franchiseeId': {
       id: '/app/franchisees/$franchiseeId'
@@ -561,6 +731,32 @@ const AppFranchiseesRouteWithChildren = AppFranchiseesRoute._addFileChildren(
   AppFranchiseesRouteChildren,
 )
 
+interface AppInventoryRouteChildren {
+  AppInventoryCategoriesRoute: typeof AppInventoryCategoriesRoute
+  AppInventoryMovementsRoute: typeof AppInventoryMovementsRoute
+  AppInventoryProductsRoute: typeof AppInventoryProductsRoute
+  AppInventoryPurchaseOrdersRoute: typeof AppInventoryPurchaseOrdersRoute
+  AppInventoryStockRoute: typeof AppInventoryStockRoute
+  AppInventorySuppliersRoute: typeof AppInventorySuppliersRoute
+  AppInventoryWarehousesRoute: typeof AppInventoryWarehousesRoute
+  AppInventoryIndexRoute: typeof AppInventoryIndexRoute
+}
+
+const AppInventoryRouteChildren: AppInventoryRouteChildren = {
+  AppInventoryCategoriesRoute: AppInventoryCategoriesRoute,
+  AppInventoryMovementsRoute: AppInventoryMovementsRoute,
+  AppInventoryProductsRoute: AppInventoryProductsRoute,
+  AppInventoryPurchaseOrdersRoute: AppInventoryPurchaseOrdersRoute,
+  AppInventoryStockRoute: AppInventoryStockRoute,
+  AppInventorySuppliersRoute: AppInventorySuppliersRoute,
+  AppInventoryWarehousesRoute: AppInventoryWarehousesRoute,
+  AppInventoryIndexRoute: AppInventoryIndexRoute,
+}
+
+const AppInventoryRouteWithChildren = AppInventoryRoute._addFileChildren(
+  AppInventoryRouteChildren,
+)
+
 interface AppLeadsRouteChildren {
   AppLeadsLeadIdRoute: typeof AppLeadsLeadIdRoute
 }
@@ -577,6 +773,7 @@ interface AppRouteChildren {
   AppAcademyRoute: typeof AppAcademyRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
+  AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -589,6 +786,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAcademyRoute: AppAcademyRouteWithChildren,
   AppDashboardRoute: AppDashboardRoute,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
+  AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,
   AppSettingsRoute: AppSettingsRoute,
