@@ -59,7 +59,9 @@ const NAV_TRAINER = [
 ] as const;
 
 const NAV_FRANCHISEE = [
-  { title: "My Franchise", url: "/app/my-franchise" as const, icon: Briefcase },
+  { title: "My Franchise", url: "/app/my-franchise" as const, icon: Briefcase, search: { tab: "dashboard" as const } },
+  { title: "My Leads", url: "/app/my-franchise" as const, icon: Users, search: { tab: "leads" as const } },
+  { title: "My Campaigns", url: "/app/my-franchise" as const, icon: Megaphone, search: { tab: "campaigns" as const } },
 ] as const;
 
 const NAV_FOOTER = [
@@ -288,21 +290,25 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_FRANCHISEE.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive(item.url)}
-                      tooltip={item.title}
-                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
-                    >
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
+                {NAV_FRANCHISEE.map((item) => {
+                  const currentTab = (location.search as { tab?: string }).tab ?? "dashboard";
+                  const active = location.pathname === item.url && currentTab === item.search.tab;
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={item.title}
+                        className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                      >
+                        <Link to={item.url} search={item.search}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
