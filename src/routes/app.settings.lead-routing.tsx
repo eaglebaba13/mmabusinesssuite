@@ -528,7 +528,7 @@ function LeadRoutingPage() {
                 <div>
                   <Label className="text-xs">Sales rep / owner</Label>
                   <Select
-                    value={draft.assign_to_user ?? ""}
+                    value={draft.assign_to_user ?? "__none__"}
                     onValueChange={(v) =>
                       setDraft({ ...draft, assign_to_user: v === "__none__" ? null : v })
                     }
