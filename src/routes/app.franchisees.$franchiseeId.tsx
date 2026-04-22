@@ -13,12 +13,15 @@ import { useAuth } from "@/lib/auth-context";
 export const Route = createFileRoute("/app/franchisees/$franchiseeId")({
   head: () => ({ meta: [{ title: "Franchisee — MMA Suite" }] }),
   component: FranchiseeDetailPage,
-  errorComponent: ({ error, reset }) => (
-    <div className="p-12 text-center">
-      <p className="text-destructive">{error.message}</p>
-      <Button onClick={reset} className="mt-4">Retry</Button>
-    </div>
-  ),
+  errorComponent: ({ error, reset }) => {
+    if (import.meta.env.DEV) console.error(error);
+    return (
+      <div className="p-12 text-center">
+        <p className="text-destructive">Something went wrong. Please try again.</p>
+        <Button onClick={reset} className="mt-4">Retry</Button>
+      </div>
+    );
+  },
   notFoundComponent: () => (
     <div className="p-12 text-center">
       <p>Franchisee not found.</p>

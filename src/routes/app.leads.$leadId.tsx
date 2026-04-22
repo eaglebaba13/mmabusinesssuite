@@ -13,12 +13,15 @@ import { format } from "date-fns";
 export const Route = createFileRoute("/app/leads/$leadId")({
   head: () => ({ meta: [{ title: "Lead — MMA Suite" }] }),
   component: LeadDetailPage,
-  errorComponent: ({ error, reset }) => (
-    <div className="p-12 text-center">
-      <p className="text-destructive">{error.message}</p>
-      <Button onClick={reset} className="mt-4">Retry</Button>
-    </div>
-  ),
+  errorComponent: ({ error, reset }) => {
+    if (import.meta.env.DEV) console.error(error);
+    return (
+      <div className="p-12 text-center">
+        <p className="text-destructive">Something went wrong. Please try again.</p>
+        <Button onClick={reset} className="mt-4">Retry</Button>
+      </div>
+    );
+  },
   notFoundComponent: () => (
     <div className="p-12 text-center">
       <p>Lead not found.</p>
@@ -88,7 +91,10 @@ function LeadDetailPage() {
     score = Math.min(100, score);
     const { error } = await supabase.from("leads").update({ score }).eq("id", leadId);
     setScoring(false);
-    if (error) return toast.error(error.message);
+    if (error) {
+      console.error(error);
+      return toast.error("Failed to score lead. Please try again.");
+    }
     toast.success(`Lead scored: ${score}/100`);
     qc.invalidateQueries({ queryKey: ["lead", leadId] });
   };
