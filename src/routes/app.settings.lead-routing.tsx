@@ -153,6 +153,8 @@ function LeadRoutingPage() {
         match_state: draft.match_state?.trim() || null,
         add_tag: draft.add_tag?.trim() || null,
         notes: draft.notes?.trim() || null,
+        set_stage: (draft.set_stage || null) as
+          | "new" | "interested" | "followup" | "hot" | "payment_pending" | "closed" | "lost" | null,
       };
       if (!payload.name) throw new Error("Rule name is required");
       if (editing) {
