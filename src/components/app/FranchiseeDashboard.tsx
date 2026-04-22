@@ -37,6 +37,7 @@ interface Props {
   investment: number;
   joinedAt?: string | null;
   status?: string | null;
+  territoryId?: string | null;
 }
 
 export function FranchiseeDashboard({
@@ -45,9 +46,58 @@ export function FranchiseeDashboard({
   investment,
   joinedAt,
   status,
+  territoryId,
 }: Props) {
+  const qc = useQueryClient();
   const since = React.useMemo(() => subMonths(new Date(), 5), []);
   const since6mStart = startOfMonth(since).toISOString().slice(0, 10);
+
+  // Realtime: invalidate franchisee-scoped queries when admins record changes
+  React.useEffect(() => {
+    const ch = supabase
+      .channel(`fr-dash-${franchiseeId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "revenue_entries", filter: `franchisee_id=eq.${franchiseeId}` },
+        () => qc.invalidateQueries({ queryKey: ["fr-dash-revenue", franchiseeId] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "sales_orders", filter: `franchisee_id=eq.${franchiseeId}` },
+        () => qc.invalidateQueries({ queryKey: ["fr-dash-orders", franchiseeId] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "roi_payouts", filter: `franchisee_id=eq.${franchiseeId}` },
+        () => qc.invalidateQueries({ queryKey: ["fr-dash-payouts", franchiseeId] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "expenses", filter: `franchisee_id=eq.${franchiseeId}` },
+        () => qc.invalidateQueries({ queryKey: ["fr-dash-expenses", franchiseeId] }),
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [franchiseeId, qc]);
+
+  // Realtime for territory-scoped leads
+  React.useEffect(() => {
+    if (!territoryId) return;
+    const ch = supabase
+      .channel(`fr-dash-leads-${territoryId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "leads", filter: `territory_id=eq.${territoryId}` },
+        () => qc.invalidateQueries({ queryKey: ["fr-leads", territoryId] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [territoryId, qc]);
 
   // Full franchisee record for spec/equipment fields
   const { data: franchisee } = useQuery({

@@ -291,10 +291,8 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {NAV_FRANCHISEE.map((item) => {
-                  const active =
-                    location.pathname === item.url &&
-                    (location.search.includes(`tab=${item.search.tab}`) ||
-                      (item.search.tab === "dashboard" && !location.search.includes("tab=")));
+                  const currentTab = (location.search as { tab?: string }).tab ?? "dashboard";
+                  const active = location.pathname === item.url && currentTab === item.search.tab;
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
