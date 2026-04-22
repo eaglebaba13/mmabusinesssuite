@@ -78,7 +78,10 @@ function LeadsPage() {
       qc.invalidateQueries({ queryKey: ["leads"] });
       toast.success("Lead moved");
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      console.error(e);
+      toast.error("An error occurred. Please try again.");
+    },
   });
 
   const filtered = React.useMemo(() => {

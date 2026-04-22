@@ -49,7 +49,10 @@ function SupportPage() {
       setForm({ subject: "", description: "", priority: "medium" });
       qc.invalidateQueries({ queryKey: ["tickets"] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      console.error(e);
+      toast.error("An error occurred. Please try again.");
+    },
   });
 
   return (

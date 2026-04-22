@@ -53,7 +53,10 @@ function FranchiseesPage() {
       setForm({ full_name: "", email: "", phone: "", investment_amount: "500000" });
       qc.invalidateQueries({ queryKey: ["franchisees"] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      console.error(e);
+      toast.error("An error occurred. Please try again.");
+    },
   });
 
   return (

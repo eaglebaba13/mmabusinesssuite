@@ -61,7 +61,10 @@ function SettingsPage() {
       toast.success("Profile saved");
       qc.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      console.error(e);
+      toast.error("An error occurred. Please try again.");
+    },
   });
 
   const saveOrg = useMutation({
@@ -70,7 +73,10 @@ function SettingsPage() {
       if (error) throw error;
     },
     onSuccess: () => toast.success("Workspace saved"),
-    onError: (e: any) => toast.error(e.message),
+    onError: (e: any) => {
+      console.error(e);
+      toast.error("An error occurred. Please try again.");
+    },
   });
 
   return (
