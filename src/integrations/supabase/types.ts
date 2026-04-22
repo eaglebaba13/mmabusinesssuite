@@ -551,6 +551,106 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          parent_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          active: boolean
+          category_id: string | null
+          cost_price: number
+          created_at: string
+          description: string | null
+          hsn_code: string | null
+          id: string
+          image_url: string | null
+          low_stock_threshold: number
+          mrp: number
+          name: string
+          sale_price: number
+          sku: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category_id?: string | null
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          hsn_code?: string | null
+          id?: string
+          image_url?: string | null
+          low_stock_threshold?: number
+          mrp?: number
+          name: string
+          sale_price?: number
+          sku: string
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category_id?: string | null
+          cost_price?: number
+          created_at?: string
+          description?: string | null
+          hsn_code?: string | null
+          id?: string
+          image_url?: string | null
+          low_stock_threshold?: number
+          mrp?: number
+          name?: string
+          sale_price?: number
+          sku?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "product_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -580,6 +680,114 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          ordered_qty: number
+          po_id: string
+          product_id: string
+          received_qty: number
+          unit_cost: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ordered_qty?: number
+          po_id: string
+          product_id: string
+          received_qty?: number
+          unit_cost?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ordered_qty?: number
+          po_id?: string
+          product_id?: string
+          received_qty?: number
+          unit_cost?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_po_id_fkey"
+            columns: ["po_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expected_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          po_number: string
+          received_date: string | null
+          status: Database["public"]["Enums"]["po_status"]
+          supplier_id: string
+          total_amount: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          po_number: string
+          received_date?: string | null
+          status?: Database["public"]["Enums"]["po_status"]
+          supplier_id: string
+          total_amount?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expected_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          po_number?: string
+          received_date?: string | null
+          status?: Database["public"]["Enums"]["po_status"]
+          supplier_id?: string
+          total_amount?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roi_payouts: {
         Row: {
@@ -627,6 +835,109 @@ export type Database = {
             columns: ["franchisee_id"]
             isOneToOne: false
             referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_levels: {
+        Row: {
+          id: string
+          product_id: string
+          quantity: number
+          updated_at: string
+          warehouse_id: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          quantity?: number
+          updated_at?: string
+          warehouse_id: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          quantity?: number
+          updated_at?: string
+          warehouse_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_levels_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_levels_warehouse_id_fkey"
+            columns: ["warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock_movements: {
+        Row: {
+          created_at: string
+          destination_warehouse_id: string | null
+          id: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          product_id: string
+          quantity: number
+          reason: string | null
+          recorded_by: string | null
+          reference_id: string | null
+          reference_type: string | null
+          source_warehouse_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          destination_warehouse_id?: string | null
+          id?: string
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          product_id: string
+          quantity: number
+          reason?: string | null
+          recorded_by?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          source_warehouse_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          destination_warehouse_id?: string | null
+          id?: string
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          product_id?: string
+          quantity?: number
+          reason?: string | null
+          recorded_by?: string | null
+          reference_id?: string | null
+          reference_type?: string | null
+          source_warehouse_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_destination_warehouse_id_fkey"
+            columns: ["destination_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_source_warehouse_id_fkey"
+            columns: ["source_warehouse_id"]
+            isOneToOne: false
+            referencedRelation: "warehouses"
             referencedColumns: ["id"]
           },
         ]
@@ -679,6 +990,54 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          active: boolean
+          address: string | null
+          city: string | null
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          gstin: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          gstin?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          gstin?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          state?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -802,6 +1161,48 @@ export type Database = {
         }
         Relationships: []
       }
+      warehouses: {
+        Row: {
+          active: boolean
+          address: string | null
+          city: string | null
+          code: string
+          created_at: string
+          franchisee_id: string | null
+          id: string
+          name: string
+          state: string | null
+          type: Database["public"]["Enums"]["warehouse_type"]
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          code: string
+          created_at?: string
+          franchisee_id?: string | null
+          id?: string
+          name: string
+          state?: string | null
+          type?: Database["public"]["Enums"]["warehouse_type"]
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          code?: string
+          created_at?: string
+          franchisee_id?: string | null
+          id?: string
+          name?: string
+          state?: string | null
+          type?: Database["public"]["Enums"]["warehouse_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -853,9 +1254,17 @@ export type Database = {
         | "payment_pending"
         | "closed"
         | "lost"
+      movement_type: "purchase_in" | "sale_out" | "transfer" | "adjustment"
       payout_status: "pending" | "paid" | "overdue"
+      po_status:
+        | "draft"
+        | "sent"
+        | "partially_received"
+        | "received"
+        | "cancelled"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
+      warehouse_type: "dark_store" | "central_warehouse" | "outlet"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1022,9 +1431,18 @@ export const Constants = {
         "closed",
         "lost",
       ],
+      movement_type: ["purchase_in", "sale_out", "transfer", "adjustment"],
       payout_status: ["pending", "paid", "overdue"],
+      po_status: [
+        "draft",
+        "sent",
+        "partially_received",
+        "received",
+        "cancelled",
+      ],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
+      warehouse_type: ["dark_store", "central_warehouse", "outlet"],
     },
   },
 } as const
