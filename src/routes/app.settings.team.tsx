@@ -270,7 +270,7 @@ function TeamRolesPage() {
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground">Roles</Label>
                   <div className="mt-3 space-y-2">
-                    {ALL_ROLES.map((role) => {
+                    {VISIBLE_ROLES.map((role) => {
                       const checked = draftRoles.has(role);
                       const disableSelfSuper = isSelf && role === "super_admin" && checked;
                       return (
