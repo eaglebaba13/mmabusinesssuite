@@ -267,16 +267,9 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
           return a.trim().toLowerCase() === b.trim().toLowerCase();
         };
 
+        // Note: match_state is reserved for future payloads that include a state field.
+        // Today's payload schema only carries city, so state-only rules act as wildcards.
         const matched = rules.find((r) =>
-          ciEquals(parsed.source, r.match_source) &&
-          ciIncludes(parsed.campaign ?? null, r.match_campaign) &&
-          ciIncludes(parsed.utm?.source ?? null, r.match_utm_source) &&
-          ciIncludes(parsed.utm?.medium ?? null, r.match_utm_medium) &&
-          ciIncludes(parsed.utm?.campaign ?? null, r.match_utm_campaign) &&
-          ciIncludes(parsed.city ?? null, r.match_city) &&
-          ciEquals(parsed.city ?? null, r.match_state ? null : null) || // placeholder, real state check below
-          false,
-        ) ?? rules.find((r) =>
           ciEquals(parsed.source, r.match_source) &&
           ciIncludes(parsed.campaign ?? null, r.match_campaign) &&
           ciIncludes(parsed.utm?.source ?? null, r.match_utm_source) &&
