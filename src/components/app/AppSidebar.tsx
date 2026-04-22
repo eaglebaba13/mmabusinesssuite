@@ -30,6 +30,14 @@ const NAV_MAIN = [
   { title: "Franchisees", url: "/app/franchisees" as const, icon: Building2 },
 ] as const;
 
+const NAV_ACADEMY = [
+  { title: "Academy", url: "/app/academy" as const, icon: GraduationCap },
+] as const;
+
+const NAV_TRAINER = [
+  { title: "Trainer Portal", url: "/app/trainer" as const, icon: UserCog },
+] as const;
+
 const NAV_FRANCHISEE = [
   { title: "My Franchise", url: "/app/my-franchise" as const, icon: Briefcase },
 ] as const;
@@ -43,6 +51,8 @@ export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
   const isFranchisee = hasRole("franchisee");
+  const isTrainer = hasRole("trainer");
+  const isAcademyStaff = isAdmin || hasRole("academy_admin") || hasRole("accounts");
 
   const isActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
