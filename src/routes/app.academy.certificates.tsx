@@ -1,3 +1,4 @@
+import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Award, ExternalLink } from "lucide-react";
@@ -5,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ExportBar } from "@/components/app/ExportBar";
+import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/academy/certificates")({
   head: () => ({ meta: [{ title: "Certificates — Academy" }] }),
@@ -12,6 +15,8 @@ export const Route = createFileRoute("/app/academy/certificates")({
 });
 
 function CertificatesPage() {
+  const [range, setRange] = React.useState(defaultDateRange());
+
   const certs = useQuery({
     queryKey: ["certificates"],
     queryFn: async () => {
@@ -23,14 +28,46 @@ function CertificatesPage() {
     },
   });
 
+  const list = (certs.data ?? []).filter((c: any) => inDateRange(c.issued_on, range.from, range.to));
+
+  const exportCols = [
+    { header: "Code", accessor: (c: any) => c.certificate_code },
+    { header: "Student", accessor: (c: any) => c.enrollments?.students?.full_name ?? "" },
+    { header: "Course", accessor: (c: any) => c.enrollments?.batches?.courses?.title ?? "" },
+    { header: "Batch", accessor: (c: any) => c.enrollments?.batches?.batch_code ?? "" },
+    { header: "Grade", accessor: (c: any) => c.grade ?? "" },
+    { header: "Issued", accessor: (c: any) => c.issued_on ?? "" },
+    { header: "Remarks", accessor: (c: any) => c.remarks ?? "" },
+  ];
+  const fileBase = `certificates_${range.from}_to_${range.to}`;
+  const onCSV = () => exportToCSV(fileBase, list, exportCols);
+  const onPDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "Issued Certificates",
+      subtitle: `${range.from} → ${range.to}`,
+      rows: list,
+      columns: exportCols,
+      totals: [{ label: "Total certificates", value: String(list.length) }],
+    });
+
   return (
     <div className="space-y-4">
       <div>
         <h2 className="font-display text-xl">Certificates</h2>
         <p className="text-sm text-muted-foreground">All issued completion certificates.</p>
       </div>
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={onCSV}
+        onPDF={onPDF}
+        count={list.length}
+      />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {(certs.data ?? []).map((c: any) => (
+        {list.map((c: any) => (
           <Card key={c.id} className="glass hover-gold-glow group p-5">
             <div className="flex items-start justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-gold shadow-gold">
@@ -47,8 +84,8 @@ function CertificatesPage() {
             </Link>
           </Card>
         ))}
-        {certs.data?.length === 0 && (
-          <Card className="col-span-full p-10 text-center text-muted-foreground">No certificates issued yet.</Card>
+        {list.length === 0 && (
+          <Card className="col-span-full p-10 text-center text-muted-foreground">No certificates in this date range.</Card>
         )}
       </div>
     </div>
