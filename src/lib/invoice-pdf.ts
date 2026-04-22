@@ -341,7 +341,7 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
       return [
         String(i + 1),
         it.product_name + (it.sku ? `\n${it.sku}` : ""),
-        it.hsn_code ?? "—",
+        it.hsn_code && it.hsn_code.trim().length >= 4 ? it.hsn_code : "MISSING",
         String(it.quantity),
         fmtINR(it.unit_price),
         `${it.discount_pct}%`,
@@ -369,6 +369,13 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
     },
     alternateRowStyles: { fillColor: [250, 248, 244] },
     margin: { left: margin, right: margin },
+    didParseCell: (data: any) => {
+      if (data.section === "body" && data.column.index === 2 && v.missingHsnRows.includes(data.row.index + 1)) {
+        data.cell.styles.textColor = [180, 30, 30];
+        data.cell.styles.fontStyle = "bold";
+        data.cell.styles.fillColor = [255, 235, 235];
+      }
+    },
   });
 
   y = (doc as any).lastAutoTable.finalY + 14;
