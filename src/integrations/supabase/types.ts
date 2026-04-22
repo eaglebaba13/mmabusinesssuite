@@ -1368,6 +1368,8 @@ export type Database = {
           notes: string | null
           phone: string | null
           registered_at: string
+          reminded_1h_at: string | null
+          reminded_24h_at: string | null
           updated_at: string
           utm_campaign: string | null
           utm_medium: string | null
@@ -1386,6 +1388,8 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           registered_at?: string
+          reminded_1h_at?: string | null
+          reminded_24h_at?: string | null
           updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -1404,6 +1408,8 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           registered_at?: string
+          reminded_1h_at?: string | null
+          reminded_24h_at?: string | null
           updated_at?: string
           utm_campaign?: string | null
           utm_medium?: string | null
@@ -1433,11 +1439,14 @@ export type Database = {
           join_url: string | null
           platform: Database["public"]["Enums"]["webinar_platform"]
           price: number
+          reminder_1h_sent_at: string | null
+          reminder_24h_sent_at: string | null
           scheduled_at: string
           slug: string
           status: Database["public"]["Enums"]["webinar_status"]
           title: string
           updated_at: string
+          webhook_url: string | null
         }
         Insert: {
           capacity?: number
@@ -1451,11 +1460,14 @@ export type Database = {
           join_url?: string | null
           platform?: Database["public"]["Enums"]["webinar_platform"]
           price?: number
+          reminder_1h_sent_at?: string | null
+          reminder_24h_sent_at?: string | null
           scheduled_at: string
           slug: string
           status?: Database["public"]["Enums"]["webinar_status"]
           title: string
           updated_at?: string
+          webhook_url?: string | null
         }
         Update: {
           capacity?: number
@@ -1469,11 +1481,14 @@ export type Database = {
           join_url?: string | null
           platform?: Database["public"]["Enums"]["webinar_platform"]
           price?: number
+          reminder_1h_sent_at?: string | null
+          reminder_24h_sent_at?: string | null
           scheduled_at?: string
           slug?: string
           status?: Database["public"]["Enums"]["webinar_status"]
           title?: string
           updated_at?: string
+          webhook_url?: string | null
         }
         Relationships: []
       }
@@ -1490,6 +1505,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      webinar_seats_taken: { Args: { _webinar_id: string }; Returns: number }
     }
     Enums: {
       app_role:
