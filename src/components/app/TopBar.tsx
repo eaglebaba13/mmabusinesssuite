@@ -16,8 +16,9 @@ import { useAuth } from "@/lib/auth-context";
 import { Badge } from "@/components/ui/badge";
 
 export function TopBar() {
-  const { user, roles, signOut } = useAuth();
+  const { user, roles, signOut, isAdmin, hasRole } = useAuth();
   const navigate = useNavigate();
+  const isFranchiseeOnly = hasRole("franchisee") && !isAdmin;
 
   const initials = (user?.email ?? "?")
     .split("@")[0]
@@ -33,13 +34,15 @@ export function TopBar() {
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-border/40 bg-background/80 px-4 backdrop-blur-xl md:px-6">
       <div className="flex items-center gap-3">
         <SidebarTrigger />
-        <div className="hidden items-center gap-2 md:flex">
-          <Search className="h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search leads, franchisees, tickets…"
-            className="h-9 w-[320px] border-0 bg-card/40 focus-visible:ring-1 focus-visible:ring-gold/40"
-          />
-        </div>
+        {!isFranchiseeOnly && (
+          <div className="hidden items-center gap-2 md:flex">
+            <Search className="h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search leads, franchisees, tickets…"
+              className="h-9 w-[320px] border-0 bg-card/40 focus-visible:ring-1 focus-visible:ring-gold/40"
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2">
