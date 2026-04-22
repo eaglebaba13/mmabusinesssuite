@@ -1,61 +1,113 @@
 
 
-# Franchisee Login → Live, Self-Scoped Dashboard
+# Combined Plan: Franchisee Controls + Dashboard Upgrades
 
-## The bug you're seeing right now
+Two approved scopes merged into one implementation pass.
 
-`remedystore01@gmail.com` is logged in with the `franchisee` role, but `/app/my-franchise` shows **"No franchise on record"**. Reason: the `franchisees` row for "Sidhhartha" exists with the same email, but its `user_id` column is `NULL` — the onboarding wizard saved credentials and created the auth user, but the link step didn't bind because the row was created earlier without going through the wizard. Same problem for the other 9 seed franchisees.
+## Part A — Franchisee click-through + Edit / Activate / Deactivate / Reset
 
-## Plan
+### A1. Card-level quick actions (`/app/franchisees`)
+Add a 3-dot dropdown in the top-right of each card (absolute-positioned, `e.stopPropagation()` so the card link still works for the rest of the surface):
+- Open dashboard · Edit profile · Activate / Deactivate · Reset password · Delete (super_admin only)
 
-### 1. Auto-heal the link (one-time + future-proof)
+Inactive cards are dimmed; status badge turns muted/red.
 
-- Migration: backfill `franchisees.user_id` for any row where `user_id IS NULL` and `lower(franchisees.email) = lower(auth.users.email)`. This fixes Sidhhartha and the 9 other seed records immediately.
-- Add a database trigger on `auth.users` (after insert) that auto-links a new franchisee user to a matching `franchisees` row by email if `user_id` is null. Future logins created outside the wizard will self-bind.
-- `/app/my-franchise` fallback: if `user_id` lookup misses, also try `email = auth.user.email` so the page never shows "No franchise on record" when a row clearly exists.
+### A2. Detail page header (`/app/franchisees/$franchiseeId`)
+Sticky strip above the existing tabs: avatar + name + email + status pill on the left; **Edit · Activate/Deactivate · Reset password** buttons on the right (super_admin/accounts only). Plus a "View as partner" link for super_admin.
 
-### 2. Confirm "only their own data" (RLS audit)
+### A3. Shared `FranchiseeEditDialog`
+Tabbed dialog reused by card menu and detail header:
+- **Partner** — full_name, email, phone, notes
+- **ROI** — franchise_fee, base_roi_pct, emporium_pct, academy_pct, dark_store_pct
+- **Premises** — area_sqft, chairs, tables, cctv, computer, printer
+- **Access** — login email (read-only), Reset password button, last sign-in time
 
-Verify and tighten RLS on every table the dashboard reads, scoped to `franchisees.user_id = auth.uid()`:
-- `franchisees` · `revenue_entries` · `sales_orders` · `expenses` · `roi_payouts` · `franchisee_targets` · `stock_levels` (via linked `warehouse_id`) · `leads` (via `territory_id`) · `lead_activities`
-- For each, ensure SELECT policy is: row's `franchisee_id` (or derived) belongs to a franchisee where `user_id = auth.uid()`. Migration adds/replaces the missing policies.
+Saves via `supabase.from("franchisees").update(...)` + React Query invalidation.
 
-### 3. New franchisee-only sections on `/app/my-franchise`
+### A4. Activate / Deactivate behavior
+Single mutation flips `franchisees.status`. When `inactive`:
+- Login still works, but `/app/my-franchise` shows an "Account paused — contact admin" banner
+- Excluded from new lead routing (filter `status = 'active'` in routing queries)
 
-The dashboard already shows revenue, P&L, ROI, POS sales, equipment, inventory. Add three new live blocks scoped to **their** franchisee only:
+### A5. Reset password
+New server fn `resetFranchiseePassword` in `src/server/franchisee-user.functions.ts` — admin-only, generates a new temp password via `supabase.auth.admin.updateUserById({ password })`, returns it once for display.
 
-- **My Leads** — table of leads from `leads` joined on the franchisee's `territory_id` (from `franchisees.territory_id`). Columns: name, phone, source, stage, score, created. Read-only. Click → small drawer with activity timeline. Stage filter chips (New / Contacted / Qualified / Won / Lost) + counts.
-- **My Ads & Campaigns** — pulls from `social_lead_events` filtered to leads in their territory; shows last 30 days: ad source (Meta / Google / Instagram), leads generated, cost-per-lead (if `spend` field present), conversion %. If the table has no `spend` column we show only volume + conversion.
-- **Account update timeline** — single feed: newest 25 events across `lead_activities`, `revenue_entries`, `sales_orders`, `roi_payouts`, `expenses` for this franchisee, so they can see "kaha tak update hua hai" at a glance.
+### A6. Permissions
+Edit / Activate / Deactivate / Reset → super_admin + accounts. Delete → super_admin only. Franchisee role → read-only (no buttons rendered).
 
-### 4. Sidebar additions for franchisee role
+---
 
-Add three read-only entries under the existing "Franchisee" group: **My Franchise** (existing) · **My Leads** · **My Campaigns**. Both new entries point to in-page tabs on `/app/my-franchise` (`?tab=leads` / `?tab=campaigns`) so we don't need new protected routes — keeps RBAC simple.
+## Part B — Dashboard upgrades
 
-### 5. Realtime sync (live data, no refresh)
+### B1. Hide zero-percent ROI blocks
+In `FranchiseeDashboard.tsx`, filter the "Your ROI structure" array so any block with `0%` is omitted. Grid auto-adjusts to 1–4 columns. If all four are zero, hide the entire panel.
 
-Subscribe via Supabase Realtime in `FranchiseeDashboard` for `revenue_entries`, `sales_orders`, `roi_payouts`, `leads` filtered by `franchisee_id` / `territory_id` → on event, invalidate the matching React Query keys. Dashboard updates within ~2s when admins record new revenue/orders/payouts or when a new lead lands in their territory.
+### B2. Auto lead sync from ads (hourly) + CSV download
 
-### 6. Admin click-through stays the same
+**Edge function** `supabase/functions/sync-ad-leads/index.ts`:
+- Reads OAuth tokens from `social_integrations.credentials` (jsonb)
+- Pulls leads + active campaigns from Meta / Google / Instagram per integration
+- Upserts into `leads`, `social_lead_events`, `ad_campaigns`
+- Updates `social_integrations.last_sync_at / last_sync_status / last_sync_error`
+- Each platform wrapped in try/catch — one failing platform doesn't block others
 
-Admin `/app/franchisees/$id` already renders the same `FranchiseeDashboard` component → admins automatically get all new sections (Leads, Campaigns, Timeline) for any franchisee they click.
+**`pg_cron` hourly schedule** — idempotent (drops job before re-creating):
+```
+select cron.schedule('sync-ad-leads-hourly', '0 * * * *',
+  $$ select net.http_post('<edge-fn-url>', '{}', 'application/json') $$);
+```
+
+**UI in `FranchiseeLeadsPanel.tsx`**:
+- "Last synced: 12 min ago" pill
+- **Download CSV** button — client-side `Blob`, exports currently filtered leads as `leads-{name}-{date}.csv` (Name, Phone, Email, Source, Campaign, Stage, Score, Created)
+- "Sync now" button (admin only) — calls the edge function on demand
+
+### B3. Live campaign previews
+
+**New table `ad_campaigns`** with RLS scoped by `franchisee_id` or `territory_id`:
+```text
+id uuid pk · source text · external_id text · name text
+status text · preview_url text · headline text · body text · cta_url text
+territory_id uuid · franchisee_id uuid · spend_total numeric · last_synced_at timestamptz
+```
+
+**New columns on `social_integrations`**: `last_sync_at`, `last_sync_status`, `last_sync_error`.
+
+**`ActiveCampaignsGrid.tsx`** — responsive 1/2/3-col grid of campaign tiles (source pill, name, thumbnail, status dot, headline+body, "View on platform" CTA, leads-7d + conversion %). Sits at the top of the Campaigns tab. Empty state: "No active campaigns running. Connect ad accounts in Settings → Social to auto-import."
+
+---
 
 ## Files
 
 **Migration** (one file):
-- Backfill `franchisees.user_id` by email
-- Trigger `auto_link_franchisee_on_user_signup`
-- RLS audit / add missing policies for `leads`, `lead_activities`, `social_lead_events`, `stock_levels`, `franchisee_targets`
+- `social_integrations`: add `last_sync_at`, `last_sync_status`, `last_sync_error`
+- Create `ad_campaigns` + RLS (franchisee scoped, admin full)
+- Schedule `pg_cron` hourly job (drop-then-create)
 
-**Edit:**
-- `src/routes/app.my-franchise.tsx` — add tabs (Dashboard / Leads / Campaigns / Timeline) + email-fallback lookup
-- `src/components/app/FranchiseeDashboard.tsx` — add Realtime subscriptions, "Account update timeline" feed
-- `src/components/app/AppSidebar.tsx` — add "My Leads" and "My Campaigns" entries for franchisee role
+**Edge function** (create):
+- `supabase/functions/sync-ad-leads/index.ts`
 
-**Create:**
-- `src/components/app/FranchiseeLeadsPanel.tsx` — leads list scoped by territory
-- `src/components/app/FranchiseeCampaignsPanel.tsx` — ads/source breakdown from `social_lead_events`
-- `src/components/app/FranchiseeTimeline.tsx` — unified activity feed
+**Create**:
+- `src/components/app/FranchiseeEditDialog.tsx`
+- `src/components/app/FranchiseeActions.tsx`
+- `src/components/app/ActiveCampaignsGrid.tsx`
+- `src/lib/leads-export.ts`
 
-After approval I'll run the migration first (so Sidhhartha sees their data on the very next refresh), then ship the three new panels and Realtime sync in one pass.
+**Edit**:
+- `src/routes/app.franchisees.tsx` — add `<FranchiseeActions />` to cards, dim inactive
+- `src/routes/app.franchisees.$franchiseeId.tsx` — add sticky header strip with action buttons
+- `src/routes/app.my-franchise.tsx` — paused-account banner when status = inactive
+- `src/components/app/FranchiseeDashboard.tsx` — filter zero ROI blocks, dynamic grid
+- `src/components/app/FranchiseeLeadsPanel.tsx` — sync pill, CSV button, admin "Sync now"
+- `src/components/app/FranchiseeCampaignsPanel.tsx` — mount `<ActiveCampaignsGrid />` on top
+- `src/server/franchisee-user.functions.ts` — add `resetFranchiseePassword`
+
+## Technical notes
+- Card dropdown uses `e.preventDefault(); e.stopPropagation()` so the wrapping `<Link>` doesn't fire.
+- Edit/Reset/Delete buttons gated by `useAuth().isAdmin || hasRole("accounts")`; Delete by `hasRole("super_admin")` only.
+- CSV: pure client-side `Blob` + `URL.createObjectURL` (no server roundtrip).
+- Campaign previews use platform-hosted `preview_url` (no re-hosting). Stale URLs auto-refresh on next sync.
+- Realtime already covers new lead inserts — no extra subscriptions needed for sync results to appear live.
+
+After approval I'll run the migration, deploy the edge function with the cron schedule, then ship all UI changes (controls + dashboard upgrades) in one pass.
 
