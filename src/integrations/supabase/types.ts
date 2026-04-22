@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          attendance_date: string
+          created_at: string
+          enrollment_id: string
+          id: string
+          marked_by: string | null
+          notes: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+        }
+        Insert: {
+          attendance_date?: string
+          created_at?: string
+          enrollment_id: string
+          id?: string
+          marked_by?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+        }
+        Update: {
+          attendance_date?: string
+          created_at?: string
+          enrollment_id?: string
+          id?: string
+          marked_by?: string | null
+          notes?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -43,6 +81,262 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      batches: {
+        Row: {
+          batch_code: string
+          capacity: number
+          course_id: string
+          created_at: string
+          end_date: string | null
+          id: string
+          location: string | null
+          mode: Database["public"]["Enums"]["batch_mode"]
+          notes: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["batch_status"]
+          trainer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_code: string
+          capacity?: number
+          course_id: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          mode?: Database["public"]["Enums"]["batch_mode"]
+          notes?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["batch_status"]
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_code?: string
+          capacity?: number
+          course_id?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          location?: string | null
+          mode?: Database["public"]["Enums"]["batch_mode"]
+          notes?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["batch_status"]
+          trainer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batches_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "batches_trainer_id_fkey"
+            columns: ["trainer_id"]
+            isOneToOne: false
+            referencedRelation: "trainers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      certificates: {
+        Row: {
+          certificate_code: string
+          created_at: string
+          enrollment_id: string
+          grade: string | null
+          id: string
+          issued_on: string
+          pdf_url: string | null
+          remarks: string | null
+        }
+        Insert: {
+          certificate_code: string
+          created_at?: string
+          enrollment_id: string
+          grade?: string | null
+          id?: string
+          issued_on?: string
+          pdf_url?: string | null
+          remarks?: string | null
+        }
+        Update: {
+          certificate_code?: string
+          created_at?: string
+          enrollment_id?: string
+          grade?: string | null
+          id?: string
+          issued_on?: string
+          pdf_url?: string | null
+          remarks?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          code: string | null
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          duration_weeks: number
+          fee_amount: number
+          id: string
+          level: string | null
+          status: Database["public"]["Enums"]["course_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          code?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_weeks?: number
+          fee_amount?: number
+          id?: string
+          level?: string | null
+          status?: Database["public"]["Enums"]["course_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string | null
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration_weeks?: number
+          fee_amount?: number
+          id?: string
+          level?: string | null
+          status?: Database["public"]["Enums"]["course_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      enrollments: {
+        Row: {
+          batch_id: string
+          created_at: string
+          discount: number
+          enrolled_on: string
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["enrollment_status"]
+          student_id: string
+          total_fee: number
+          updated_at: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          discount?: number
+          enrolled_on?: string
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["enrollment_status"]
+          student_id: string
+          total_fee?: number
+          updated_at?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          discount?: number
+          enrolled_on?: string
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["enrollment_status"]
+          student_id?: string
+          total_fee?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          due_on: string | null
+          enrollment_id: string
+          id: string
+          method: string | null
+          notes: string | null
+          paid_on: string | null
+          receipt_number: string | null
+          recorded_by: string | null
+          reference: string | null
+          status: Database["public"]["Enums"]["fee_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          due_on?: string | null
+          enrollment_id: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_on?: string | null
+          receipt_number?: string | null
+          recorded_by?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["fee_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          due_on?: string | null
+          enrollment_id?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          paid_on?: string | null
+          receipt_number?: string | null
+          recorded_by?: string | null
+          reference?: string | null
+          status?: Database["public"]["Enums"]["fee_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_payments_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       franchisees: {
         Row: {
@@ -337,6 +631,57 @@ export type Database = {
           },
         ]
       }
+      students: {
+        Row: {
+          address: string | null
+          city: string | null
+          created_at: string
+          date_of_birth: string | null
+          email: string | null
+          full_name: string
+          gender: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          full_name: string
+          gender?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          full_name?: string
+          gender?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       territories: {
         Row: {
           created_at: string
@@ -397,6 +742,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trainers: {
+        Row: {
+          active: boolean
+          bio: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          specialization: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          phone?: string | null
+          specialization?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          specialization?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -447,6 +831,12 @@ export type Database = {
         | "trainer"
         | "support"
         | "package_sales"
+      attendance_status: "present" | "absent" | "late" | "excused"
+      batch_mode: "online" | "offline" | "hybrid"
+      batch_status: "upcoming" | "ongoing" | "completed" | "cancelled"
+      course_status: "draft" | "published" | "archived"
+      enrollment_status: "active" | "completed" | "dropped" | "suspended"
+      fee_status: "pending" | "paid" | "partial" | "overdue" | "waived"
       franchisee_status: "active" | "onboarding" | "suspended" | "closed"
       lead_source:
         | "meta"
@@ -608,6 +998,12 @@ export const Constants = {
         "support",
         "package_sales",
       ],
+      attendance_status: ["present", "absent", "late", "excused"],
+      batch_mode: ["online", "offline", "hybrid"],
+      batch_status: ["upcoming", "ongoing", "completed", "cancelled"],
+      course_status: ["draft", "published", "archived"],
+      enrollment_status: ["active", "completed", "dropped", "suspended"],
+      fee_status: ["pending", "paid", "partial", "overdue", "waived"],
       franchisee_status: ["active", "onboarding", "suspended", "closed"],
       lead_source: [
         "meta",
