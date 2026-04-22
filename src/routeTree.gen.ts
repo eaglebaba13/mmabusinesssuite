@@ -15,7 +15,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as WebinarSlugRouteImport } from './routes/webinar.$slug'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as AppWebinarsRouteImport } from './routes/app.webinars'
 import { Route as AppTrainerRouteImport } from './routes/app.trainer'
 import { Route as AppSupportRouteImport } from './routes/app.support'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
@@ -26,9 +28,12 @@ import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
+import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
 import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
+import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
+import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
 import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
@@ -80,10 +85,20 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const WebinarSlugRoute = WebinarSlugRouteImport.update({
+  id: '/webinar/$slug',
+  path: '/webinar/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerifyCodeRoute = VerifyCodeRouteImport.update({
   id: '/verify/$code',
   path: '/verify/$code',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppWebinarsRoute = AppWebinarsRouteImport.update({
+  id: '/webinars',
+  path: '/webinars',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppTrainerRoute = AppTrainerRouteImport.update({
   id: '/trainer',
@@ -135,6 +150,11 @@ const AppAcademyRoute = AppAcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => AppRoute,
 } as any)
+const AppWebinarsIndexRoute = AppWebinarsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppWebinarsRoute,
+} as any)
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -149,6 +169,16 @@ const AppAcademyIndexRoute = AppAcademyIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppWebinarsAnalyticsRoute = AppWebinarsAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppWebinarsRoute,
+} as any)
+const AppWebinarsWebinarIdRoute = AppWebinarsWebinarIdRouteImport.update({
+  id: '/$webinarId',
+  path: '/$webinarId',
+  getParentRoute: () => AppWebinarsRoute,
 } as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
@@ -270,7 +300,9 @@ export interface FileRoutesByFullPath {
   '/app/settings': typeof AppSettingsRoute
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
+  '/app/webinars': typeof AppWebinarsRouteWithChildren
   '/verify/$code': typeof VerifyCodeRoute
+  '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
   '/app/academy/certificates': typeof AppAcademyCertificatesRoute
@@ -291,9 +323,12 @@ export interface FileRoutesByFullPath {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
+  '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
+  '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesByTo {
@@ -309,6 +344,7 @@ export interface FileRoutesByTo {
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/verify/$code': typeof VerifyCodeRoute
+  '/webinar/$slug': typeof WebinarSlugRoute
   '/app': typeof AppIndexRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
   '/app/academy/certificates': typeof AppAcademyCertificatesRoute
@@ -329,9 +365,12 @@ export interface FileRoutesByTo {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
+  '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy': typeof AppAcademyIndexRoute
   '/app/finance': typeof AppFinanceIndexRoute
   '/app/inventory': typeof AppInventoryIndexRoute
+  '/app/webinars': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRoutesById {
@@ -351,7 +390,9 @@ export interface FileRoutesById {
   '/app/settings': typeof AppSettingsRoute
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
+  '/app/webinars': typeof AppWebinarsRouteWithChildren
   '/verify/$code': typeof VerifyCodeRoute
+  '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
   '/app/academy/certificates': typeof AppAcademyCertificatesRoute
@@ -372,9 +413,12 @@ export interface FileRoutesById {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
+  '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
+  '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
 }
 export interface FileRouteTypes {
@@ -395,7 +439,9 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/support'
     | '/app/trainer'
+    | '/app/webinars'
     | '/verify/$code'
+    | '/webinar/$slug'
     | '/app/'
     | '/app/academy/batches'
     | '/app/academy/certificates'
@@ -416,9 +462,12 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/webinars/$webinarId'
+    | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
     | '/app/inventory/'
+    | '/app/webinars/'
     | '/app/academy/batches/$batchId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -434,6 +483,7 @@ export interface FileRouteTypes {
     | '/app/support'
     | '/app/trainer'
     | '/verify/$code'
+    | '/webinar/$slug'
     | '/app'
     | '/app/academy/batches'
     | '/app/academy/certificates'
@@ -454,9 +504,12 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/webinars/$webinarId'
+    | '/app/webinars/analytics'
     | '/app/academy'
     | '/app/finance'
     | '/app/inventory'
+    | '/app/webinars'
     | '/app/academy/batches/$batchId'
   id:
     | '__root__'
@@ -475,7 +528,9 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/support'
     | '/app/trainer'
+    | '/app/webinars'
     | '/verify/$code'
+    | '/webinar/$slug'
     | '/app/'
     | '/app/academy/batches'
     | '/app/academy/certificates'
@@ -496,9 +551,12 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/webinars/$webinarId'
+    | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
     | '/app/inventory/'
+    | '/app/webinars/'
     | '/app/academy/batches/$batchId'
   fileRoutesById: FileRoutesById
 }
@@ -509,6 +567,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
+  WebinarSlugRoute: typeof WebinarSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -555,12 +614,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/webinar/$slug': {
+      id: '/webinar/$slug'
+      path: '/webinar/$slug'
+      fullPath: '/webinar/$slug'
+      preLoaderRoute: typeof WebinarSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verify/$code': {
       id: '/verify/$code'
       path: '/verify/$code'
       fullPath: '/verify/$code'
       preLoaderRoute: typeof VerifyCodeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/webinars': {
+      id: '/app/webinars'
+      path: '/webinars'
+      fullPath: '/app/webinars'
+      preLoaderRoute: typeof AppWebinarsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/trainer': {
       id: '/app/trainer'
@@ -632,6 +705,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAcademyRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/webinars/': {
+      id: '/app/webinars/'
+      path: '/'
+      fullPath: '/app/webinars/'
+      preLoaderRoute: typeof AppWebinarsIndexRouteImport
+      parentRoute: typeof AppWebinarsRoute
+    }
     '/app/inventory/': {
       id: '/app/inventory/'
       path: '/'
@@ -652,6 +732,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/academy/'
       preLoaderRoute: typeof AppAcademyIndexRouteImport
       parentRoute: typeof AppAcademyRoute
+    }
+    '/app/webinars/analytics': {
+      id: '/app/webinars/analytics'
+      path: '/analytics'
+      fullPath: '/app/webinars/analytics'
+      preLoaderRoute: typeof AppWebinarsAnalyticsRouteImport
+      parentRoute: typeof AppWebinarsRoute
+    }
+    '/app/webinars/$webinarId': {
+      id: '/app/webinars/$webinarId'
+      path: '/$webinarId'
+      fullPath: '/app/webinars/$webinarId'
+      preLoaderRoute: typeof AppWebinarsWebinarIdRouteImport
+      parentRoute: typeof AppWebinarsRoute
     }
     '/app/leads/$leadId': {
       id: '/app/leads/$leadId'
@@ -901,6 +995,22 @@ const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
   AppLeadsRouteChildren,
 )
 
+interface AppWebinarsRouteChildren {
+  AppWebinarsWebinarIdRoute: typeof AppWebinarsWebinarIdRoute
+  AppWebinarsAnalyticsRoute: typeof AppWebinarsAnalyticsRoute
+  AppWebinarsIndexRoute: typeof AppWebinarsIndexRoute
+}
+
+const AppWebinarsRouteChildren: AppWebinarsRouteChildren = {
+  AppWebinarsWebinarIdRoute: AppWebinarsWebinarIdRoute,
+  AppWebinarsAnalyticsRoute: AppWebinarsAnalyticsRoute,
+  AppWebinarsIndexRoute: AppWebinarsIndexRoute,
+}
+
+const AppWebinarsRouteWithChildren = AppWebinarsRoute._addFileChildren(
+  AppWebinarsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppAcademyRoute: typeof AppAcademyRouteWithChildren
   AppDashboardRoute: typeof AppDashboardRoute
@@ -912,6 +1022,7 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppSupportRoute: typeof AppSupportRoute
   AppTrainerRoute: typeof AppTrainerRoute
+  AppWebinarsRoute: typeof AppWebinarsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -926,6 +1037,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppSupportRoute: AppSupportRoute,
   AppTrainerRoute: AppTrainerRoute,
+  AppWebinarsRoute: AppWebinarsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
 }
 
@@ -938,6 +1050,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   VerifyCodeRoute: VerifyCodeRoute,
+  WebinarSlugRoute: WebinarSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

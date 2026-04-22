@@ -10,6 +10,7 @@ import {
   UserCog,
   Package,
   Wallet,
+  Megaphone,
 } from "lucide-react";
 import {
   Sidebar,
@@ -44,6 +45,10 @@ const NAV_FINANCE = [
   { title: "Finance", url: "/app/finance" as const, icon: Wallet },
 ] as const;
 
+const NAV_WEBINARS = [
+  { title: "Webinars", url: "/app/webinars" as const, icon: Megaphone },
+] as const;
+
 const NAV_TRAINER = [
   { title: "Trainer Portal", url: "/app/trainer" as const, icon: UserCog },
 ] as const;
@@ -65,6 +70,7 @@ export function AppSidebar() {
   const isAcademyStaff = isAdmin || hasRole("academy_admin") || hasRole("accounts");
   const isInventoryStaff = isAdmin || hasRole("inventory");
   const isFinanceStaff = isAdmin || hasRole("accounts");
+  const isWebinarStaff = isAdmin || hasRole("webinar") || hasRole("sales");
 
   const isActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
