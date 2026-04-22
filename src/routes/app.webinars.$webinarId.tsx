@@ -9,9 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import { KpiCard } from "@/components/app/KpiCard";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+
+const LEAD_STAGES = ["new", "interested", "followup", "hot", "payment_pending", "closed", "lost"] as const;
 
 export const Route = createFileRoute("/app/webinars/$webinarId")({
   head: () => ({ meta: [{ title: "Webinar — MMA Suite" }] }),
@@ -37,12 +41,24 @@ function WebinarDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("webinar_registrations")
-        .select("*, leads(stage)")
+        .select("*, leads(id, stage)")
         .eq("webinar_id", webinarId)
         .order("registered_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
     },
+  });
+
+  const updateLeadStage = useMutation({
+    mutationFn: async ({ leadId, stage }: { leadId: string; stage: string }) => {
+      const { error } = await supabase.from("leads").update({ stage: stage as any }).eq("id", leadId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Lead stage updated");
+      qc.invalidateQueries({ queryKey: ["webinar-regs", webinarId] });
+    },
+    onError: () => toast.error("Couldn't update lead stage"),
   });
 
   const toggleAttend = useMutation({
