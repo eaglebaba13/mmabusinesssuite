@@ -671,6 +671,57 @@ export type Database = {
           },
         ]
       }
+      franchisee_targets: {
+        Row: {
+          city: string
+          created_at: string
+          franchisee_id: string | null
+          id: string
+          model_item_id: string
+          notes: string | null
+          period_month: string
+          target_numbers: number
+          updated_at: string
+        }
+        Insert: {
+          city?: string
+          created_at?: string
+          franchisee_id?: string | null
+          id?: string
+          model_item_id: string
+          notes?: string | null
+          period_month?: string
+          target_numbers?: number
+          updated_at?: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          franchisee_id?: string | null
+          id?: string
+          model_item_id?: string
+          notes?: string | null
+          period_month?: string
+          target_numbers?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchisee_targets_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "franchisee_targets_model_item_id_fkey"
+            columns: ["model_item_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_model_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       franchisees: {
         Row: {
           academy_pct: number
@@ -1501,6 +1552,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      revenue_model_items: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          default_target: number
+          description: string | null
+          franchisee_roi_pct: number
+          id: string
+          mrp: number
+          offer_cost: number
+          offer_value: number
+          particulars: string
+          sort_order: number
+          state_partner_pct: number
+          target_segment: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          category: string
+          created_at?: string
+          default_target?: number
+          description?: string | null
+          franchisee_roi_pct?: number
+          id?: string
+          mrp?: number
+          offer_cost?: number
+          offer_value?: number
+          particulars: string
+          sort_order: number
+          state_partner_pct?: number
+          target_segment?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          default_target?: number
+          description?: string | null
+          franchisee_roi_pct?: number
+          id?: string
+          mrp?: number
+          offer_cost?: number
+          offer_value?: number
+          particulars?: string
+          sort_order?: number
+          state_partner_pct?: number
+          target_segment?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       roi_payouts: {
         Row: {

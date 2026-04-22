@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
-import { Wallet, TrendingUp, TrendingDown, Coins, BarChart3 } from "lucide-react";
+import { Wallet, TrendingUp, TrendingDown, Coins, BarChart3, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/finance")({
@@ -13,6 +13,7 @@ const TABS = [
   { to: "/app/finance/expenses" as const, label: "Expenses", icon: TrendingDown },
   { to: "/app/finance/categories" as const, label: "Categories", icon: Wallet },
   { to: "/app/finance/payouts" as const, label: "ROI Payouts", icon: Coins },
+  { to: "/app/finance/revenue-model" as const, label: "Revenue Model", icon: Target },
 ];
 
 function FinanceLayout() {
