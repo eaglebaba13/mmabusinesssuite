@@ -31,9 +31,12 @@ const ALL_ROLES: AppRole[] = [
   "academy_admin", "webinar", "hr", "white_label", "trainer", "support", "package_sales",
 ];
 
+// Roles visible in the UI (super_admin is hidden from selection & filters)
+const VISIBLE_ROLES: AppRole[] = ALL_ROLES.filter((r) => r !== "super_admin");
+
 const ROLE_LABELS: Record<AppRole, string> = {
   super_admin: "Super Admin",
-  founder: "Founder",
+  founder: "Admin",
   franchisee: "Franchisee",
   sales: "Sales",
   accounts: "Accounts",
@@ -189,7 +192,7 @@ function TeamRolesPage() {
             <SelectTrigger className="sm:w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All roles</SelectItem>
-              {ALL_ROLES.map((r) => (
+              {VISIBLE_ROLES.map((r) => (
                 <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
               ))}
             </SelectContent>
@@ -228,10 +231,12 @@ function TeamRolesPage() {
                     <p className="truncate text-xs text-muted-foreground">{u.email}</p>
                   </div>
                   <div className="hidden flex-wrap items-center justify-end gap-1 sm:flex sm:max-w-[40%]">
-                    {u.roles.length === 0 ? (
-                      <Badge variant="outline" className="text-muted-foreground">No roles</Badge>
-                    ) : (
-                      u.roles.map((r) => (
+                    {(() => {
+                      const visible = u.roles.filter((r) => r !== "super_admin");
+                      if (visible.length === 0) {
+                        return <Badge variant="outline" className="text-muted-foreground">No roles</Badge>;
+                      }
+                      return visible.map((r) => (
                         <Badge
                           key={r}
                           variant={PRIVILEGED.includes(r) ? "default" : "secondary"}
@@ -239,8 +244,8 @@ function TeamRolesPage() {
                         >
                           {ROLE_LABELS[r]}
                         </Badge>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </div>
                   <div className="hidden text-xs text-muted-foreground md:block">
                     {new Date(u.created_at).toLocaleDateString()}
@@ -265,7 +270,7 @@ function TeamRolesPage() {
                 <div>
                   <Label className="text-xs uppercase tracking-wider text-muted-foreground">Roles</Label>
                   <div className="mt-3 space-y-2">
-                    {ALL_ROLES.map((role) => {
+                    {VISIBLE_ROLES.map((role) => {
                       const checked = draftRoles.has(role);
                       const disableSelfSuper = isSelf && role === "super_admin" && checked;
                       return (
