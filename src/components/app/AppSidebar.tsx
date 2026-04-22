@@ -11,6 +11,7 @@ import {
   Package,
   Wallet,
   Megaphone,
+  ShoppingCart,
 } from "lucide-react";
 import {
   Sidebar,

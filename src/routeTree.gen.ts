@@ -21,6 +21,7 @@ import { Route as AppWebinarsRouteImport } from './routes/app.webinars'
 import { Route as AppTrainerRouteImport } from './routes/app.trainer'
 import { Route as AppSupportRouteImport } from './routes/app.support'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppPosRouteImport } from './routes/app.pos'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppInventoryRouteImport } from './routes/app.inventory'
@@ -31,6 +32,7 @@ import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
 import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
+import { Route as AppPosIndexRouteImport } from './routes/app.pos.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
 import { Route as AppHrIndexRouteImport } from './routes/app.hr.index'
 import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
@@ -38,6 +40,8 @@ import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
 import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
 import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
+import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
+import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
 import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
@@ -63,6 +67,7 @@ import { Route as AppAcademyCertificatesRouteImport } from './routes/app.academy
 import { Route as AppAcademyBatchesRouteImport } from './routes/app.academy.batches'
 import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
 import { Route as ApiPublicWebinarRegisterHookRouteImport } from './routes/api/public/webinar-register-hook'
+import { Route as AppPosOrdersOrderIdRouteImport } from './routes/app.pos.orders.$orderId'
 import { Route as AppAcademyBatchesBatchIdRouteImport } from './routes/app.academy.batches.$batchId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -125,6 +130,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPosRoute = AppPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMyFranchiseRoute = AppMyFranchiseRouteImport.update({
   id: '/my-franchise',
   path: '/my-franchise',
@@ -175,6 +185,11 @@ const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppPosIndexRoute = AppPosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppPosRoute,
+} as any)
 const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -209,6 +224,16 @@ const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
   id: '/team',
   path: '/team',
   getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppPosOrdersRoute = AppPosOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AppPosRoute,
+} as any)
+const AppPosAnalyticsRoute = AppPosAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppPosRoute,
 } as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
@@ -339,6 +364,11 @@ const ApiPublicWebinarRegisterHookRoute =
     path: '/api/public/webinar-register-hook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AppPosOrdersOrderIdRoute = AppPosOrdersOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => AppPosOrdersRoute,
+} as any)
 const AppAcademyBatchesBatchIdRoute =
   AppAcademyBatchesBatchIdRouteImport.update({
     id: '/$batchId',
@@ -360,6 +390,7 @@ export interface FileRoutesByFullPath {
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/pos': typeof AppPosRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
@@ -392,6 +423,8 @@ export interface FileRoutesByFullPath {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/pos/analytics': typeof AppPosAnalyticsRoute
+  '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
@@ -399,9 +432,11 @@ export interface FileRoutesByFullPath {
   '/app/finance/': typeof AppFinanceIndexRoute
   '/app/hr/': typeof AppHrIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
+  '/app/pos/': typeof AppPosIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
+  '/app/pos/orders/$orderId': typeof AppPosOrdersOrderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -442,6 +477,8 @@ export interface FileRoutesByTo {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/pos/analytics': typeof AppPosAnalyticsRoute
+  '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
@@ -449,9 +486,11 @@ export interface FileRoutesByTo {
   '/app/finance': typeof AppFinanceIndexRoute
   '/app/hr': typeof AppHrIndexRoute
   '/app/inventory': typeof AppInventoryIndexRoute
+  '/app/pos': typeof AppPosIndexRoute
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/webinars': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
+  '/app/pos/orders/$orderId': typeof AppPosOrdersOrderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -468,6 +507,7 @@ export interface FileRoutesById {
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/pos': typeof AppPosRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
@@ -500,6 +540,8 @@ export interface FileRoutesById {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/pos/analytics': typeof AppPosAnalyticsRoute
+  '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
@@ -507,9 +549,11 @@ export interface FileRoutesById {
   '/app/finance/': typeof AppFinanceIndexRoute
   '/app/hr/': typeof AppHrIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
+  '/app/pos/': typeof AppPosIndexRoute
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
+  '/app/pos/orders/$orderId': typeof AppPosOrdersOrderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -527,6 +571,7 @@ export interface FileRouteTypes {
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
+    | '/app/pos'
     | '/app/settings'
     | '/app/support'
     | '/app/trainer'
@@ -559,6 +604,8 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/pos/analytics'
+    | '/app/pos/orders'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
@@ -566,9 +613,11 @@ export interface FileRouteTypes {
     | '/app/finance/'
     | '/app/hr/'
     | '/app/inventory/'
+    | '/app/pos/'
     | '/app/settings/'
     | '/app/webinars/'
     | '/app/academy/batches/$batchId'
+    | '/app/pos/orders/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -609,6 +658,8 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/pos/analytics'
+    | '/app/pos/orders'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
@@ -616,9 +667,11 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/hr'
     | '/app/inventory'
+    | '/app/pos'
     | '/app/settings'
     | '/app/webinars'
     | '/app/academy/batches/$batchId'
+    | '/app/pos/orders/$orderId'
   id:
     | '__root__'
     | '/'
@@ -634,6 +687,7 @@ export interface FileRouteTypes {
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
+    | '/app/pos'
     | '/app/settings'
     | '/app/support'
     | '/app/trainer'
@@ -666,6 +720,8 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/pos/analytics'
+    | '/app/pos/orders'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
@@ -673,9 +729,11 @@ export interface FileRouteTypes {
     | '/app/finance/'
     | '/app/hr/'
     | '/app/inventory/'
+    | '/app/pos/'
     | '/app/settings/'
     | '/app/webinars/'
     | '/app/academy/batches/$batchId'
+    | '/app/pos/orders/$orderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -776,6 +834,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/pos': {
+      id: '/app/pos'
+      path: '/pos'
+      fullPath: '/app/pos'
+      preLoaderRoute: typeof AppPosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/my-franchise': {
       id: '/app/my-franchise'
       path: '/my-franchise'
@@ -846,6 +911,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsIndexRouteImport
       parentRoute: typeof AppSettingsRoute
     }
+    '/app/pos/': {
+      id: '/app/pos/'
+      path: '/'
+      fullPath: '/app/pos/'
+      preLoaderRoute: typeof AppPosIndexRouteImport
+      parentRoute: typeof AppPosRoute
+    }
     '/app/inventory/': {
       id: '/app/inventory/'
       path: '/'
@@ -894,6 +966,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/settings/team'
       preLoaderRoute: typeof AppSettingsTeamRouteImport
       parentRoute: typeof AppSettingsRoute
+    }
+    '/app/pos/orders': {
+      id: '/app/pos/orders'
+      path: '/orders'
+      fullPath: '/app/pos/orders'
+      preLoaderRoute: typeof AppPosOrdersRouteImport
+      parentRoute: typeof AppPosRoute
+    }
+    '/app/pos/analytics': {
+      id: '/app/pos/analytics'
+      path: '/analytics'
+      fullPath: '/app/pos/analytics'
+      preLoaderRoute: typeof AppPosAnalyticsRouteImport
+      parentRoute: typeof AppPosRoute
     }
     '/app/leads/$leadId': {
       id: '/app/leads/$leadId'
@@ -1070,6 +1156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWebinarRegisterHookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/pos/orders/$orderId': {
+      id: '/app/pos/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/app/pos/orders/$orderId'
+      preLoaderRoute: typeof AppPosOrdersOrderIdRouteImport
+      parentRoute: typeof AppPosOrdersRoute
+    }
     '/app/academy/batches/$batchId': {
       id: '/app/academy/batches/$batchId'
       path: '/$batchId'
@@ -1203,6 +1296,33 @@ const AppLeadsRouteWithChildren = AppLeadsRoute._addFileChildren(
   AppLeadsRouteChildren,
 )
 
+interface AppPosOrdersRouteChildren {
+  AppPosOrdersOrderIdRoute: typeof AppPosOrdersOrderIdRoute
+}
+
+const AppPosOrdersRouteChildren: AppPosOrdersRouteChildren = {
+  AppPosOrdersOrderIdRoute: AppPosOrdersOrderIdRoute,
+}
+
+const AppPosOrdersRouteWithChildren = AppPosOrdersRoute._addFileChildren(
+  AppPosOrdersRouteChildren,
+)
+
+interface AppPosRouteChildren {
+  AppPosAnalyticsRoute: typeof AppPosAnalyticsRoute
+  AppPosOrdersRoute: typeof AppPosOrdersRouteWithChildren
+  AppPosIndexRoute: typeof AppPosIndexRoute
+}
+
+const AppPosRouteChildren: AppPosRouteChildren = {
+  AppPosAnalyticsRoute: AppPosAnalyticsRoute,
+  AppPosOrdersRoute: AppPosOrdersRouteWithChildren,
+  AppPosIndexRoute: AppPosIndexRoute,
+}
+
+const AppPosRouteWithChildren =
+  AppPosRoute._addFileChildren(AppPosRouteChildren)
+
 interface AppSettingsRouteChildren {
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
@@ -1242,6 +1362,7 @@ interface AppRouteChildren {
   AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
+  AppPosRoute: typeof AppPosRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppSupportRoute: typeof AppSupportRoute
   AppTrainerRoute: typeof AppTrainerRoute
@@ -1258,6 +1379,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,
+  AppPosRoute: AppPosRouteWithChildren,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppSupportRoute: AppSupportRoute,
   AppTrainerRoute: AppTrainerRoute,
