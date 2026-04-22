@@ -192,7 +192,7 @@ function TeamRolesPage() {
             <SelectTrigger className="sm:w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All roles</SelectItem>
-              {ALL_ROLES.map((r) => (
+              {VISIBLE_ROLES.map((r) => (
                 <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
               ))}
             </SelectContent>
