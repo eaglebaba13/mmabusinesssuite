@@ -90,15 +90,58 @@ export function FranchiseeLeadsPanel({ territoryId, franchiseeName = "franchisee
     );
   }
 
+  const onSyncNow = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-ad-leads`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: "{}",
+        },
+      );
+      if (!res.ok) throw new Error("Sync failed");
+      toast.success("Sync triggered");
+    } catch (e: any) {
+      toast.error(e.message ?? "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="rounded-2xl glass p-5">
-        <div className="mb-4 flex items-center justify-between">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-gold" />
             <h3 className="font-display text-lg">My Leads</h3>
+            {lastSync && (
+              <Badge variant="outline" className="border-emerald-500/30 text-emerald-400">
+                Last synced {formatDistanceToNow(new Date(lastSync), { addSuffix: true })}
+              </Badge>
+            )}
           </div>
-          <span className="text-xs text-muted-foreground">{leads.length} total in your territory</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{leads.length} in your territory</span>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => exportLeadsCsv(filtered, franchiseeName)}
+              disabled={filtered.length === 0}
+            >
+              <Download className="mr-1 h-3.5 w-3.5" /> CSV
+            </Button>
+            {isAdmin && (
+              <Button size="sm" variant="ghost" onClick={onSyncNow} disabled={syncing}>
+                <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="mb-4 flex flex-wrap gap-2">
