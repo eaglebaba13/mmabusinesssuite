@@ -18,6 +18,7 @@ function SettingsLayout() {
       ? [
           { to: "/app/settings/team", label: "Team & Roles", match: (p: string) => p === "/app/settings/team" },
           { to: "/app/settings/social", label: "Social & Integrations", match: (p: string) => p === "/app/settings/social" },
+          { to: "/app/settings/lead-routing", label: "Lead Routing", match: (p: string) => p === "/app/settings/lead-routing" },
         ]
       : []),
   ] as const;

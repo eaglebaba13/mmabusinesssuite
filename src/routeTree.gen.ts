@@ -41,6 +41,7 @@ import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.
 import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
 import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
 import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.social'
+import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.settings.lead-routing'
 import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
 import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
@@ -230,6 +231,11 @@ const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
 const AppSettingsSocialRoute = AppSettingsSocialRouteImport.update({
   id: '/social',
   path: '/social',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsLeadRoutingRoute = AppSettingsLeadRoutingRouteImport.update({
+  id: '/lead-routing',
+  path: '/lead-routing',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppPosOrdersRoute = AppPosOrdersRouteImport.update({
@@ -438,6 +444,7 @@ export interface FileRoutesByFullPath {
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
+  '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
@@ -494,6 +501,7 @@ export interface FileRoutesByTo {
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
+  '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
@@ -559,6 +567,7 @@ export interface FileRoutesById {
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
+  '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
@@ -625,6 +634,7 @@ export interface FileRouteTypes {
     | '/app/leads/$leadId'
     | '/app/pos/analytics'
     | '/app/pos/orders'
+    | '/app/settings/lead-routing'
     | '/app/settings/social'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/app/leads/$leadId'
     | '/app/pos/analytics'
     | '/app/pos/orders'
+    | '/app/settings/lead-routing'
     | '/app/settings/social'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
@@ -745,6 +756,7 @@ export interface FileRouteTypes {
     | '/app/leads/$leadId'
     | '/app/pos/analytics'
     | '/app/pos/orders'
+    | '/app/settings/lead-routing'
     | '/app/settings/social'
     | '/app/settings/team'
     | '/app/webinars/$webinarId'
@@ -997,6 +1009,13 @@ declare module '@tanstack/react-router' {
       path: '/social'
       fullPath: '/app/settings/social'
       preLoaderRoute: typeof AppSettingsSocialRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/lead-routing': {
+      id: '/app/settings/lead-routing'
+      path: '/lead-routing'
+      fullPath: '/app/settings/lead-routing'
+      preLoaderRoute: typeof AppSettingsLeadRoutingRouteImport
       parentRoute: typeof AppSettingsRoute
     }
     '/app/pos/orders': {
@@ -1363,12 +1382,14 @@ const AppPosRouteWithChildren =
   AppPosRoute._addFileChildren(AppPosRouteChildren)
 
 interface AppSettingsRouteChildren {
+  AppSettingsLeadRoutingRoute: typeof AppSettingsLeadRoutingRoute
   AppSettingsSocialRoute: typeof AppSettingsSocialRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
+  AppSettingsLeadRoutingRoute: AppSettingsLeadRoutingRoute,
   AppSettingsSocialRoute: AppSettingsSocialRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
