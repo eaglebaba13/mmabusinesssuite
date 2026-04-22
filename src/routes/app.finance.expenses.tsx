@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { formatINR } from "@/lib/format";
+import { ExportBar } from "@/components/app/ExportBar";
+import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/finance/expenses")({
   component: ExpensesPage,
@@ -98,7 +100,37 @@ function ExpensesPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const total = (list.data ?? []).filter((e: any) => e.status !== "cancelled").reduce((s: number, e: any) => s + Number(e.amount ?? 0), 0);
+  const [range, setRange] = React.useState(defaultDateRange());
+  const filtered = React.useMemo(
+    () => (list.data ?? []).filter((e: any) => inDateRange(e.expense_date, range.from, range.to)),
+    [list.data, range],
+  );
+  const total = filtered.filter((e: any) => e.status !== "cancelled").reduce((s: number, e: any) => s + Number(e.amount ?? 0), 0);
+
+  const exportCols = [
+    { header: "Date", accessor: (e: any) => new Date(e.expense_date).toLocaleDateString("en-IN") },
+    { header: "Category", accessor: (e: any) => e.expense_categories?.name ?? "" },
+    { header: "Vendor", accessor: (e: any) => e.vendor ?? "" },
+    { header: "Description", accessor: (e: any) => e.description ?? "" },
+    { header: "Method", accessor: (e: any) => e.payment_method.replace("_", " ") },
+    { header: "Reference", accessor: (e: any) => e.reference ?? "" },
+    { header: "Status", accessor: (e: any) => e.status },
+    { header: "Amount (INR)", accessor: (e: any) => Number(e.amount ?? 0).toFixed(2) },
+  ];
+  const fileBase = `expenses_${range.from}_to_${range.to}`;
+  const handleCSV = () => exportToCSV(fileBase, filtered, exportCols);
+  const handlePDF = () =>
+    exportToPDF({
+      filename: fileBase,
+      title: "Expenses Report",
+      subtitle: `${range.from} → ${range.to}${filter !== "all" ? " · filtered category" : ""}`,
+      rows: filtered,
+      columns: exportCols,
+      totals: [
+        { label: "Entries", value: String(filtered.length) },
+        { label: "Total (excl. cancelled)", value: formatINR(total) },
+      ],
+    });
 
   return (
     <div className="space-y-5">
@@ -106,7 +138,7 @@ function ExpensesPage() {
         <div>
           <h2 className="font-display text-xl">Expenses</h2>
           <p className="text-xs text-muted-foreground">
-            {list.data?.length ?? 0} entries · Total {formatINR(total)}
+            {filtered.length} entries in range · Total {formatINR(total)}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -188,9 +220,19 @@ function ExpensesPage() {
         </div>
       </div>
 
+      <ExportBar
+        from={range.from}
+        to={range.to}
+        onFromChange={(v) => setRange({ ...range, from: v })}
+        onToChange={(v) => setRange({ ...range, to: v })}
+        onCSV={handleCSV}
+        onPDF={handlePDF}
+        count={filtered.length}
+      />
+
       <Card className="glass">
         <div className="divide-y divide-border/50">
-          {(list.data ?? []).map((e: any) => (
+          {filtered.map((e: any) => (
             <div key={e.id} className="flex items-center justify-between p-4">
               <div className="flex items-center gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: `${e.expense_categories?.color ?? "#c9a84c"}22` }}>
@@ -211,8 +253,10 @@ function ExpensesPage() {
               </div>
             </div>
           ))}
-          {!list.data?.length && (
-            <div className="p-8 text-center text-sm text-muted-foreground">No expenses yet.</div>
+          {!filtered.length && (
+            <div className="p-8 text-center text-sm text-muted-foreground">
+              {list.data?.length ? "No expenses in selected date range." : "No expenses yet."}
+            </div>
           )}
         </div>
       </Card>
