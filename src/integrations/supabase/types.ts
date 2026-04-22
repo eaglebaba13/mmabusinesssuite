@@ -873,29 +873,50 @@ export type Database = {
         Row: {
           contact_email: string | null
           contact_phone: string | null
+          facebook_url: string | null
           id: number
+          instagram_url: string | null
+          lead_webhook_secret: string | null
+          linkedin_url: string | null
           logo_url: string | null
           org_name: string
           primary_color: string | null
+          twitter_url: string | null
           updated_at: string
+          whatsapp_number: string | null
+          youtube_url: string | null
         }
         Insert: {
           contact_email?: string | null
           contact_phone?: string | null
+          facebook_url?: string | null
           id?: number
+          instagram_url?: string | null
+          lead_webhook_secret?: string | null
+          linkedin_url?: string | null
           logo_url?: string | null
           org_name?: string
           primary_color?: string | null
+          twitter_url?: string | null
           updated_at?: string
+          whatsapp_number?: string | null
+          youtube_url?: string | null
         }
         Update: {
           contact_email?: string | null
           contact_phone?: string | null
+          facebook_url?: string | null
           id?: number
+          instagram_url?: string | null
+          lead_webhook_secret?: string | null
+          linkedin_url?: string | null
           logo_url?: string | null
           org_name?: string
           primary_color?: string | null
+          twitter_url?: string | null
           updated_at?: string
+          whatsapp_number?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
@@ -1559,6 +1580,53 @@ export type Database = {
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_lead_events: {
+        Row: {
+          campaign: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          ip_address: string | null
+          lead_id: string | null
+          payload: Json
+          signature_valid: boolean
+          source: string
+          status: string
+        }
+        Insert: {
+          campaign?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          lead_id?: string | null
+          payload: Json
+          signature_valid?: boolean
+          source: string
+          status?: string
+        }
+        Update: {
+          campaign?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: string | null
+          lead_id?: string | null
+          payload?: Json
+          signature_valid?: boolean
+          source?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]
