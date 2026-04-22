@@ -224,6 +224,79 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
           });
         }
 
+        // ---- Apply lead routing rules ----
+        // Rules are evaluated in priority order (lowest number first). The first
+        // rule whose non-null conditions ALL match wins. Empty match fields are
+        // treated as wildcards.
+        type Rule = {
+          id: string;
+          name: string;
+          priority: number;
+          match_source: string | null;
+          match_campaign: string | null;
+          match_utm_source: string | null;
+          match_utm_medium: string | null;
+          match_utm_campaign: string | null;
+          match_city: string | null;
+          match_state: string | null;
+          assign_to_user: string | null;
+          assign_territory_id: string | null;
+          assign_franchisee_id: string | null;
+          set_stage: string | null;
+          add_tag: string | null;
+        };
+
+        const { data: rulesData } = await sb
+          .from("lead_routing_rules")
+          .select(
+            "id, name, priority, match_source, match_campaign, match_utm_source, match_utm_medium, match_utm_campaign, match_city, match_state, assign_to_user, assign_territory_id, assign_franchisee_id, set_stage, add_tag",
+          )
+          .eq("enabled", true)
+          .order("priority", { ascending: true });
+
+        const rules = (rulesData ?? []) as Rule[];
+
+        const ciIncludes = (haystack: string | null | undefined, needle: string | null) => {
+          if (!needle) return true; // wildcard
+          if (!haystack) return false;
+          return haystack.toLowerCase().includes(needle.toLowerCase());
+        };
+        const ciEquals = (a: string | null | undefined, b: string | null) => {
+          if (!b) return true;
+          if (!a) return false;
+          return a.trim().toLowerCase() === b.trim().toLowerCase();
+        };
+
+        const matched = rules.find((r) =>
+          ciEquals(parsed.source, r.match_source) &&
+          ciIncludes(parsed.campaign ?? null, r.match_campaign) &&
+          ciIncludes(parsed.utm?.source ?? null, r.match_utm_source) &&
+          ciIncludes(parsed.utm?.medium ?? null, r.match_utm_medium) &&
+          ciIncludes(parsed.utm?.campaign ?? null, r.match_utm_campaign) &&
+          ciIncludes(parsed.city ?? null, r.match_city) &&
+          ciEquals(parsed.city ?? null, r.match_state ? null : null) || // placeholder, real state check below
+          false,
+        ) ?? rules.find((r) =>
+          ciEquals(parsed.source, r.match_source) &&
+          ciIncludes(parsed.campaign ?? null, r.match_campaign) &&
+          ciIncludes(parsed.utm?.source ?? null, r.match_utm_source) &&
+          ciIncludes(parsed.utm?.medium ?? null, r.match_utm_medium) &&
+          ciIncludes(parsed.utm?.campaign ?? null, r.match_utm_campaign) &&
+          ciIncludes(parsed.city ?? null, r.match_city),
+        );
+
+        // Resolve territory_id: prefer the rule's territory; otherwise look up from franchisee
+        let resolvedTerritoryId: string | null = matched?.assign_territory_id ?? null;
+        let resolvedFranchiseeId: string | null = matched?.assign_franchisee_id ?? null;
+        if (!resolvedTerritoryId && resolvedFranchiseeId) {
+          const { data: fr } = await sb
+            .from("franchisees")
+            .select("territory_id")
+            .eq("id", resolvedFranchiseeId)
+            .maybeSingle();
+          resolvedTerritoryId = fr?.territory_id ?? null;
+        }
+
         const noteParts: string[] = [];
         if (parsed.utm) {
           if (parsed.utm.source) noteParts.push(`utm_source=${parsed.utm.source}`);
@@ -231,6 +304,8 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
           if (parsed.utm.campaign) noteParts.push(`utm_campaign=${parsed.utm.campaign}`);
         }
         if (parsed.campaign) noteParts.push(`campaign=${parsed.campaign}`);
+        if (matched?.add_tag) noteParts.push(`tag=${matched.add_tag}`);
+        if (matched) noteParts.push(`routed_by=${matched.name}`);
         if (parsed.notes) noteParts.push(parsed.notes);
 
         const { data: created, error: insertErr } = await sb
@@ -242,7 +317,9 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
             city: parsed.city || null,
             budget: parsed.budget ?? null,
             source: mapSourceToLeadSource(parsed.source),
-            stage: "new",
+            stage: (matched?.set_stage as "new" | "interested" | "followup" | "hot" | "payment_pending" | "closed" | undefined) ?? "new",
+            assigned_to: matched?.assign_to_user ?? null,
+            territory_id: resolvedTerritoryId,
             notes: noteParts.length > 0 ? noteParts.join(" | ") : null,
           })
           .select("id")
@@ -257,6 +334,7 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
             status: "error",
             error_message: insertErr?.message ?? "Failed to create lead",
             ip_address: ip,
+            matched_rule_id: matched?.id ?? null,
           });
           return new Response(JSON.stringify({ error: "Failed to create lead" }), {
             status: 500,
@@ -272,6 +350,10 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
           status: "created",
           lead_id: created.id,
           ip_address: ip,
+          matched_rule_id: matched?.id ?? null,
+          assigned_to: matched?.assign_to_user ?? null,
+          assigned_territory_id: resolvedTerritoryId,
+          assigned_franchisee_id: resolvedFranchiseeId,
         });
 
         return new Response(JSON.stringify({ ok: true, lead_id: created.id }), {
