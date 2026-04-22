@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { ShareButtons } from "@/components/marketing/ShareButtons";
 
 export const Route = createFileRoute("/webinar/$slug")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -179,6 +180,16 @@ function PublicRegister() {
                   </Button>
                 </a>
               )}
+              <div className="border-t border-border/40 pt-4">
+                <p className="mb-3 text-xs text-muted-foreground">Help a friend grab a seat too</p>
+                <ShareButtons
+                  url={typeof window !== "undefined" ? window.location.href.split("?")[0] : ""}
+                  title={`Free webinar: ${w.title}`}
+                  text={`I just registered for "${w.title}" on ${format(new Date(w.scheduled_at), "dd MMM, HH:mm")}. Join me!`}
+                  variant="compact"
+                  className="justify-center"
+                />
+              </div>
             </div>
           ) : isCancelled ? (
             <div className="text-center">
