@@ -724,6 +724,87 @@ export type Database = {
           },
         ]
       }
+      lead_routing_rules: {
+        Row: {
+          add_tag: string | null
+          assign_franchisee_id: string | null
+          assign_territory_id: string | null
+          assign_to_user: string | null
+          created_at: string
+          enabled: boolean
+          id: string
+          match_campaign: string | null
+          match_city: string | null
+          match_source: string | null
+          match_state: string | null
+          match_utm_campaign: string | null
+          match_utm_medium: string | null
+          match_utm_source: string | null
+          name: string
+          notes: string | null
+          priority: number
+          set_stage: Database["public"]["Enums"]["lead_stage"] | null
+          updated_at: string
+        }
+        Insert: {
+          add_tag?: string | null
+          assign_franchisee_id?: string | null
+          assign_territory_id?: string | null
+          assign_to_user?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          match_campaign?: string | null
+          match_city?: string | null
+          match_source?: string | null
+          match_state?: string | null
+          match_utm_campaign?: string | null
+          match_utm_medium?: string | null
+          match_utm_source?: string | null
+          name: string
+          notes?: string | null
+          priority?: number
+          set_stage?: Database["public"]["Enums"]["lead_stage"] | null
+          updated_at?: string
+        }
+        Update: {
+          add_tag?: string | null
+          assign_franchisee_id?: string | null
+          assign_territory_id?: string | null
+          assign_to_user?: string | null
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          match_campaign?: string | null
+          match_city?: string | null
+          match_source?: string | null
+          match_state?: string | null
+          match_utm_campaign?: string | null
+          match_utm_medium?: string | null
+          match_utm_source?: string | null
+          name?: string
+          notes?: string | null
+          priority?: number
+          set_stage?: Database["public"]["Enums"]["lead_stage"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_routing_rules_assign_franchisee_id_fkey"
+            columns: ["assign_franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_routing_rules_assign_territory_id_fkey"
+            columns: ["assign_territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           assigned_to: string | null
@@ -1586,36 +1667,48 @@ export type Database = {
       }
       social_lead_events: {
         Row: {
+          assigned_franchisee_id: string | null
+          assigned_territory_id: string | null
+          assigned_to: string | null
           campaign: string | null
           created_at: string
           error_message: string | null
           id: string
           ip_address: string | null
           lead_id: string | null
+          matched_rule_id: string | null
           payload: Json
           signature_valid: boolean
           source: string
           status: string
         }
         Insert: {
+          assigned_franchisee_id?: string | null
+          assigned_territory_id?: string | null
+          assigned_to?: string | null
           campaign?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
           ip_address?: string | null
           lead_id?: string | null
+          matched_rule_id?: string | null
           payload: Json
           signature_valid?: boolean
           source: string
           status?: string
         }
         Update: {
+          assigned_franchisee_id?: string | null
+          assigned_territory_id?: string | null
+          assigned_to?: string | null
           campaign?: string | null
           created_at?: string
           error_message?: string | null
           id?: string
           ip_address?: string | null
           lead_id?: string | null
+          matched_rule_id?: string | null
           payload?: Json
           signature_valid?: boolean
           source?: string
@@ -1623,10 +1716,31 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "social_lead_events_assigned_franchisee_id_fkey"
+            columns: ["assigned_franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_lead_events_assigned_territory_id_fkey"
+            columns: ["assigned_territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "social_lead_events_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_lead_events_matched_rule_id_fkey"
+            columns: ["matched_rule_id"]
+            isOneToOne: false
+            referencedRelation: "lead_routing_rules"
             referencedColumns: ["id"]
           },
         ]
