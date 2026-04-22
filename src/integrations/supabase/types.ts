@@ -1355,6 +1355,128 @@ export type Database = {
         }
         Relationships: []
       }
+      webinar_registrations: {
+        Row: {
+          attended: boolean
+          attended_at: string | null
+          city: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          lead_id: string | null
+          notes: string | null
+          phone: string | null
+          registered_at: string
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          webinar_id: string
+        }
+        Insert: {
+          attended?: boolean
+          attended_at?: string | null
+          city?: string | null
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          registered_at?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          webinar_id: string
+        }
+        Update: {
+          attended?: boolean
+          attended_at?: string | null
+          city?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          phone?: string | null
+          registered_at?: string
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          webinar_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webinar_registrations_webinar_id_fkey"
+            columns: ["webinar_id"]
+            isOneToOne: false
+            referencedRelation: "webinars"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webinars: {
+        Row: {
+          capacity: number
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number
+          host_name: string | null
+          id: string
+          join_url: string | null
+          platform: Database["public"]["Enums"]["webinar_platform"]
+          price: number
+          scheduled_at: string
+          slug: string
+          status: Database["public"]["Enums"]["webinar_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number
+          host_name?: string | null
+          id?: string
+          join_url?: string | null
+          platform?: Database["public"]["Enums"]["webinar_platform"]
+          price?: number
+          scheduled_at: string
+          slug: string
+          status?: Database["public"]["Enums"]["webinar_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number
+          host_name?: string | null
+          id?: string
+          join_url?: string | null
+          platform?: Database["public"]["Enums"]["webinar_platform"]
+          price?: number
+          scheduled_at?: string
+          slug?: string
+          status?: Database["public"]["Enums"]["webinar_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1432,6 +1554,8 @@ export type Database = {
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       warehouse_type: "dark_store" | "central_warehouse" | "outlet"
+      webinar_platform: "zoom" | "google_meet" | "youtube" | "teams" | "other"
+      webinar_status: "draft" | "scheduled" | "live" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1627,6 +1751,8 @@ export const Constants = {
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
       warehouse_type: ["dark_store", "central_warehouse", "outlet"],
+      webinar_platform: ["zoom", "google_meet", "youtube", "teams", "other"],
+      webinar_status: ["draft", "scheduled", "live", "completed", "cancelled"],
     },
   },
 } as const
