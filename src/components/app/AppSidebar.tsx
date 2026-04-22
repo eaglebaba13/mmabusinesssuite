@@ -71,12 +71,14 @@ export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
   const isFranchisee = hasRole("franchisee");
+  const isFranchiseeOnly = isFranchisee && !isAdmin;
   const isTrainer = hasRole("trainer");
-  const isAcademyStaff = isAdmin || hasRole("academy_admin") || hasRole("accounts");
-  const isInventoryStaff = isAdmin || hasRole("inventory");
-  const isFinanceStaff = isAdmin || hasRole("accounts");
-  const isWebinarStaff = isAdmin || hasRole("webinar") || hasRole("sales");
-  const isPosStaff = isAdmin || hasRole("package_sales") || hasRole("accounts") || hasRole("inventory");
+  const isAcademyStaff = !isFranchiseeOnly && (isAdmin || hasRole("academy_admin") || hasRole("accounts"));
+  const isInventoryStaff = !isFranchiseeOnly && (isAdmin || hasRole("inventory"));
+  const isFinanceStaff = !isFranchiseeOnly && (isAdmin || hasRole("accounts"));
+  const isWebinarStaff = !isFranchiseeOnly && (isAdmin || hasRole("webinar") || hasRole("sales"));
+  const isPosStaff = !isFranchiseeOnly && (isAdmin || hasRole("package_sales") || hasRole("accounts") || hasRole("inventory"));
+  const showOps = !isFranchiseeOnly && (isAdmin || hasRole("sales") || hasRole("accounts"));
 
   const isActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
@@ -90,7 +92,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {(isAdmin || hasRole("sales") || hasRole("accounts")) && (
+        {showOps && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Operations
