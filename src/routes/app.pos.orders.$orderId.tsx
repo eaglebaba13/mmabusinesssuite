@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { exportToPDF } from "@/lib/export";
+import { downloadGstInvoicePdf } from "@/lib/invoice-pdf";
 import { formatINR } from "@/lib/format";
 
 export const Route = createFileRoute("/app/pos/orders/$orderId")({
