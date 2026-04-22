@@ -100,6 +100,7 @@ function FranchiseeDetailPage() {
             investment={Number(f.investment_amount)}
             joinedAt={f.joined_at}
             status={f.status}
+            territoryId={f.territory_id}
           />
         </TabsContent>
 
