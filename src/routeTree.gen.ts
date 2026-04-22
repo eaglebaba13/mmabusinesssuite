@@ -53,6 +53,8 @@ import { Route as AppAcademyFeesRouteImport } from './routes/app.academy.fees'
 import { Route as AppAcademyCoursesRouteImport } from './routes/app.academy.courses'
 import { Route as AppAcademyCertificatesRouteImport } from './routes/app.academy.certificates'
 import { Route as AppAcademyBatchesRouteImport } from './routes/app.academy.batches'
+import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
+import { Route as ApiPublicWebinarRegisterHookRouteImport } from './routes/api/public/webinar-register-hook'
 import { Route as AppAcademyBatchesBatchIdRouteImport } from './routes/app.academy.batches.$batchId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -277,6 +279,18 @@ const AppAcademyBatchesRoute = AppAcademyBatchesRouteImport.update({
   path: '/batches',
   getParentRoute: () => AppAcademyRoute,
 } as any)
+const ApiPublicWebinarRemindersRoute =
+  ApiPublicWebinarRemindersRouteImport.update({
+    id: '/api/public/webinar-reminders',
+    path: '/api/public/webinar-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWebinarRegisterHookRoute =
+  ApiPublicWebinarRegisterHookRouteImport.update({
+    id: '/api/public/webinar-register-hook',
+    path: '/api/public/webinar-register-hook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppAcademyBatchesBatchIdRoute =
   AppAcademyBatchesBatchIdRouteImport.update({
     id: '/$batchId',
@@ -304,6 +318,8 @@ export interface FileRoutesByFullPath {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
   '/app/academy/certificates': typeof AppAcademyCertificatesRoute
   '/app/academy/courses': typeof AppAcademyCoursesRoute
@@ -346,6 +362,8 @@ export interface FileRoutesByTo {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app': typeof AppIndexRoute
+  '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
   '/app/academy/certificates': typeof AppAcademyCertificatesRoute
   '/app/academy/courses': typeof AppAcademyCoursesRoute
@@ -394,6 +412,8 @@ export interface FileRoutesById {
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
   '/app/': typeof AppIndexRoute
+  '/api/public/webinar-register-hook': typeof ApiPublicWebinarRegisterHookRoute
+  '/api/public/webinar-reminders': typeof ApiPublicWebinarRemindersRoute
   '/app/academy/batches': typeof AppAcademyBatchesRouteWithChildren
   '/app/academy/certificates': typeof AppAcademyCertificatesRoute
   '/app/academy/courses': typeof AppAcademyCoursesRoute
@@ -443,6 +463,8 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app/'
+    | '/api/public/webinar-register-hook'
+    | '/api/public/webinar-reminders'
     | '/app/academy/batches'
     | '/app/academy/certificates'
     | '/app/academy/courses'
@@ -485,6 +507,8 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app'
+    | '/api/public/webinar-register-hook'
+    | '/api/public/webinar-reminders'
     | '/app/academy/batches'
     | '/app/academy/certificates'
     | '/app/academy/courses'
@@ -532,6 +556,8 @@ export interface FileRouteTypes {
     | '/verify/$code'
     | '/webinar/$slug'
     | '/app/'
+    | '/api/public/webinar-register-hook'
+    | '/api/public/webinar-reminders'
     | '/app/academy/batches'
     | '/app/academy/certificates'
     | '/app/academy/courses'
@@ -568,6 +594,8 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   WebinarSlugRoute: typeof WebinarSlugRoute
+  ApiPublicWebinarRegisterHookRoute: typeof ApiPublicWebinarRegisterHookRoute
+  ApiPublicWebinarRemindersRoute: typeof ApiPublicWebinarRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -880,6 +908,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAcademyBatchesRouteImport
       parentRoute: typeof AppAcademyRoute
     }
+    '/api/public/webinar-reminders': {
+      id: '/api/public/webinar-reminders'
+      path: '/api/public/webinar-reminders'
+      fullPath: '/api/public/webinar-reminders'
+      preLoaderRoute: typeof ApiPublicWebinarRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webinar-register-hook': {
+      id: '/api/public/webinar-register-hook'
+      path: '/api/public/webinar-register-hook'
+      fullPath: '/api/public/webinar-register-hook'
+      preLoaderRoute: typeof ApiPublicWebinarRegisterHookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/academy/batches/$batchId': {
       id: '/app/academy/batches/$batchId'
       path: '/$batchId'
@@ -1051,6 +1093,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   WebinarSlugRoute: WebinarSlugRoute,
+  ApiPublicWebinarRegisterHookRoute: ApiPublicWebinarRegisterHookRoute,
+  ApiPublicWebinarRemindersRoute: ApiPublicWebinarRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
