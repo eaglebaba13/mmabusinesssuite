@@ -281,8 +281,26 @@ function PayrollPage() {
                 onFromChange={() => {}} onToChange={() => {}}
                 showDateRange={false}
                 count={exportRows.length}
-                onCSV={() => exportToCSV(exportRows, `payroll-${selectedRun.payroll_month}`)}
-                onPDF={() => exportToPDF(exportRows, `Payroll ${selectedRun.payroll_month}`, `payroll-${selectedRun.payroll_month}`)}
+                onCSV={() => exportToCSV(`payroll-${selectedRun.payroll_month}`, exportRows, [
+                  { header: "Code", accessor: (r: any) => r.code ?? "" },
+                  { header: "Name", accessor: (r: any) => r.name ?? "" },
+                  { header: "Department", accessor: (r: any) => r.department },
+                  { header: "Paid Days", accessor: (r: any) => r.paid_days },
+                  { header: "Gross", accessor: (r: any) => r.gross },
+                  { header: "PF", accessor: (r: any) => r.pf },
+                  { header: "Tax", accessor: (r: any) => r.tax },
+                  { header: "Deductions", accessor: (r: any) => r.deductions },
+                  { header: "Net", accessor: (r: any) => r.net },
+                ])}
+                onPDF={() => exportToPDF({ filename: `payroll-${selectedRun.payroll_month}`, title: `Payroll ${selectedRun.payroll_month}`, rows: exportRows, columns: [
+                  { header: "Code", accessor: (r: any) => r.code ?? "" },
+                  { header: "Name", accessor: (r: any) => r.name ?? "" },
+                  { header: "Department", accessor: (r: any) => r.department },
+                  { header: "Paid Days", accessor: (r: any) => r.paid_days },
+                  { header: "Gross", accessor: (r: any) => r.gross },
+                  { header: "Deductions", accessor: (r: any) => r.deductions },
+                  { header: "Net", accessor: (r: any) => r.net },
+                ] })}
               />
               <div className="mt-3 max-h-[520px] divide-y divide-border/40 overflow-auto">
                 {(items.data ?? []).map((it: any) => (
