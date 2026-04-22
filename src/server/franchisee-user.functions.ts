@@ -23,7 +23,7 @@ const Input = z.object({
 });
 
 export const createFranchiseeUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([forwardAuthHeader, requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data, context }) => {
     // Verify caller is admin/founder
