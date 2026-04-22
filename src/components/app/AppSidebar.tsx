@@ -9,6 +9,7 @@ import {
   GraduationCap,
   UserCog,
   Package,
+  Wallet,
 } from "lucide-react";
 import {
   Sidebar,
