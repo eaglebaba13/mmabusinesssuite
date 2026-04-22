@@ -6,6 +6,8 @@ import {
   Settings,
   LifeBuoy,
   Briefcase,
+  GraduationCap,
+  UserCog,
 } from "lucide-react";
 import {
   Sidebar,
