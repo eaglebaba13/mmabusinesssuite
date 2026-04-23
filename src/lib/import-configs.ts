@@ -718,6 +718,141 @@ const leadRoutingConfig: ImportConfig = {
   }),
 };
 
+/* ----------------------------- TRAINERS ------------------------------ */
+
+const trainersConfig: ImportConfig = {
+  entity: "trainers",
+  label: "Trainers",
+  table: "trainers",
+  invalidateKeys: [["trainers"]],
+  columns: [
+    { key: "full_name", required: true, example: "Anita Rao" },
+    { key: "email", example: "anita@example.com" },
+    { key: "phone", example: "+919812345678" },
+    { key: "specialization", example: "Foundation, Watercolour" },
+    { key: "bio" },
+  ],
+  schema: z.object({
+    full_name: requiredString("full_name"),
+    email: optionalString,
+    phone: optionalString,
+    specialization: optionalString,
+    bio: optionalString,
+  }),
+  transform: (row) => row,
+};
+
+/* ---------------------------- CERTIFICATES --------------------------- */
+
+const certificatesConfig: ImportConfig = {
+  entity: "certificates",
+  label: "Certificates",
+  table: "certificates",
+  invalidateKeys: [["certificates"]],
+  columns: [
+    { key: "enrollment_id", required: true, description: "UUID of the enrollment record" },
+    { key: "certificate_code", required: true, example: "CERT-2025-0001" },
+    { key: "grade", example: "A" },
+    { key: "issued_on", example: "2025-04-01" },
+    { key: "remarks" },
+  ],
+  schema: z.object({
+    enrollment_id: requiredString("enrollment_id"),
+    certificate_code: requiredString("certificate_code"),
+    grade: optionalString,
+    issued_on: optionalDate,
+    remarks: optionalString,
+  }),
+  transform: (row) => ({
+    enrollment_id: row.enrollment_id,
+    certificate_code: row.certificate_code,
+    grade: row.grade,
+    issued_on: row.issued_on ?? new Date().toISOString().slice(0, 10),
+    remarks: row.remarks,
+  }),
+};
+
+/* ---------------------------- ROI PAYOUTS ---------------------------- */
+
+const roiPayoutsConfig: ImportConfig = {
+  entity: "roi_payouts",
+  label: "ROI payouts",
+  table: "roi_payouts",
+  invalidateKeys: [["roi-list"], ["fin-overview"]],
+  columns: [
+    { key: "franchisee_email", required: true, example: "owner@acme.com" },
+    { key: "payout_month", required: true, example: "2025-04-01" },
+    { key: "base_roi", example: 15000 },
+    { key: "academy_incentive", example: 0 },
+    { key: "dark_store_incentive", example: 0 },
+    { key: "emporium_incentive", example: 0 },
+    { key: "status", example: "pending", description: "pending | approved | paid | cancelled" },
+  ],
+  schema: z.object({
+    franchisee_email: requiredString("franchisee_email"),
+    payout_month: requiredDate("payout_month"),
+    base_roi: optionalNumber,
+    academy_incentive: optionalNumber,
+    dark_store_incentive: optionalNumber,
+    emporium_incentive: optionalNumber,
+    status: optionalString,
+  }),
+  transform: async (row, ctx) => {
+    const base = row.base_roi ?? 0;
+    const ai = row.academy_incentive ?? 0;
+    const ds = row.dark_store_incentive ?? 0;
+    const em = row.emporium_incentive ?? 0;
+    return {
+      franchisee_id: lookup(ctx.lookups.franchisees, row.franchisee_email, "franchisee_email"),
+      payout_month: row.payout_month,
+      base_roi: base,
+      academy_incentive: ai,
+      dark_store_incentive: ds,
+      emporium_incentive: em,
+      total_amount: base + ai + ds + em,
+      status: row.status ?? "pending",
+    };
+  },
+};
+
+/* ----------------------- FRANCHISEE TARGETS -------------------------- */
+
+const franchiseeTargetsConfig: ImportConfig = {
+  entity: "franchisee_targets",
+  label: "Franchisee targets",
+  table: "franchisee_targets",
+  invalidateKeys: [["franchisee-targets"]],
+  columns: [
+    { key: "franchisee_email", description: "Optional — leave blank for default city target" },
+    { key: "city", example: "Mumbai" },
+    { key: "model_item_id", required: true, description: "UUID of the revenue_model_items row" },
+    { key: "target_numbers", required: true, example: 100 },
+    { key: "period_month", example: "2025-04-01" },
+    { key: "notes" },
+  ],
+  schema: z.object({
+    franchisee_email: optionalString,
+    city: optionalString,
+    model_item_id: requiredString("model_item_id"),
+    target_numbers: optionalNumber,
+    period_month: optionalDate,
+    notes: optionalString,
+  }).refine((v) => v.target_numbers !== null && (v.target_numbers ?? 0) > 0, {
+    message: "target_numbers must be greater than 0",
+    path: ["target_numbers"],
+  }),
+  transform: async (row, ctx) => ({
+    franchisee_id: row.franchisee_email
+      ? lookup(ctx.lookups.franchisees, row.franchisee_email, "franchisee_email")
+      : null,
+    city: row.city ?? "",
+    model_item_id: row.model_item_id,
+    target_numbers: row.target_numbers,
+    period_month: row.period_month ?? new Date().toISOString().slice(0, 10),
+    notes: row.notes,
+  }),
+};
+
 /* ----------------------- LOOKUP FETCHING ----------------------------- */
 
 /**
@@ -735,6 +870,8 @@ export async function fetchLookups(entity: string): Promise<ImportContext["looku
       out.warehouses = await buildLookup("warehouses", "code");
       break;
     case "revenue_entries":
+    case "roi_payouts":
+    case "franchisee_targets":
       out.franchisees = await buildLookup("franchisees", "email");
       break;
     case "expenses":
@@ -774,6 +911,10 @@ export const IMPORT_CONFIGS = {
   webinars: webinarsConfig,
   employees: employeesConfig,
   lead_routing_rules: leadRoutingConfig,
+  trainers: trainersConfig,
+  certificates: certificatesConfig,
+  roi_payouts: roiPayoutsConfig,
+  franchisee_targets: franchiseeTargetsConfig,
 } as const;
 
 export type ImportConfigKey = keyof typeof IMPORT_CONFIGS;

@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExportBar } from "@/components/app/ExportBar";
 import { exportToCSV, exportToPDF } from "@/lib/export";
 import { formatINR } from "@/lib/format";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/hr/employees")({
   component: EmployeesPage,
@@ -220,6 +221,7 @@ function EmployeesPage() {
             {STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>)}
           </SelectContent>
         </Select>
+        <ImportButton configKey="employees" />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditingId(null); setForm(blankForm()); } }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />Add employee</Button>

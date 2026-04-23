@@ -1,5 +1,5 @@
 import * as React from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -353,52 +353,66 @@ function FranchiseesPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filtered.map((f) => {
           const isInactive = f.status === "suspended" || f.status === "closed";
-          return (
-            <div key={f.id} className="relative">
-              <Link
-                to="/app/franchisees/$franchiseeId"
-                params={{ franchiseeId: f.id }}
-                className={`block rounded-2xl glass p-5 hover-gold-glow transition-opacity ${isInactive ? "opacity-60" : ""}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-gold shadow-gold">
-                    <Building2 className="h-5 w-5 text-background" />
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Badge
-                      variant="outline"
-                      className={
-                        isInactive
-                          ? "border-rose-500/40 text-rose-400 capitalize"
-                          : "border-gold/40 text-gold capitalize"
-                      }
-                    >
-                      {f.status}
-                    </Badge>
-                  </div>
-                </div>
-                <h3 className="mt-4 font-display text-xl">{f.full_name}</h3>
-                <p className="text-xs text-muted-foreground">{f.email ?? f.phone ?? "—"}</p>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Investment</div>
-                    <div className="font-display text-lg text-gradient-gold">{formatINRCompact(Number(f.investment_amount))}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Joined</div>
-                    <div className="text-sm">{format(new Date(f.joined_at), "MMM yyyy")}</div>
-                  </div>
-                </div>
-              </Link>
-              <div className="absolute right-3 top-3">
-                <FranchiseeActions franchisee={f} />
-              </div>
-            </div>
-          );
+          return <FranchiseeCard key={f.id} franchisee={f} isInactive={isInactive} />;
         })}
         {filtered.length === 0 && (
           <div className="col-span-full rounded-2xl glass p-12 text-center text-muted-foreground">No franchisees yet.</div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function FranchiseeCard({ franchisee: f, isInactive }: { franchisee: any; isInactive: boolean }) {
+  const navigate = useNavigate();
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest("[data-actions]")) return;
+    navigate({ to: "/app/franchisees/$franchiseeId", params: { franchiseeId: f.id } });
+  };
+  return (
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          navigate({ to: "/app/franchisees/$franchiseeId", params: { franchiseeId: f.id } });
+        }
+      }}
+      className={`relative cursor-pointer rounded-2xl glass p-5 hover-gold-glow transition-opacity ${isInactive ? "opacity-60" : ""}`}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-gold shadow-gold">
+          <Building2 className="h-5 w-5 text-background" />
+        </div>
+        <div className="flex items-center gap-1">
+          <Badge
+            variant="outline"
+            className={
+              isInactive
+                ? "border-rose-500/40 text-rose-400 capitalize"
+                : "border-gold/40 text-gold capitalize"
+            }
+          >
+            {f.status}
+          </Badge>
+          <div data-actions>
+            <FranchiseeActions franchisee={f} />
+          </div>
+        </div>
+      </div>
+      <h3 className="mt-4 font-display text-xl">{f.full_name}</h3>
+      <p className="text-xs text-muted-foreground">{f.email ?? f.phone ?? "—"}</p>
+      <div className="mt-4 flex items-end justify-between">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Investment</div>
+          <div className="font-display text-lg text-gradient-gold">{formatINRCompact(Number(f.investment_amount))}</div>
+        </div>
+        <div className="text-right">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Joined</div>
+          <div className="text-sm">{format(new Date(f.joined_at), "MMM yyyy")}</div>
+        </div>
       </div>
     </div>
   );

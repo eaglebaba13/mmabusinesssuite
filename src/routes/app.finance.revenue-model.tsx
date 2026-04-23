@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { formatINR, formatINRCompact } from "@/lib/format";
 import { KpiCard } from "@/components/app/KpiCard";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/finance/revenue-model")({
   head: () => ({ meta: [{ title: "Revenue Model — MMA Suite" }] }),

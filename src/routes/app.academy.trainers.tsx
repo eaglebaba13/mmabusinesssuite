@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/academy/trainers")({
   head: () => ({ meta: [{ title: "Trainers — Academy" }] }),
@@ -62,6 +63,8 @@ function TrainersPage() {
           <p className="text-sm text-muted-foreground">Faculty roster and batch assignments.</p>
         </div>
         {canEdit && (
+          <div className="flex items-center gap-2">
+            <ImportButton configKey="trainers" />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-gold text-background shadow-gold hover:opacity-90">
@@ -84,6 +87,7 @@ function TrainersPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 

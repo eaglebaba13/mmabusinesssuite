@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/academy/students")({
   head: () => ({ meta: [{ title: "Students — Academy" }] }),
@@ -95,6 +96,8 @@ function StudentsPage() {
           <p className="text-sm text-muted-foreground">All learners across the academy.</p>
         </div>
         {canEdit && (
+          <div className="flex items-center gap-2">
+            <ImportButton configKey="students" />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-gold text-background shadow-gold hover:opacity-90">
@@ -125,6 +128,7 @@ function StudentsPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 

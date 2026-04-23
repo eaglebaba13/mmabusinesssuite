@@ -16,6 +16,7 @@ import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/webinars/")({
   head: () => ({ meta: [{ title: "Webinar Campaigns — MMA Suite" }] }),
@@ -104,12 +105,14 @@ function WebinarsIndex() {
           <h2 className="font-display text-xl">Campaigns</h2>
           <p className="text-sm text-muted-foreground">All scheduled and past webinars.</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-background shadow-gold">
-              <Plus className="mr-2 h-4 w-4" /> New Webinar
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <ImportButton configKey="webinars" />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-gold text-background shadow-gold">
+                <Plus className="mr-2 h-4 w-4" /> New Webinar
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-xl">
             <DialogHeader><DialogTitle>New webinar</DialogTitle></DialogHeader>
             <div className="grid gap-3">
@@ -162,6 +165,7 @@ function WebinarsIndex() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

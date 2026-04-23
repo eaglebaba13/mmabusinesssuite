@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/inventory/purchase-orders")({
   component: PurchaseOrdersPage,
@@ -143,7 +144,8 @@ function PurchaseOrdersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <ImportButton configKey="purchase_orders" />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" /> New Purchase Order</Button></DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

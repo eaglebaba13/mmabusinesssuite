@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth-context";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/settings/lead-routing")({
   head: () => ({ meta: [{ title: "Lead Routing — MMA Suite" }] }),
@@ -274,10 +275,13 @@ function LeadRoutingPage() {
               belongs to, and which franchisee gets notified.
             </p>
           </div>
-          <Button onClick={openCreate} className="bg-gradient-gold text-background">
-            <Plus className="mr-2 h-4 w-4" />
-            New rule
-          </Button>
+          <div className="flex items-center gap-2">
+            <ImportButton configKey="lead_routing_rules" />
+            <Button onClick={openCreate} className="bg-gradient-gold text-background">
+              <Plus className="mr-2 h-4 w-4" />
+              New rule
+            </Button>
+          </div>
         </div>
 
         <Separator className="my-5" />

@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/academy/batches")({
   head: () => ({ meta: [{ title: "Batches — Academy" }] }),
@@ -86,6 +87,8 @@ function BatchesPage() {
           <p className="text-sm text-muted-foreground">Scheduled cohorts running across centres.</p>
         </div>
         {canEdit && (
+          <div className="flex items-center gap-2">
+            <ImportButton configKey="batches" />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-gold text-background shadow-gold hover:opacity-90">
@@ -161,6 +164,7 @@ function BatchesPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 
