@@ -1,98 +1,59 @@
 
 
-# Fix navigation + finish wiring Import buttons + Google Meet integration
+# Add "Ad Name" column to Leads
 
-Three scopes in one pass.
+Track the specific ad creative each lead came from (e.g. "Diwali Combo — Reel A", "Search — Brand Exact"). Used in the New Lead form, Kanban + Table views, exports, the import template, and the social webhook payload so Meta/Google integrations can populate it automatically.
 
----
+## 1. Database
 
-## Part 1 — "Open dashboard" still failing on franchisee cards
+Migration adds a single nullable text column:
 
-### Root cause
-`FranchiseeActions.tsx` already uses `setTimeout(() => navigate(...), 0)`, but the menu lives **inside** the wrapping `<Link>`. When the dropdown closes, the trailing `mouseup` lands on the underlying `<Link>`, which fires its own navigation **before** Radix unmounts. Result: URL flips to `/app/franchisees/{id}` momentarily, then the wrapping link/route re-enters and the user lands back on the list (or never leaves it because the click target is intercepted by the menu portal).
+```sql
+alter table public.leads add column ad_name text;
+create index leads_ad_name_idx on public.leads (ad_name) where ad_name is not null;
+```
 
-### Fix
-Restructure `app.franchisees.tsx` so the action menu is **not** a sibling of the `<Link>` inside a relative wrapper — instead, render the card body and the menu as siblings inside a non-link container, and make the body navigate via `useNavigate` only when the click target is the body itself:
+No backfill (existing rows stay null). RLS unchanged — column inherits row-level rules.
 
-- Replace the current `<div relative><Link>…</Link><div absolute><FranchiseeActions/></div></div>` with `<div role="link" onClick={…}>…<FranchiseeActions/></div>`.
-- Inside the click handler check `e.target.closest("[data-actions]")` — if true, do nothing (action click), otherwise `navigate({ to: "/app/franchisees/$franchiseeId", params: { franchiseeId: f.id } })`.
-- Wrap `FranchiseeActions` in `<div data-actions>` so the check works.
-- Also drop the `setTimeout` wrappers in `FranchiseeActions.tsx` — with the menu no longer competing with a parent `<Link>`, plain `e.stopPropagation()` is enough and "Open dashboard" navigates cleanly. Edit/Reset/Deactivate/Delete also continue to work.
+## 2. UI — `src/routes/app.leads.tsx`
 
-This is the simplest fix that breaks the click-through race for good. No more nested Link + portal collision.
+- Extend the `Lead` interface with `ad_name: string | null`.
+- **Table view**: insert an "Ad Name" column between Source and Stage. Show `—` when null. Truncate long names with `max-w-[180px] truncate` + tooltip via `title=`.
+- **Kanban card** (`LeadCard`): show ad name as a small dim line below the email/phone if present (`text-[10px] text-muted-foreground`).
+- **Search**: include `ad_name` in the lowercase match alongside name/email/phone.
+- **New Lead dialog** (`NewLeadDialog`): add an "Ad Name" input below Source (full-width). Persist on insert.
 
----
+## 3. Lead detail — `src/routes/app.leads.$leadId.tsx`
 
-## Part 2 — Import button on every remaining list page
+Add an "Ad Name" row to the detail card (next to Source). Read-only display.
 
-The shared `ImportButton`, `ImportDialog`, parser and 17 entity configs are already built. Only **wiring** is needed. Configs that already exist are reused; missing ones get added.
+## 4. Export — same file
 
-### Pages that get `<ImportButton configKey="…" />` added next to existing "Add" / page header:
+Add `{ header: "Ad Name", accessor: (l) => l.ad_name ?? "" }` to `exportCols` between Source and Stage so CSV and PDF reports include it.
 
-**Academy** (5 pages)
-- `app.academy.students.tsx` → `students`
-- `app.academy.courses.tsx` → `courses`
-- `app.academy.batches.tsx` → `batches`
-- `app.academy.fees.tsx` → `fee_payments`
-- `app.academy.trainers.tsx` → **new config `trainers`** (full_name*, email, phone, specialization, bio)
-- `app.academy.certificates.tsx` → **new config `certificates`** (enrollment_id*, certificate_code, grade, issued_on, remarks)
+## 5. Import template — `src/lib/import-configs.ts`
 
-**Inventory** (5 pages)
-- `app.inventory.products.tsx` → `products`
-- `app.inventory.categories.tsx` → `product_categories`
-- `app.inventory.warehouses.tsx` → `warehouses`
-- `app.inventory.suppliers.tsx` → `suppliers`
-- `app.inventory.purchase-orders.tsx` → `purchase_orders`
+Append to `leadsConfig.columns`:
+```
+{ key: "ad_name", example: "Diwali Combo — Reel A", description: "Specific ad creative / ad set name" }
+```
+Add `ad_name: optionalString` to the schema and `ad_name: row.ad_name` in the transform. Downloadable CSV template auto-updates from this config — no separate file change.
 
-**Finance** (5 pages)
-- `app.finance.revenue.tsx` → `revenue_entries`
-- `app.finance.expenses.tsx` → `expenses`
-- `app.finance.categories.tsx` → `expense_categories`
-- `app.finance.payouts.tsx` → **new config `roi_payouts`** (franchisee_email*, payout_month*, base_roi, academy_incentive, dark_store_incentive, emporium_incentive, status)
-- `app.finance.revenue-model.tsx` → **new config `franchisee_targets`** (franchisee_email, city, model_item_id*, target_numbers*)
+## 6. Webhook — `src/routes/api/public/social-lead-hook.ts`
 
-**Webinars** (1 page)
-- `app.webinars.index.tsx` → `webinars`
+- Add `ad_name: z.string().trim().max(200).optional()` to `payloadSchema`.
+- Persist `ad_name: parsed.ad_name ?? null` in the `leads` insert.
+- Append `ad_name=…` to the `noteParts` audit string when present.
 
-**HR / Settings** (already planned but missing wire)
-- `app.hr.employees.tsx` → `employees`
-- `app.settings.lead-routing.tsx` → `lead_routing_rules`
+This means once Meta/Google integrations push payloads with `ad_name`, the column populates automatically — no further work needed there.
 
-**Leads / Franchisees** (already wired) — left as-is.
+## Files touched
 
-### POS
-Per your answer ("POS masters only"), no Import button on POS Orders/Bills. Products + Suppliers + Warehouses imports already cover the POS masters.
+- New migration: add `ad_name` text column + index.
+- `src/routes/app.leads.tsx` — type, table column, kanban line, search, new-lead form.
+- `src/routes/app.leads.$leadId.tsx` — detail row.
+- `src/lib/import-configs.ts` — leads config columns + schema + transform.
+- `src/routes/api/public/social-lead-hook.ts` — schema + insert + note string.
 
-### Permissions on each Import button
-Same role gate as the page's "Add" button (e.g. inventory pages → `isAdmin || hasRole("inventory")`, academy → `academy_admin`, finance → `accounts`, settings → `super_admin`). Franchisee role never sees Import buttons.
-
----
-
-## Part 3 — Google Meet integration on Webinars (Connect + manual)
-
-Per your answer: connect Google account once, then **manually paste / pick the Meet link** when creating a webinar. No auto-Meet creation right now.
-
-### What gets built
-
-**A. Google connector hookup** (one-time, per workspace)
-- In Settings → Social, add a **"Connect Google Account"** button that calls `standard_connectors--connect` for the `google_calendar` connector. Stores OAuth tokens in the connector gateway. Status pill ("Connected as you@gmail.com" / "Not connected").
-
-**B. Webinar create dialog upgrade (`app.webinars.index.tsx`)**
-When `platform === "google_meet"`, show a small inline panel:
-- **"Connect Google to enable Meet helpers"** — visible only if not connected, with the same Connect button.
-- When connected:
-  - **"Generate quick Meet link"** button that opens `https://meet.google.com/new` in a new tab — user creates the meeting in Google's UI, copies the URL, pastes back into the **Join URL** field.
-  - **"Pick from upcoming Calendar events"** button (server fn `listUpcomingMeetEvents`) → fetches the next 20 events from your primary Google Calendar via the connector gateway (`/google_calendar/calendars/primary/events`), filters those with a `hangoutLink`/`conferenceData.entryPoints[].uri`, shows a small list. Click an event → auto-fills `Join URL`, `title`, `host_name`, `scheduled_at`, `duration_minutes`.
-- Helper text: "Tip — paste any Meet, Zoom, or Teams URL into Join URL. Reminders automatically include this link."
-
-**C. Reuse of existing pieces**
-- `webinars.join_url`, `webhook_url`, `reminder_24h/1h` already exist and the public reminder endpoint already POSTs `join_url` to the webhook. Nothing else changes server-side; the new server fn is read-only.
-
-**D. Files**
-- `src/server/google-meet.functions.ts` — `listUpcomingMeetEvents` server fn calling the gateway with `LOVABLE_API_KEY` + `GOOGLE_CALENDAR_API_KEY` headers. Falls back gracefully if env vars are missing.
-- `src/components/app/GoogleMeetPicker.tsx` — small picker UI inside the create dialog.
-- Edit `src/routes/app.webinars.index.tsx` — mount the picker when platform = google_meet.
-- Edit `src/routes/app.settings.social.tsx` — add the Connect Google card.
-
-After approval I'll: (1) restructure the franchisee card so "Open dashboard" works, (2) drop `<ImportButton />` into all the listed pages and add the 4 missing configs (`trainers`, `certificates`, `roi_payouts`, `franchisee_targets`), (3) connect Google Calendar via `standard_connectors--connect`, ship the Meet picker + server fn, and add the connect card in Settings → Social.
+No other files need updating; no existing data is affected.
 
