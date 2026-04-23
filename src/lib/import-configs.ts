@@ -910,6 +910,14 @@ const certificatesConfig: ImportConfig = {
   label: "Certificates",
   table: "certificates",
   invalidateKeys: [["certificates"]],
+  aliases: {
+    enrollment: "enrollment_id",
+    code: "certificate_code",
+    cert_code: "certificate_code",
+    issue_date: "issued_on",
+    issued_date: "issued_on",
+    notes: "remarks",
+  },
   columns: [
     { key: "enrollment_id", required: true, description: "UUID of the enrollment record" },
     { key: "certificate_code", required: true, example: "CERT-2025-0001" },
