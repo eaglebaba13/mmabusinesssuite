@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/academy/courses")({
   head: () => ({ meta: [{ title: "Courses — Academy" }] }),
@@ -101,6 +102,8 @@ function CoursesPage() {
           <p className="text-sm text-muted-foreground">Curated programmes offered across the academy.</p>
         </div>
         {canEdit && (
+          <div className="flex items-center gap-2">
+            <ImportButton configKey="courses" />
           <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditId(null); setForm(empty); } }}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-gold text-background shadow-gold hover:opacity-90">

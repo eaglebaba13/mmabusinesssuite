@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/inventory/products")({
   component: ProductsPage,
@@ -101,6 +102,7 @@ function ProductsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search by name or SKU…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <ImportButton configKey="products" />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-background hover:opacity-90"><Plus className="mr-1 h-4 w-4" /> Add Product</Button>

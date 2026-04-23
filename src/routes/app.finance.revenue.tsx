@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatINR } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/finance/revenue")({
   component: RevenuePage,
@@ -110,10 +111,12 @@ function RevenuePage() {
             {filtered.length} entries in range · Total {formatINR(total)}
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />Add Revenue</Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <ImportButton configKey="revenue_entries" />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />Add Revenue</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>New Revenue Entry</DialogTitle></DialogHeader>
             <div className="space-y-3">

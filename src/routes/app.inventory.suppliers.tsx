@@ -12,6 +12,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/inventory/suppliers")({
   component: SuppliersPage,
@@ -50,7 +51,8 @@ function SuppliersPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <ImportButton configKey="suppliers" />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild><Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" /> Add Supplier</Button></DialogTrigger>
           <DialogContent className="max-w-xl">

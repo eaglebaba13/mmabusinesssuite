@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/academy/certificates")({
   head: () => ({ meta: [{ title: "Certificates — Academy" }] }),
@@ -53,9 +54,12 @@ function CertificatesPage() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h2 className="font-display text-xl">Certificates</h2>
-        <p className="text-sm text-muted-foreground">All issued completion certificates.</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="font-display text-xl">Certificates</h2>
+          <p className="text-sm text-muted-foreground">All issued completion certificates.</p>
+        </div>
+        <ImportButton configKey="certificates" />
       </div>
       <ExportBar
         from={range.from}

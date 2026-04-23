@@ -10,6 +10,7 @@ import { Wallet, Clock, AlertCircle, Receipt } from "lucide-react";
 import { formatINR, formatINRCompact } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/academy/fees")({
   head: () => ({ meta: [{ title: "Fees — Academy" }] }),
@@ -75,9 +76,12 @@ function FeesPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="font-display text-xl">Fee Ledger</h2>
-        <p className="text-sm text-muted-foreground">Payments, dues and reconciliation.</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="font-display text-xl">Fee Ledger</h2>
+          <p className="text-sm text-muted-foreground">Payments, dues and reconciliation.</p>
+        </div>
+        <ImportButton configKey="fee_payments" />
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <KpiCard label="Collected" value={formatINRCompact(collected)} icon={Wallet} />

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/inventory/categories")({
   component: CategoriesPage,
@@ -68,7 +69,8 @@ function CategoriesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <ImportButton configKey="product_categories" />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" /> Add Category</Button>

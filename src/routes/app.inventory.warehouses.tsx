@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/inventory/warehouses")({
   component: WarehousesPage,
@@ -65,7 +66,8 @@ function WarehousesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <ImportButton configKey="warehouses" />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" /> Add Warehouse</Button>
