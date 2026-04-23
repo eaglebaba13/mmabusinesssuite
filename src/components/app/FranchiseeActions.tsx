@@ -99,30 +99,32 @@ export function FranchiseeActions({ franchisee }: Props) {
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" onClick={stop}>
+          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
             <DropdownMenuItem
               onClick={(e) => {
-                stop(e);
-                navigate({
-                  to: "/app/franchisees/$franchiseeId",
-                  params: { franchiseeId: franchisee.id },
-                });
+                e.stopPropagation();
+                setTimeout(() => {
+                  navigate({
+                    to: "/app/franchisees/$franchiseeId",
+                    params: { franchiseeId: franchisee.id },
+                  });
+                }, 0);
               }}
             >
               <ExternalLink className="mr-2 h-3.5 w-3.5" /> Open dashboard
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={(e) => {
-                stop(e);
-                setEditOpen(true);
+                e.stopPropagation();
+                setTimeout(() => setEditOpen(true), 0);
               }}
             >
               <Pencil className="mr-2 h-3.5 w-3.5" /> Edit profile
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={(e) => {
-                stop(e);
-                toggleStatus.mutate();
+                e.stopPropagation();
+                setTimeout(() => toggleStatus.mutate(), 0);
               }}
             >
               <Power className="mr-2 h-3.5 w-3.5" />
@@ -130,8 +132,8 @@ export function FranchiseeActions({ franchisee }: Props) {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={(e) => {
-                stop(e);
-                setEditOpen(true);
+                e.stopPropagation();
+                setTimeout(() => setEditOpen(true), 0);
               }}
             >
               <KeyRound className="mr-2 h-3.5 w-3.5" /> Reset password
@@ -142,8 +144,8 @@ export function FranchiseeActions({ franchisee }: Props) {
                 <DropdownMenuItem
                   className="text-rose-400 focus:text-rose-400"
                   onClick={(e) => {
-                    stop(e);
-                    setDeleteOpen(true);
+                    e.stopPropagation();
+                    setTimeout(() => setDeleteOpen(true), 0);
                   }}
                 >
                   <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
