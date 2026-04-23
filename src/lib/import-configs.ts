@@ -874,6 +874,18 @@ const trainersConfig: ImportConfig = {
   label: "Trainers",
   table: "trainers",
   invalidateKeys: [["trainers"]],
+  aliases: {
+    name: "full_name",
+    trainer_name: "full_name",
+    instructor_name: "full_name",
+    mobile: "phone",
+    mobile_number: "phone",
+    phone_number: "phone",
+    email_id: "email",
+    expertise: "specialization",
+    skills: "specialization",
+    about: "bio",
+  },
   columns: [
     { key: "full_name", required: true, example: "Anita Rao" },
     { key: "email", example: "anita@example.com" },
