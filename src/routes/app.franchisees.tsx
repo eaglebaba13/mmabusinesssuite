@@ -16,6 +16,7 @@ import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { createFranchiseeUser } from "@/server/franchisee-user.functions";
 import { FranchiseeActions } from "@/components/app/FranchiseeActions";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/franchisees")({
   head: () => ({ meta: [{ title: "Franchisees — MMA Suite" }] }),
@@ -214,10 +215,12 @@ function FranchiseesPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 w-[260px] bg-card/40 pl-9" />
           </div>
-          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setTimeout(resetWizard, 300); }}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />Onboard</Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <ImportButton configKey="franchisees" />
+            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setTimeout(resetWizard, 300); }}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />Onboard</Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl bg-card">
               <DialogHeader>
                 <DialogTitle className="font-display text-2xl">Onboard franchisee</DialogTitle>
