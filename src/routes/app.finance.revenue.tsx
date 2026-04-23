@@ -159,6 +159,7 @@ function RevenuePage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <ExportBar

@@ -152,6 +152,7 @@ function CoursesPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 

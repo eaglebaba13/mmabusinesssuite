@@ -87,6 +87,7 @@ function TrainersPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 

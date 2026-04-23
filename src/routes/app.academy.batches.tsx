@@ -164,6 +164,7 @@ function BatchesPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         )}
       </div>
 
