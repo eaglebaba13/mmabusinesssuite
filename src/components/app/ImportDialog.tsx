@@ -78,7 +78,7 @@ export function ImportDialog({ config, open, onOpenChange }: Props) {
     setFilename(file.name);
     setParsing(true);
     try {
-      const { rows: parsed } = await parseFile(file);
+      const { rows: parsed } = await parseFile(file, config);
       if (parsed.length === 0) {
         toast.error("File is empty or has no recognisable columns.");
         setParsing(false);
