@@ -550,6 +550,17 @@ const coursesConfig: ImportConfig = {
   label: "Courses",
   table: "courses",
   invalidateKeys: [["courses"]],
+  aliases: {
+    course_code: "code",
+    course_title: "title",
+    course_name: "title",
+    name: "title",
+    duration: "duration_weeks",
+    weeks: "duration_weeks",
+    fee: "fee_amount",
+    fees: "fee_amount",
+    price: "fee_amount",
+  },
   columns: [
     { key: "code", example: "MMA-101" },
     { key: "title", required: true, example: "Foundation Course" },
