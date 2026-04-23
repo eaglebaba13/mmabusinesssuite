@@ -652,6 +652,16 @@ const feesConfig: ImportConfig = {
   label: "Fee payments",
   table: "fee_payments",
   invalidateKeys: [["fees-all"]],
+  aliases: {
+    enrollment: "enrollment_id",
+    payment_method: "method",
+    mode: "method",
+    paid_date: "paid_on",
+    payment_date: "paid_on",
+    due_date: "due_on",
+    txn: "reference",
+    transaction_id: "reference",
+  },
   columns: [
     { key: "enrollment_id", required: true, description: "UUID of the enrollment record" },
     { key: "amount", required: true, example: 5000 },
