@@ -1010,6 +1010,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          ad_name: string | null
           assigned_to: string | null
           budget: number | null
           city: string | null
@@ -1026,6 +1027,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ad_name?: string | null
           assigned_to?: string | null
           budget?: number | null
           city?: string | null
@@ -1042,6 +1044,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ad_name?: string | null
           assigned_to?: string | null
           budget?: number | null
           city?: string | null

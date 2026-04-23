@@ -116,6 +116,11 @@ function LeadDetailPage() {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="border-gold/40 text-gold capitalize">{lead.stage.replace("_", " ")}</Badge>
               <Badge variant="outline" className="capitalize">{lead.source}</Badge>
+              {lead.ad_name && (
+                <Badge variant="outline" className="max-w-[280px] truncate" title={lead.ad_name}>
+                  📣 {lead.ad_name}
+                </Badge>
+              )}
               {lead.city && <Badge variant="outline">{lead.city}</Badge>}
               {lead.budget && <Badge variant="outline" className="text-gold">{formatINRCompact(Number(lead.budget))}</Badge>}
             </div>

@@ -52,6 +52,7 @@ interface Lead {
   stage: StageId;
   score: number | null;
   budget: number | null;
+  ad_name: string | null;
   created_at: string;
 }
 
@@ -96,7 +97,8 @@ function LeadsPage() {
         (!q ||
           l.full_name.toLowerCase().includes(q) ||
           (l.email ?? "").toLowerCase().includes(q) ||
-          (l.phone ?? "").includes(q)) &&
+          (l.phone ?? "").includes(q) ||
+          (l.ad_name ?? "").toLowerCase().includes(q)) &&
         inDateRange(l.created_at, range.from, range.to),
     );
   }, [leads, search, range]);
@@ -107,6 +109,7 @@ function LeadsPage() {
     { header: "Phone", accessor: (l: Lead) => l.phone ?? "" },
     { header: "City", accessor: (l: Lead) => l.city ?? "" },
     { header: "Source", accessor: (l: Lead) => l.source },
+    { header: "Ad Name", accessor: (l: Lead) => l.ad_name ?? "" },
     { header: "Stage", accessor: (l: Lead) => l.stage.replace("_", " ") },
     { header: "Budget", accessor: (l: Lead) => (l.budget ? Number(l.budget) : "") },
     { header: "Score", accessor: (l: Lead) => l.score ?? "" },
@@ -222,6 +225,7 @@ function LeadsPage() {
                 <th className="px-4 py-3 text-left">Contact</th>
                 <th className="px-4 py-3 text-left">City</th>
                 <th className="px-4 py-3 text-left">Source</th>
+                <th className="px-4 py-3 text-left">Ad Name</th>
                 <th className="px-4 py-3 text-left">Stage</th>
                 <th className="px-4 py-3 text-right">Budget</th>
                 <th className="px-4 py-3 text-right">Score</th>
@@ -238,6 +242,11 @@ function LeadsPage() {
                   <td className="px-4 py-3 text-muted-foreground">{l.email ?? l.phone ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{l.city ?? "—"}</td>
                   <td className="px-4 py-3"><Badge variant="outline" className="capitalize">{l.source}</Badge></td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {l.ad_name ? (
+                      <span className="block max-w-[180px] truncate" title={l.ad_name}>{l.ad_name}</span>
+                    ) : "—"}
+                  </td>
                   <td className="px-4 py-3"><Badge variant="outline" className="border-gold/40 text-gold capitalize">{l.stage.replace("_", " ")}</Badge></td>
                   <td className="px-4 py-3 text-right">{l.budget ? formatINRCompact(Number(l.budget)) : "—"}</td>
                   <td className="px-4 py-3 text-right">
@@ -249,7 +258,7 @@ function LeadsPage() {
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">No leads found.</td>
+                  <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">No leads found.</td>
                 </tr>
               )}
             </tbody>
@@ -303,6 +312,11 @@ function LeadCard({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
           ) : null}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">{lead.email ?? lead.phone ?? "—"}</div>
+        {lead.ad_name && (
+          <div className="mt-1 truncate text-[10px] text-muted-foreground" title={lead.ad_name}>
+            📣 {lead.ad_name}
+          </div>
+        )}
         <div className="mt-2 flex items-center justify-between text-[11px]">
           <Badge variant="outline" className="capitalize">{lead.source}</Badge>
           {lead.budget && <span className="text-gold">{formatINRCompact(Number(lead.budget))}</span>}
@@ -313,7 +327,7 @@ function LeadCard({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
 }
 
 function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (v: boolean) => void; onCreated: () => void }) {
-  const [form, setForm] = React.useState({ full_name: "", email: "", phone: "", city: "", source: "manual", budget: "" });
+  const [form, setForm] = React.useState({ full_name: "", email: "", phone: "", city: "", source: "manual", budget: "", ad_name: "" });
   const [saving, setSaving] = React.useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -326,11 +340,12 @@ function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (
       city: form.city || null,
       source: form.source as any,
       budget: form.budget ? Number(form.budget) : null,
+      ad_name: form.ad_name || null,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Lead created");
-    setForm({ full_name: "", email: "", phone: "", city: "", source: "manual", budget: "" });
+    setForm({ full_name: "", email: "", phone: "", city: "", source: "manual", budget: "", ad_name: "" });
     setOpen(false);
     onCreated();
   };
@@ -369,6 +384,15 @@ function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (
                 <SelectItem value="website">Website</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <Label>Ad Name</Label>
+            <Input
+              placeholder="e.g. Diwali Combo — Reel A"
+              value={form.ad_name}
+              onChange={(e) => setForm({ ...form, ad_name: e.target.value })}
+              className="mt-1"
+            />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={saving} className="bg-gradient-gold text-background">{saving ? "Saving…" : "Create lead"}</Button>
