@@ -350,8 +350,11 @@ function FranchiseesPage() {
         count={filtered.length}
       />
 
-      <FranchiseeCardGrid franchisees={filtered} />
-        {filtered.length === 0 ? null : null}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((f) => {
+          const isInactive = f.status === "suspended" || f.status === "closed";
+          return <FranchiseeCard key={f.id} franchisee={f} isInactive={isInactive} />;
+        })}
         {filtered.length === 0 && (
           <div className="col-span-full rounded-2xl glass p-12 text-center text-muted-foreground">No franchisees yet.</div>
         )}
