@@ -30,6 +30,25 @@ export interface ImportConfig {
   transform?: (row: any, ctx: ImportContext) => Promise<any> | any;
   /** Cache keys to invalidate after a successful import. */
   invalidateKeys?: string[][];
+  /**
+   * Optional header aliases. Keys are normalised header strings (lowercase,
+   * non-alphanumeric → `_`), values are canonical column keys.
+   * E.g. `{ name: "full_name", mobile: "phone" }`.
+   */
+  aliases?: Record<string, string>;
+}
+
+/**
+ * Normalise a spreadsheet header so that `Full Name`, `full_name*`,
+ * `FULL_NAME `, and `full name` all collapse to `full_name`.
+ */
+export function normaliseHeader(h: string): string {
+  return String(h ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/\*+\s*$/, "") // strip trailing required-marker asterisk(s)
+    .replace(/[^a-z0-9]+/g, "_") // collapse runs of non-alphanumerics
+    .replace(/^_+|_+$/g, ""); // trim leading/trailing underscores
 }
 
 export interface ImportContext {
