@@ -73,6 +73,7 @@ const leadsConfig: ImportConfig = {
     { key: "source", example: "manual", description: "manual | facebook | instagram | google | webinar | referral | website" },
     { key: "stage", example: "new", description: "new | interested | followup | hot | payment_pending | closed | lost" },
     { key: "score", example: 50 },
+    { key: "ad_name", example: "Diwali Combo — Reel A", description: "Specific ad creative / ad set name" },
     { key: "notes" },
   ],
   schema: z.object({
@@ -83,6 +84,7 @@ const leadsConfig: ImportConfig = {
     source: optionalString,
     stage: optionalString,
     score: optionalNumber,
+    ad_name: optionalString,
     notes: optionalString,
   }),
   transform: (row) => ({
@@ -93,6 +95,7 @@ const leadsConfig: ImportConfig = {
     source: row.source ?? "manual",
     stage: row.stage ?? "new",
     score: row.score ?? 0,
+    ad_name: row.ad_name,
     notes: row.notes,
   }),
 };

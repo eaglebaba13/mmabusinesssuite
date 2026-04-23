@@ -32,6 +32,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 const payloadSchema = z.object({
   source: z.enum(["meta", "google", "manual_test", "zapier", "pabbly", "make", "other"]).default("other"),
   campaign: z.string().trim().max(200).optional(),
+  ad_name: z.string().trim().max(200).optional(),
   full_name: z.string().trim().min(1).max(200),
   email: z.string().trim().email().max(200).optional().or(z.literal("")),
   phone: z.string().trim().max(40).optional().or(z.literal("")),
@@ -297,6 +298,7 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
           if (parsed.utm.campaign) noteParts.push(`utm_campaign=${parsed.utm.campaign}`);
         }
         if (parsed.campaign) noteParts.push(`campaign=${parsed.campaign}`);
+        if (parsed.ad_name) noteParts.push(`ad_name=${parsed.ad_name}`);
         if (matched?.add_tag) noteParts.push(`tag=${matched.add_tag}`);
         if (matched) noteParts.push(`routed_by=${matched.name}`);
         if (parsed.notes) noteParts.push(parsed.notes);
@@ -309,6 +311,7 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
             phone: phone ?? null,
             city: parsed.city || null,
             budget: parsed.budget ?? null,
+            ad_name: parsed.ad_name ?? null,
             source: mapSourceToLeadSource(parsed.source),
             stage: (matched?.set_stage as "new" | "interested" | "followup" | "hot" | "payment_pending" | "closed" | undefined) ?? "new",
             assigned_to: matched?.assign_to_user ?? null,
