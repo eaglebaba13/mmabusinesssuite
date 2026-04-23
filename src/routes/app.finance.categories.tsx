@@ -141,6 +141,7 @@ function CategoriesPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <ExportBar
