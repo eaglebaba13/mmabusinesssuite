@@ -22,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINRCompact } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
+import { ImportButton } from "@/components/app/ImportButton";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 
 export const Route = createFileRoute("/app/leads")({
@@ -335,10 +336,12 @@ function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-gradient-gold text-background hover:shadow-gold"><Plus className="mr-1 h-4 w-4" />New Lead</Button>
-      </DialogTrigger>
+    <div className="flex items-center gap-2">
+      <ImportButton configKey="leads" />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="bg-gradient-gold text-background hover:shadow-gold"><Plus className="mr-1 h-4 w-4" />New Lead</Button>
+        </DialogTrigger>
       <DialogContent className="bg-card">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">New lead</DialogTitle>
@@ -373,5 +376,6 @@ function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (
         </form>
       </DialogContent>
     </Dialog>
+    </div>
   );
 }
