@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatINR } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/finance/expenses")({
   component: ExpensesPage,
@@ -142,6 +143,7 @@ function ExpensesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ImportButton configKey="expenses" />
           <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-48"><SelectValue placeholder="Filter category" /></SelectTrigger>
             <SelectContent>

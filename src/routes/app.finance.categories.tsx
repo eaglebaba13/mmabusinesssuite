@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { formatINR } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { exportToCSV, exportToPDF } from "@/lib/export";
+import { ImportButton } from "@/components/app/ImportButton";
 
 export const Route = createFileRoute("/app/finance/categories")({
   component: CategoriesPage,
@@ -107,10 +108,12 @@ function CategoriesPage() {
           <h2 className="font-display text-xl">Expense Categories</h2>
           <p className="text-xs text-muted-foreground">{list.data?.length ?? 0} categories</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />New Category</Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <ImportButton configKey="expense_categories" />
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />New Category</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>New Expense Category</DialogTitle></DialogHeader>
             <div className="space-y-3">
