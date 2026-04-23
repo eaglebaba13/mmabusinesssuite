@@ -376,5 +376,6 @@ function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (
         </form>
       </DialogContent>
     </Dialog>
+    </div>
   );
 }
