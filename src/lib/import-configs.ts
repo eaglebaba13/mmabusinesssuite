@@ -315,6 +315,16 @@ const warehousesConfig: ImportConfig = {
   label: "Warehouses",
   table: "warehouses",
   invalidateKeys: [["warehouses"]],
+  aliases: {
+    warehouse_code: "code",
+    warehouse_name: "name",
+    store_code: "code",
+    store_name: "name",
+    outlet_name: "name",
+    outlet_code: "code",
+    type_of_store: "type",
+    warehouse_type: "type",
+  },
   columns: [
     { key: "code", required: true, example: "WH-MUM-01" },
     { key: "name", required: true, example: "Mumbai Central Store" },
