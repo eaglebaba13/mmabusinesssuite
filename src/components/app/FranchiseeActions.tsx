@@ -101,41 +101,23 @@ export function FranchiseeActions({ franchisee }: Props) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
             <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setTimeout(() => {
-                  navigate({
-                    to: "/app/franchisees/$franchiseeId",
-                    params: { franchiseeId: franchisee.id },
-                  });
-                }, 0);
+              onSelect={() => {
+                navigate({
+                  to: "/app/franchisees/$franchiseeId",
+                  params: { franchiseeId: franchisee.id },
+                });
               }}
             >
               <ExternalLink className="mr-2 h-3.5 w-3.5" /> Open dashboard
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setTimeout(() => setEditOpen(true), 0);
-              }}
-            >
+            <DropdownMenuItem onSelect={() => setEditOpen(true)}>
               <Pencil className="mr-2 h-3.5 w-3.5" /> Edit profile
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setTimeout(() => toggleStatus.mutate(), 0);
-              }}
-            >
+            <DropdownMenuItem onSelect={() => toggleStatus.mutate()}>
               <Power className="mr-2 h-3.5 w-3.5" />
               {isInactive ? "Activate" : "Deactivate"}
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setTimeout(() => setEditOpen(true), 0);
-              }}
-            >
+            <DropdownMenuItem onSelect={() => setEditOpen(true)}>
               <KeyRound className="mr-2 h-3.5 w-3.5" /> Reset password
             </DropdownMenuItem>
             {canDelete && (
@@ -143,10 +125,7 @@ export function FranchiseeActions({ franchisee }: Props) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-rose-400 focus:text-rose-400"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setTimeout(() => setDeleteOpen(true), 0);
-                  }}
+                  onSelect={() => setDeleteOpen(true)}
                 >
                   <Trash2 className="mr-2 h-3.5 w-3.5" /> Delete
                 </DropdownMenuItem>
