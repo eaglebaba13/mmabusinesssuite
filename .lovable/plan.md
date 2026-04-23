@@ -1,59 +1,56 @@
 
 
-# Add "Ad Name" column to Leads
+# Fix "full_name: Invalid input" import error
 
-Track the specific ad creative each lead came from (e.g. "Diwali Combo — Reel A", "Search — Brand Exact"). Used in the New Lead form, Kanban + Table views, exports, the import template, and the social webhook payload so Meta/Google integrations can populate it automatically.
+## Root cause
 
-## 1. Database
+The downloadable template writes required headers as **`full_name*`** (with an asterisk), but the parser then looks up the value under the bare key **`full_name`**. So `raw.full_name` is `undefined` for every row, the Zod `union([string, number])` rejects undefined with the default message **"Invalid input"**, and every row in the screenshot fails — even though the names are clearly present in the column.
 
-Migration adds a single nullable text column:
+This affects **every required column in every import template** (leads, franchisees, products, suppliers, students, courses, etc.), not just leads. Anyone who downloads the template, fills it in, and re-uploads it as-is hits this exact error.
 
-```sql
-alter table public.leads add column ad_name text;
-create index leads_ad_name_idx on public.leads (ad_name) where ad_name is not null;
-```
+A second, smaller cause: even if a user manually drops the asterisk, a CSV exported from Excel can have headers like `Full Name`, `FULL_NAME`, or `full_name ` (trailing space) — none of those match either.
 
-No backfill (existing rows stay null). RLS unchanged — column inherits row-level rules.
+## Fix (one place, all entities benefit)
 
-## 2. UI — `src/routes/app.leads.tsx`
+In `src/lib/import.ts`, **normalise headers when parsing the file** so that:
 
-- Extend the `Lead` interface with `ad_name: string | null`.
-- **Table view**: insert an "Ad Name" column between Source and Stage. Show `—` when null. Truncate long names with `max-w-[180px] truncate` + tooltip via `title=`.
-- **Kanban card** (`LeadCard`): show ad name as a small dim line below the email/phone if present (`text-[10px] text-muted-foreground`).
-- **Search**: include `ad_name` in the lowercase match alongside name/email/phone.
-- **New Lead dialog** (`NewLeadDialog`): add an "Ad Name" input below Source (full-width). Persist on insert.
+1. Trailing `*` (required marker) is stripped.
+2. Whitespace around the header is trimmed (already done) **and** internal runs of whitespace are collapsed to single underscores.
+3. Header is lower-cased.
+4. Common aliases are mapped to canonical keys (e.g. `name` → `full_name` for leads/students, `mobile`/`mobile_number` → `phone`, `email_id` → `email`, `dob` → `date_of_birth`).
 
-## 3. Lead detail — `src/routes/app.leads.$leadId.tsx`
+Concretely:
 
-Add an "Ad Name" row to the detail card (next to Source). Read-only display.
+- Add a small `normaliseHeader(h: string)`: lowercase, trim, drop trailing `*`, replace non-alphanumeric runs with `_`, collapse repeats, strip leading/trailing `_`.
+- Add an optional `aliases?: Record<string, string>` field to `ImportConfig` so each config can declare its own aliases (e.g. leads gets `{ name: "full_name", "lead name": "full_name", mobile: "phone" }`).
+- In `parseFile`, build the row object using `aliases[normalised] ?? normalised` as the key.
+- Apply this both when reading data rows **and** when interpreting headers.
 
-## 4. Export — same file
+This single change makes `full_name`, `Full Name`, `full_name*`, `FULL_NAME`, and `Name` all resolve to the same field — the user's existing CSV (the one in your screenshot) imports cleanly.
 
-Add `{ header: "Ad Name", accessor: (l) => l.ad_name ?? "" }` to `exportCols` between Source and Stage so CSV and PDF reports include it.
+## Also: friendlier error messages
 
-## 5. Import template — `src/lib/import-configs.ts`
+Update `requiredString(label)` in `src/lib/import-configs.ts` so the message reads **`"<label> is required"`** instead of Zod's default `"Invalid input"`. So a genuinely-empty `full_name` cell now shows `"full_name: full_name is required"` — clear that the cell is empty, not that the data type is wrong.
 
-Append to `leadsConfig.columns`:
-```
-{ key: "ad_name", example: "Diwali Combo — Reel A", description: "Specific ad creative / ad set name" }
-```
-Add `ad_name: optionalString` to the schema and `ad_name: row.ad_name` in the transform. Downloadable CSV template auto-updates from this config — no separate file change.
+## Aliases shipped with this fix
 
-## 6. Webhook — `src/routes/api/public/social-lead-hook.ts`
+- **Leads**: `name`, `lead_name`, `customer_name` → `full_name`; `mobile`, `mobile_number`, `whatsapp` → `phone`; `email_id`, `mail` → `email`; `ad`, `creative`, `ad_set`, `ad set name` → `ad_name`.
+- **Franchisees**: `partner_name`, `business_name` → `full_name`; `mobile` → `phone`.
+- **Students**: `name`, `student_name` → `full_name`; `dob` → `date_of_birth`; `mobile` → `phone`.
+- **Products**: `product_name` → `name`; `category_name` → `category`.
+- **Suppliers**: `supplier_name`, `vendor` → `name`.
+- **Warehouses**: `warehouse_name` → `name`; `warehouse_code` → `code`.
 
-- Add `ad_name: z.string().trim().max(200).optional()` to `payloadSchema`.
-- Persist `ad_name: parsed.ad_name ?? null` in the `leads` insert.
-- Append `ad_name=…` to the `noteParts` audit string when present.
-
-This means once Meta/Google integrations push payloads with `ad_name`, the column populates automatically — no further work needed there.
+(Each config gets its own short alias map. No effect on existing valid templates.)
 
 ## Files touched
 
-- New migration: add `ad_name` text column + index.
-- `src/routes/app.leads.tsx` — type, table column, kanban line, search, new-lead form.
-- `src/routes/app.leads.$leadId.tsx` — detail row.
-- `src/lib/import-configs.ts` — leads config columns + schema + transform.
-- `src/routes/api/public/social-lead-hook.ts` — schema + insert + note string.
+1. `src/lib/import.ts` — add `normaliseHeader`, accept optional `aliases`, apply both in `parseFile`.
+2. `src/lib/import-configs.ts` — change `requiredString` message; add `aliases` to leads, franchisees, students, products, suppliers, warehouses, courses, batches, fee_payments, trainers, certificates, employees configs.
 
-No other files need updating; no existing data is affected.
+No DB migration. No UI/route changes. Existing valid imports continue to work.
+
+## Result
+
+The exact CSV in the screenshot — with names like `ALKAA_Mahandi_art`, `Setu vyash`, `Boss`, `Ivy`, `falguni krunal prajapati` — will import cleanly. Only rows with **truly empty** `full_name` cells will be rejected, and they'll show a clear `"full_name is required"` message instead of `"Invalid input"`.
 
