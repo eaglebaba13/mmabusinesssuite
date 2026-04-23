@@ -119,25 +119,37 @@ export function parseDate(value: any): string | null {
 }
 
 /**
- * Parse a CSV or XLSX file into row objects keyed by header name.
+ * Parse a CSV or XLSX file into row objects keyed by canonical column name.
+ * Headers are normalised (lowercase, asterisks stripped, spaces → `_`) and
+ * optionally remapped through `config.aliases` so different label variants
+ * resolve to the same field.
  */
-export async function parseFile(file: File): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
+export async function parseFile(
+  file: File,
+  config?: Pick<ImportConfig, "aliases" | "columns">,
+): Promise<{ headers: string[]; rows: Record<string, any>[] }> {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { type: "array", cellDates: true });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   if (!sheet) return { headers: [], rows: [] };
   const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, { defval: "", raw: false });
-  const headers = Object.keys(json[0] ?? {});
+  const aliases = config?.aliases ?? {};
+  const rawHeaders = Object.keys(json[0] ?? {});
+  const resolveKey = (h: string) => {
+    const n = normaliseHeader(h);
+    return aliases[n] ?? n;
+  };
+  const headers = rawHeaders.map(resolveKey);
   const rows = json
     .map((row) => {
       const out: Record<string, any> = {};
-      for (const h of headers) {
-        out[h.trim()] = coerceCell(row[h]);
+      for (const h of rawHeaders) {
+        out[resolveKey(h)] = coerceCell(row[h]);
       }
       return out;
     })
     .filter((row) => Object.values(row).some((v) => v !== null && v !== ""));
-  return { headers: headers.map((h) => h.trim()), rows };
+  return { headers, rows };
 }
 
 /**
