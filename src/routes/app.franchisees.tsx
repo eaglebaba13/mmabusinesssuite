@@ -336,6 +336,7 @@ function FranchiseesPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </div>
 
