@@ -2614,6 +2614,7 @@ export type Database = {
         | "trainer"
         | "support"
         | "package_sales"
+        | "nail_emporium"
       attendance_status: "present" | "absent" | "late" | "excused"
       batch_mode: "online" | "offline" | "hybrid"
       batch_status: "upcoming" | "ongoing" | "completed" | "cancelled"
@@ -2843,6 +2844,7 @@ export const Constants = {
         "trainer",
         "support",
         "package_sales",
+        "nail_emporium",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       batch_mode: ["online", "offline", "hybrid"],
