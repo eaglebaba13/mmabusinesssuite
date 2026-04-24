@@ -48,6 +48,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   trainer: "Trainer",
   support: "Support",
   package_sales: "Package Sales",
+  nail_emporium: "Nail Emporium",
 };
 
 const PRIVILEGED: AppRole[] = ["super_admin", "founder"];
