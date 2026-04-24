@@ -15,7 +15,8 @@ export type AppRole =
   | "white_label"
   | "trainer"
   | "support"
-  | "package_sales";
+  | "package_sales"
+  | "nail_emporium";
 
 interface AuthContextValue {
   user: User | null;
