@@ -28,7 +28,7 @@ export const Route = createFileRoute("/app/settings/team")({
 
 const ALL_ROLES: AppRole[] = [
   "super_admin", "founder", "franchisee", "sales", "accounts", "inventory",
-  "academy_admin", "webinar", "hr", "white_label", "trainer", "support", "package_sales",
+  "academy_admin", "webinar", "hr", "white_label", "trainer", "support", "package_sales", "nail_emporium",
 ];
 
 // Roles visible in the UI (super_admin is hidden from selection & filters)
