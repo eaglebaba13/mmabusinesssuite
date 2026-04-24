@@ -889,6 +889,41 @@ export type Database = {
           },
         ]
       }
+      invoice_share_tokens: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          order_id: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          order_id: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          order_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_share_tokens_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "sales_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_activities: {
         Row: {
           activity_type: string
@@ -1841,6 +1876,9 @@ export type Database = {
           customer_name: string | null
           customer_phone: string | null
           discount_amount: number
+          dispatch_tracking: string | null
+          dispatched_at: string | null
+          dispatched_by: string | null
           franchisee_id: string | null
           grand_total: number
           gst_total: number
@@ -1867,6 +1905,9 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           discount_amount?: number
+          dispatch_tracking?: string | null
+          dispatched_at?: string | null
+          dispatched_by?: string | null
           franchisee_id?: string | null
           grand_total?: number
           gst_total?: number
@@ -1893,6 +1934,9 @@ export type Database = {
           customer_name?: string | null
           customer_phone?: string | null
           discount_amount?: number
+          dispatch_tracking?: string | null
+          dispatched_at?: string | null
+          dispatched_by?: string | null
           franchisee_id?: string | null
           grand_total?: number
           gst_total?: number
