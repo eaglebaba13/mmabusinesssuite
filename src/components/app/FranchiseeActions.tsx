@@ -102,10 +102,8 @@ export function FranchiseeActions({ franchisee }: Props) {
           <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
             <DropdownMenuItem
               onSelect={() => {
-                navigate({
-                  to: "/app/franchisees/$franchiseeId",
-                  params: { franchiseeId: franchisee.id },
-                });
+                const url = `/app/franchisees/${franchisee.id}?as_franchisee=1`;
+                window.open(url, "_blank", "noopener,noreferrer");
               }}
             >
               <ExternalLink className="mr-2 h-3.5 w-3.5" /> Open dashboard
