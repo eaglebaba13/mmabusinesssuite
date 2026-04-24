@@ -86,11 +86,33 @@ function FranchiseeDetailPage() {
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
   const pending = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
 
+  const asFranchisee =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("as_franchisee") === "1";
+
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-8">
-      <Link to="/app/franchisees" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Back
-      </Link>
+      {asFranchisee && (
+        <div className="sticky top-0 z-30 -mx-4 -mt-4 flex items-center justify-between rounded-b-xl border-b border-gold/30 bg-gradient-to-r from-gold/20 to-amber-500/10 px-4 py-3 backdrop-blur md:-mx-8 md:-mt-8 md:px-8">
+          <div className="text-sm">
+            <span className="font-medium">Viewing as {f.full_name}</span>
+            <span className="ml-2 text-xs text-muted-foreground">read-only · admin view</span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-gold/40"
+            onClick={() => window.close()}
+          >
+            <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back to Master
+          </Button>
+        </div>
+      )}
+      {!asFranchisee && (
+        <Link to="/app/franchisees" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" /> Back
+        </Link>
+      )}
 
       <Tabs defaultValue="dashboard" className="space-y-6">
         <TabsList className="bg-card/40">
