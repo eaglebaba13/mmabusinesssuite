@@ -22,11 +22,12 @@ function FinanceOverview() {
       since.setDate(1);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [rev, fees, exp, payouts] = await Promise.all([
+      const [rev, fees, exp, payouts, pos] = await Promise.all([
         supabase.from("revenue_entries").select("amount, received_on, source").gte("received_on", sinceStr),
         supabase.from("fee_payments").select("amount, paid_on, status").eq("status", "paid").gte("paid_on", sinceStr),
         supabase.from("expenses").select("amount, expense_date, status").neq("status", "cancelled").gte("expense_date", sinceStr),
         supabase.from("roi_payouts").select("total_amount, status, payout_month"),
+        supabase.from("sales_orders").select("grand_total, completed_at, status").eq("status", "completed").gte("completed_at", since.toISOString()),
       ]);
 
       // Build monthly buckets (last 6 months including current)
