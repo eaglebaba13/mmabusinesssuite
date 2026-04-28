@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { formatINR, formatINRCompact } from "@/lib/format";
 import { KpiCard } from "@/components/app/KpiCard";
 import { ImportButton } from "@/components/app/ImportButton";
