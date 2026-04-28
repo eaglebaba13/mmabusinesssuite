@@ -275,6 +275,7 @@ function RevenueModelPage() {
                 <th className="px-3 py-3 text-right">F'see ROI</th>
                 <th className="px-3 py-3 text-right">State</th>
                 <th className="px-3 py-3 text-right">Gross</th>
+                {canEditModel && <th className="px-3 py-3 text-center w-[60px]"></th>}
               </tr>
             </thead>
             <tbody>
