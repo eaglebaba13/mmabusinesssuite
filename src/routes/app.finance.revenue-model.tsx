@@ -346,6 +346,7 @@ function RevenueModelPage() {
                 <td className="px-3 py-3 text-right font-mono text-gold">{formatINRCompact(totals.franchisee)}</td>
                 <td className="px-3 py-3 text-right font-mono text-muted-foreground">{formatINRCompact(totals.state)}</td>
                 <td className="px-3 py-3 text-right font-mono">{formatINRCompact(totals.gross)}</td>
+                {canEditModel && <td />}
               </tr>
             </tfoot>
           </table>
