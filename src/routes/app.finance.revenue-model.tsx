@@ -59,10 +59,13 @@ const ALL = "__all__";
 
 function RevenueModelPage() {
   useBlockFranchiseeRoute();
+  const { isAdmin, hasRole } = useAuth();
+  const canEditModel = isAdmin || hasRole("accounts");
   const qc = useQueryClient();
   const [franchiseeId, setFranchiseeId] = React.useState<string>(ALL);
   const [city, setCity] = React.useState<string>("");
   const [draft, setDraft] = React.useState<Record<string, number>>({});
+  const [editItem, setEditItem] = React.useState<ModelItem | null>(null);
 
   const { data: items = [] } = useQuery({
     queryKey: ["revenue-model-items"],
