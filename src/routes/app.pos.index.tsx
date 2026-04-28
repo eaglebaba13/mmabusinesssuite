@@ -47,12 +47,14 @@ function PosTerminal() {
     queryFn: async () => {
       const { data } = await supabase
         .from("warehouses")
-        .select("id, name, code")
+        .select("id, name, code, franchisee_id, franchisees(full_name)")
         .eq("active", true)
         .order("name");
       return data ?? [];
     },
   });
+
+  const activeWarehouse = (warehouses.data ?? []).find((w: any) => w.id === warehouseId) as any;
 
   React.useEffect(() => {
     if (!warehouseId && warehouses.data && warehouses.data.length > 0) {
