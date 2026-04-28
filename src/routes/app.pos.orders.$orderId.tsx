@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { downloadGstInvoicePdf } from "@/lib/invoice-pdf";
 import { formatINR } from "@/lib/format";
-import { ShareButtons } from "@/components/marketing/ShareButtons";
+
 
 export const Route = createFileRoute("/app/pos/orders/$orderId")({
   component: OrderDetail,
