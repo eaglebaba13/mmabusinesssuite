@@ -228,6 +228,11 @@ function PosTerminal() {
             </SelectContent>
           </Select>
         </div>
+        {activeWarehouse?.franchisees?.full_name && (
+          <div className="text-xs text-muted-foreground">
+            Sales attributed to <span className="font-medium text-gold">{activeWarehouse.franchisees.full_name}</span>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
           {products.isLoading ? (
