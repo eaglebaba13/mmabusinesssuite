@@ -38,12 +38,29 @@ function RevenuePage() {
   const list = useQuery({
     queryKey: ["revenue-list"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("revenue_entries")
-        .select("*")
-        .order("received_on", { ascending: false })
-        .limit(200);
-      return data ?? [];
+      const [manual, pos] = await Promise.all([
+        supabase.from("revenue_entries").select("*").order("received_on", { ascending: false }).limit(200),
+        supabase
+          .from("sales_orders")
+          .select("id, invoice_number, grand_total, completed_at, franchisee_id")
+          .eq("status", "completed")
+          .order("completed_at", { ascending: false })
+          .limit(200),
+      ]);
+      const posMapped = (pos.data ?? []).map((o: any) => ({
+        id: `pos:${o.id}`,
+        source: "pos_sale",
+        source_label: o.invoice_number || "POS Sale",
+        amount: o.grand_total,
+        received_on: (o.completed_at ?? "").slice(0, 10),
+        reference: o.invoice_number,
+        notes: null,
+        franchisee_id: o.franchisee_id,
+        _readonly: true,
+      }));
+      return [...(manual.data ?? []), ...posMapped].sort(
+        (a: any, b: any) => new Date(b.received_on).getTime() - new Date(a.received_on).getTime(),
+      );
     },
   });
 

@@ -47,12 +47,14 @@ function PosTerminal() {
     queryFn: async () => {
       const { data } = await supabase
         .from("warehouses")
-        .select("id, name, code")
+        .select("id, name, code, franchisee_id, franchisees(full_name)")
         .eq("active", true)
         .order("name");
       return data ?? [];
     },
   });
+
+  const activeWarehouse = (warehouses.data ?? []).find((w: any) => w.id === warehouseId) as any;
 
   React.useEffect(() => {
     if (!warehouseId && warehouses.data && warehouses.data.length > 0) {
@@ -226,6 +228,11 @@ function PosTerminal() {
             </SelectContent>
           </Select>
         </div>
+        {activeWarehouse?.franchisees?.full_name && (
+          <div className="text-xs text-muted-foreground">
+            Sales attributed to <span className="font-medium text-gold">{activeWarehouse.franchisees.full_name}</span>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
           {products.isLoading ? (

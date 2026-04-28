@@ -1,14 +1,15 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Printer, Download, Receipt as ReceiptIcon } from "lucide-react";
+import { ArrowLeft, Printer, Download, Receipt as ReceiptIcon, Share2, MessageCircle, Mail } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { downloadGstInvoicePdf } from "@/lib/invoice-pdf";
 import { formatINR } from "@/lib/format";
-import { ShareButtons } from "@/components/marketing/ShareButtons";
+
 
 export const Route = createFileRoute("/app/pos/orders/$orderId")({
   component: OrderDetail,
@@ -131,12 +132,7 @@ function OrderDetail() {
           <ArrowLeft className="h-4 w-4" /> Back to orders
         </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <ShareButtons
-            url={typeof window !== "undefined" ? window.location.href : ""}
-            title={`Invoice ${o.invoice_number ?? ""}`}
-            text={`Invoice ${o.invoice_number ?? ""} for ${formatINR(Number(o.grand_total))}`}
-            variant="compact"
-          />
+          <ShareInvoiceButtons order={o} />
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-1 h-4 w-4" /> Print
           </Button>
@@ -292,5 +288,87 @@ function Row({ label, value, className }: { label: string; value: string; classN
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value}</span>
     </div>
+  );
+}
+
+function ShareInvoiceButtons({ order }: { order: any }) {
+  const [creating, setCreating] = React.useState(false);
+
+  const ensureToken = async (): Promise<string | null> => {
+    setCreating(true);
+    try {
+      const { data: existing } = await supabase
+        .from("invoice_share_tokens")
+        .select("token")
+        .eq("order_id", order.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existing?.token) return existing.token;
+
+      const token =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID().replace(/-/g, "")
+          : Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("invoice_share_tokens").insert({
+        order_id: order.id,
+        token,
+        created_by: u.user?.id ?? null,
+      });
+      if (error) throw error;
+      return token;
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not create share link");
+      return null;
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const buildUrl = async () => {
+    const token = await ensureToken();
+    if (!token) return null;
+    return `${window.location.origin}/invoice/${token}`;
+  };
+
+  const onCopy = async () => {
+    const url = await buildUrl();
+    if (!url) return;
+    await navigator.clipboard.writeText(url);
+    toast.success("Public invoice link copied");
+  };
+
+  const onWhatsApp = async () => {
+    const url = await buildUrl();
+    if (!url) return;
+    const phone = (order.customer_phone || "").replace(/[^\d]/g, "");
+    const text = `Your invoice ${order.invoice_number ?? ""} for ${formatINR(Number(order.grand_total))}: ${url}`;
+    const wa = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(wa, "_blank", "noopener,noreferrer");
+  };
+
+  const onEmail = async () => {
+    const url = await buildUrl();
+    if (!url) return;
+    const subject = `Invoice ${order.invoice_number ?? ""}`;
+    const body = `Hello,\n\nPlease find your invoice here: ${url}\n\nAmount: ${formatINR(Number(order.grand_total))}\n\nThank you.`;
+    window.location.href = `mailto:${order.customer_email ?? ""}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  return (
+    <>
+      <Button variant="outline" size="sm" onClick={onWhatsApp} disabled={creating} title="Share on WhatsApp">
+        <MessageCircle className="mr-1 h-4 w-4 text-emerald-500" /> WhatsApp
+      </Button>
+      <Button variant="outline" size="sm" onClick={onEmail} disabled={creating} title="Share via Email">
+        <Mail className="mr-1 h-4 w-4" /> Email
+      </Button>
+      <Button variant="outline" size="sm" onClick={onCopy} disabled={creating} title="Copy public link">
+        <Share2 className="mr-1 h-4 w-4" /> Copy link
+      </Button>
+    </>
   );
 }

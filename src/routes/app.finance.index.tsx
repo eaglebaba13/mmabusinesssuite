@@ -22,11 +22,12 @@ function FinanceOverview() {
       since.setDate(1);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [rev, fees, exp, payouts] = await Promise.all([
+      const [rev, fees, exp, payouts, pos] = await Promise.all([
         supabase.from("revenue_entries").select("amount, received_on, source").gte("received_on", sinceStr),
         supabase.from("fee_payments").select("amount, paid_on, status").eq("status", "paid").gte("paid_on", sinceStr),
         supabase.from("expenses").select("amount, expense_date, status").neq("status", "cancelled").gte("expense_date", sinceStr),
         supabase.from("roi_payouts").select("total_amount, status, payout_month"),
+        supabase.from("sales_orders").select("grand_total, completed_at, status").eq("status", "completed").gte("completed_at", since.toISOString()),
       ]);
 
       // Build monthly buckets (last 6 months including current)
@@ -52,6 +53,11 @@ function FinanceOverview() {
         const i = idx(e.expense_date);
         if (i >= 0) buckets[i].expense += Number(e.amount ?? 0);
       });
+      (pos.data ?? []).forEach((o: any) => {
+        if (!o.completed_at) return;
+        const i = idx(o.completed_at);
+        if (i >= 0) buckets[i].revenue += Number(o.grand_total ?? 0);
+      });
 
       const totalRevenue = buckets.reduce((s, b) => s + b.revenue, 0);
       const totalExpense = buckets.reduce((s, b) => s + b.expense, 0);
@@ -72,11 +78,22 @@ function FinanceOverview() {
   const recent = useQuery({
     queryKey: ["fin-recent"],
     queryFn: async () => {
-      const [revs, exps] = await Promise.all([
+      const [revs, exps, pos] = await Promise.all([
         supabase.from("revenue_entries").select("id, source, source_label, amount, received_on").order("received_on", { ascending: false }).limit(5),
         supabase.from("expenses").select("id, vendor, description, amount, expense_date, expense_categories(name)").order("expense_date", { ascending: false }).limit(5),
+        supabase.from("sales_orders").select("id, invoice_number, grand_total, completed_at").eq("status", "completed").order("completed_at", { ascending: false }).limit(5),
       ]);
-      return { revs: revs.data ?? [], exps: exps.data ?? [] };
+      const posAsRevenue = (pos.data ?? []).map((o: any) => ({
+        id: o.id,
+        source: "pos_sale",
+        source_label: o.invoice_number || "POS Sale",
+        amount: o.grand_total,
+        received_on: o.completed_at,
+      }));
+      const merged = [...(revs.data ?? []), ...posAsRevenue]
+        .sort((a, b) => new Date(b.received_on).getTime() - new Date(a.received_on).getTime())
+        .slice(0, 5);
+      return { revs: merged, exps: exps.data ?? [] };
     },
   });
 
