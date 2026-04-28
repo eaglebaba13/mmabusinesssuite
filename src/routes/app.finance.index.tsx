@@ -53,6 +53,11 @@ function FinanceOverview() {
         const i = idx(e.expense_date);
         if (i >= 0) buckets[i].expense += Number(e.amount ?? 0);
       });
+      (pos.data ?? []).forEach((o: any) => {
+        if (!o.completed_at) return;
+        const i = idx(o.completed_at);
+        if (i >= 0) buckets[i].revenue += Number(o.grand_total ?? 0);
+      });
 
       const totalRevenue = buckets.reduce((s, b) => s + b.revenue, 0);
       const totalExpense = buckets.reduce((s, b) => s + b.expense, 0);
