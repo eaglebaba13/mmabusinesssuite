@@ -313,6 +313,19 @@ function RevenueModelPage() {
                     <td className="px-3 py-3 text-right font-mono text-gold">{formatINRCompact(franchiseeROI)} <span className="text-[10px] text-muted-foreground">({item.franchisee_roi_pct}%)</span></td>
                     <td className="px-3 py-3 text-right font-mono text-muted-foreground">{formatINRCompact(statePartner)} <span className="text-[10px]">({item.state_partner_pct}%)</span></td>
                     <td className="px-3 py-3 text-right font-mono">{formatINRCompact(grossProfit)}</td>
+                    {canEditModel && (
+                      <td className="px-3 py-3 text-center">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => setEditItem(item)}
+                          title="Edit pricing & ROI"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
