@@ -78,11 +78,22 @@ function FinanceOverview() {
   const recent = useQuery({
     queryKey: ["fin-recent"],
     queryFn: async () => {
-      const [revs, exps] = await Promise.all([
+      const [revs, exps, pos] = await Promise.all([
         supabase.from("revenue_entries").select("id, source, source_label, amount, received_on").order("received_on", { ascending: false }).limit(5),
         supabase.from("expenses").select("id, vendor, description, amount, expense_date, expense_categories(name)").order("expense_date", { ascending: false }).limit(5),
+        supabase.from("sales_orders").select("id, invoice_number, grand_total, completed_at").eq("status", "completed").order("completed_at", { ascending: false }).limit(5),
       ]);
-      return { revs: revs.data ?? [], exps: exps.data ?? [] };
+      const posAsRevenue = (pos.data ?? []).map((o: any) => ({
+        id: o.id,
+        source: "pos_sale",
+        source_label: o.invoice_number || "POS Sale",
+        amount: o.grand_total,
+        received_on: o.completed_at,
+      }));
+      const merged = [...(revs.data ?? []), ...posAsRevenue]
+        .sort((a, b) => new Date(b.received_on).getTime() - new Date(a.received_on).getTime())
+        .slice(0, 5);
+      return { revs: merged, exps: exps.data ?? [] };
     },
   });
 
