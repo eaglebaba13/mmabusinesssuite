@@ -132,12 +132,7 @@ function OrderDetail() {
           <ArrowLeft className="h-4 w-4" /> Back to orders
         </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <ShareButtons
-            url={typeof window !== "undefined" ? window.location.href : ""}
-            title={`Invoice ${o.invoice_number ?? ""}`}
-            text={`Invoice ${o.invoice_number ?? ""} for ${formatINR(Number(o.grand_total))}`}
-            variant="compact"
-          />
+          <ShareInvoiceButtons order={o} />
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-1 h-4 w-4" /> Print
           </Button>
