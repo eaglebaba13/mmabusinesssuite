@@ -290,3 +290,85 @@ function Row({ label, value, className }: { label: string; value: string; classN
     </div>
   );
 }
+
+function ShareInvoiceButtons({ order }: { order: any }) {
+  const [creating, setCreating] = React.useState(false);
+
+  const ensureToken = async (): Promise<string | null> => {
+    setCreating(true);
+    try {
+      const { data: existing } = await supabase
+        .from("invoice_share_tokens")
+        .select("token")
+        .eq("order_id", order.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existing?.token) return existing.token;
+
+      const token =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID().replace(/-/g, "")
+          : Math.random().toString(36).slice(2) + Date.now().toString(36);
+      const { data: u } = await supabase.auth.getUser();
+      const { error } = await supabase.from("invoice_share_tokens").insert({
+        order_id: order.id,
+        token,
+        created_by: u.user?.id ?? null,
+      });
+      if (error) throw error;
+      return token;
+    } catch (e: any) {
+      toast.error(e.message ?? "Could not create share link");
+      return null;
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const buildUrl = async () => {
+    const token = await ensureToken();
+    if (!token) return null;
+    return `${window.location.origin}/invoice/${token}`;
+  };
+
+  const onCopy = async () => {
+    const url = await buildUrl();
+    if (!url) return;
+    await navigator.clipboard.writeText(url);
+    toast.success("Public invoice link copied");
+  };
+
+  const onWhatsApp = async () => {
+    const url = await buildUrl();
+    if (!url) return;
+    const phone = (order.customer_phone || "").replace(/[^\d]/g, "");
+    const text = `Your invoice ${order.invoice_number ?? ""} for ${formatINR(Number(order.grand_total))}: ${url}`;
+    const wa = phone
+      ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}`
+      : `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(wa, "_blank", "noopener,noreferrer");
+  };
+
+  const onEmail = async () => {
+    const url = await buildUrl();
+    if (!url) return;
+    const subject = `Invoice ${order.invoice_number ?? ""}`;
+    const body = `Hello,\n\nPlease find your invoice here: ${url}\n\nAmount: ${formatINR(Number(order.grand_total))}\n\nThank you.`;
+    window.location.href = `mailto:${order.customer_email ?? ""}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
+  return (
+    <>
+      <Button variant="outline" size="sm" onClick={onWhatsApp} disabled={creating} title="Share on WhatsApp">
+        <MessageCircle className="mr-1 h-4 w-4 text-emerald-500" /> WhatsApp
+      </Button>
+      <Button variant="outline" size="sm" onClick={onEmail} disabled={creating} title="Share via Email">
+        <Mail className="mr-1 h-4 w-4" /> Email
+      </Button>
+      <Button variant="outline" size="sm" onClick={onCopy} disabled={creating} title="Copy public link">
+        <Share2 className="mr-1 h-4 w-4" /> Copy link
+      </Button>
+    </>
+  );
+}
