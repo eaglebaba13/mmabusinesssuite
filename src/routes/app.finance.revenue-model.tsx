@@ -141,6 +141,20 @@ function RevenueModelPage() {
     onError: (e: any) => toast.error(e.message || "Save failed"),
   });
 
+  const updateItem = useMutation({
+    mutationFn: async (patch: Partial<ModelItem> & { id: string }) => {
+      const { id, ...rest } = patch;
+      const { error } = await supabase.from("revenue_model_items").update(rest).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Item updated");
+      setEditItem(null);
+      qc.invalidateQueries({ queryKey: ["revenue-model-items"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Update failed"),
+  });
+
   // Totals
   const rows = items.map((i) => {
     const t = valueFor(i.id);
