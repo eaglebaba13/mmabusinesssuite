@@ -351,6 +351,98 @@ function RevenueModelPage() {
           </table>
         </div>
       </Card>
+
+      <EditItemDialog
+        item={editItem}
+        onClose={() => setEditItem(null)}
+        onSave={(patch) => updateItem.mutate(patch)}
+        saving={updateItem.isPending}
+      />
     </div>
+  );
+}
+
+function EditItemDialog({
+  item,
+  onClose,
+  onSave,
+  saving,
+}: {
+  item: ModelItem | null;
+  onClose: () => void;
+  onSave: (patch: Partial<ModelItem> & { id: string }) => void;
+  saving: boolean;
+}) {
+  const [form, setForm] = React.useState<Partial<ModelItem>>({});
+  React.useEffect(() => {
+    if (item) {
+      setForm({
+        category: item.category,
+        particulars: item.particulars,
+        mrp: item.mrp,
+        offer_value: item.offer_value,
+        offer_cost: item.offer_cost,
+        franchisee_roi_pct: item.franchisee_roi_pct,
+        state_partner_pct: item.state_partner_pct,
+        default_target: item.default_target,
+      });
+    }
+  }, [item]);
+
+  if (!item) return null;
+  const num = (v: any) => (v === "" || v == null ? 0 : Number(v));
+
+  return (
+    <Dialog open={!!item} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Edit · {item.particulars}</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Label>Particulars</Label>
+            <Input value={form.particulars ?? ""} onChange={(e) => setForm({ ...form, particulars: e.target.value })} />
+          </div>
+          <div className="col-span-2">
+            <Label>Category</Label>
+            <Input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+          </div>
+          <div>
+            <Label>MRP (₹)</Label>
+            <Input type="number" value={form.mrp ?? 0} onChange={(e) => setForm({ ...form, mrp: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Offer Value (₹)</Label>
+            <Input type="number" value={form.offer_value ?? 0} onChange={(e) => setForm({ ...form, offer_value: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Cost (₹)</Label>
+            <Input type="number" value={form.offer_cost ?? 0} onChange={(e) => setForm({ ...form, offer_cost: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Default Target</Label>
+            <Input type="number" value={form.default_target ?? 0} onChange={(e) => setForm({ ...form, default_target: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Franchisee ROI %</Label>
+            <Input type="number" step="0.01" value={form.franchisee_roi_pct ?? 0} onChange={(e) => setForm({ ...form, franchisee_roi_pct: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>State Partner %</Label>
+            <Input type="number" step="0.01" value={form.state_partner_pct ?? 0} onChange={(e) => setForm({ ...form, state_partner_pct: num(e.target.value) })} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            className="bg-gradient-gold text-background"
+            disabled={saving}
+            onClick={() => onSave({ id: item.id, ...form })}
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
