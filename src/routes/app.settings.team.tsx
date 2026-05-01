@@ -27,7 +27,7 @@ export const Route = createFileRoute("/app/settings/team")({
 });
 
 const ALL_ROLES: AppRole[] = [
-  "super_admin", "founder", "franchisee", "sales", "accounts", "inventory",
+  "super_admin", "founder", "franchisee", "state_franchisee", "sales", "accounts", "inventory",
   "academy_admin", "webinar", "hr", "white_label", "trainer", "support", "package_sales", "nail_emporium",
 ];
 
@@ -38,6 +38,7 @@ const ROLE_LABELS: Record<AppRole, string> = {
   super_admin: "Super Admin",
   founder: "Admin",
   franchisee: "Franchisee",
+  state_franchisee: "State Franchise",
   sales: "Sales",
   accounts: "Accounts",
   inventory: "Inventory",
