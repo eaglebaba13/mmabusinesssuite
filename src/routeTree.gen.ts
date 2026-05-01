@@ -21,8 +21,10 @@ import { Route as InvoiceTokenRouteImport } from './routes/invoice.$token'
 import { Route as AppWebinarsRouteImport } from './routes/app.webinars'
 import { Route as AppTrainerRouteImport } from './routes/app.trainer'
 import { Route as AppSupportRouteImport } from './routes/app.support'
+import { Route as AppStateFranchisesRouteImport } from './routes/app.state-franchises'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppPosRouteImport } from './routes/app.pos'
+import { Route as AppMyStateRouteImport } from './routes/app.my-state'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppInventoryRouteImport } from './routes/app.inventory'
@@ -40,6 +42,7 @@ import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
 import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
+import { Route as AppStateFranchisesStateFranchiseIdRouteImport } from './routes/app.state-franchises.$stateFranchiseId'
 import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
 import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.social'
 import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.settings.lead-routing'
@@ -135,6 +138,11 @@ const AppSupportRoute = AppSupportRouteImport.update({
   path: '/support',
   getParentRoute: () => AppRoute,
 } as any)
+const AppStateFranchisesRoute = AppStateFranchisesRouteImport.update({
+  id: '/state-franchises',
+  path: '/state-franchises',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -143,6 +151,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppPosRoute = AppPosRouteImport.update({
   id: '/pos',
   path: '/pos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMyStateRoute = AppMyStateRouteImport.update({
+  id: '/my-state',
+  path: '/my-state',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMyFranchiseRoute = AppMyFranchiseRouteImport.update({
@@ -230,6 +243,12 @@ const AppWebinarsWebinarIdRoute = AppWebinarsWebinarIdRouteImport.update({
   path: '/$webinarId',
   getParentRoute: () => AppWebinarsRoute,
 } as any)
+const AppStateFranchisesStateFranchiseIdRoute =
+  AppStateFranchisesStateFranchiseIdRouteImport.update({
+    id: '/$stateFranchiseId',
+    path: '/$stateFranchiseId',
+    getParentRoute: () => AppStateFranchisesRoute,
+  } as any)
 const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -420,8 +439,10 @@ export interface FileRoutesByFullPath {
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/my-state': typeof AppMyStateRoute
   '/app/pos': typeof AppPosRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
+  '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
@@ -461,6 +482,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
@@ -482,6 +504,8 @@ export interface FileRoutesByTo {
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/my-state': typeof AppMyStateRoute
+  '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/invoice/$token': typeof InvoiceTokenRoute
@@ -520,6 +544,7 @@ export interface FileRoutesByTo {
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy': typeof AppAcademyIndexRoute
@@ -547,8 +572,10 @@ export interface FileRoutesById {
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
+  '/app/my-state': typeof AppMyStateRoute
   '/app/pos': typeof AppPosRouteWithChildren
   '/app/settings': typeof AppSettingsRouteWithChildren
+  '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
@@ -588,6 +615,7 @@ export interface FileRoutesById {
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
+  '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
@@ -616,8 +644,10 @@ export interface FileRouteTypes {
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
+    | '/app/my-state'
     | '/app/pos'
     | '/app/settings'
+    | '/app/state-franchises'
     | '/app/support'
     | '/app/trainer'
     | '/app/webinars'
@@ -657,6 +687,7 @@ export interface FileRouteTypes {
     | '/app/settings/lead-routing'
     | '/app/settings/social'
     | '/app/settings/team'
+    | '/app/state-franchises/$stateFranchiseId'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
     | '/app/academy/'
@@ -678,6 +709,8 @@ export interface FileRouteTypes {
     | '/app/franchisees'
     | '/app/leads'
     | '/app/my-franchise'
+    | '/app/my-state'
+    | '/app/state-franchises'
     | '/app/support'
     | '/app/trainer'
     | '/invoice/$token'
@@ -716,6 +749,7 @@ export interface FileRouteTypes {
     | '/app/settings/lead-routing'
     | '/app/settings/social'
     | '/app/settings/team'
+    | '/app/state-franchises/$stateFranchiseId'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
     | '/app/academy'
@@ -742,8 +776,10 @@ export interface FileRouteTypes {
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
+    | '/app/my-state'
     | '/app/pos'
     | '/app/settings'
+    | '/app/state-franchises'
     | '/app/support'
     | '/app/trainer'
     | '/app/webinars'
@@ -783,6 +819,7 @@ export interface FileRouteTypes {
     | '/app/settings/lead-routing'
     | '/app/settings/social'
     | '/app/settings/team'
+    | '/app/state-franchises/$stateFranchiseId'
     | '/app/webinars/$webinarId'
     | '/app/webinars/analytics'
     | '/app/academy/'
@@ -896,6 +933,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSupportRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/state-franchises': {
+      id: '/app/state-franchises'
+      path: '/state-franchises'
+      fullPath: '/app/state-franchises'
+      preLoaderRoute: typeof AppStateFranchisesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settings': {
       id: '/app/settings'
       path: '/settings'
@@ -908,6 +952,13 @@ declare module '@tanstack/react-router' {
       path: '/pos'
       fullPath: '/app/pos'
       preLoaderRoute: typeof AppPosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/my-state': {
+      id: '/app/my-state'
+      path: '/my-state'
+      fullPath: '/app/my-state'
+      preLoaderRoute: typeof AppMyStateRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/my-franchise': {
@@ -1028,6 +1079,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/webinars/$webinarId'
       preLoaderRoute: typeof AppWebinarsWebinarIdRouteImport
       parentRoute: typeof AppWebinarsRoute
+    }
+    '/app/state-franchises/$stateFranchiseId': {
+      id: '/app/state-franchises/$stateFranchiseId'
+      path: '/$stateFranchiseId'
+      fullPath: '/app/state-franchises/$stateFranchiseId'
+      preLoaderRoute: typeof AppStateFranchisesStateFranchiseIdRouteImport
+      parentRoute: typeof AppStateFranchisesRoute
     }
     '/app/settings/team': {
       id: '/app/settings/team'
@@ -1440,6 +1498,18 @@ const AppSettingsRouteWithChildren = AppSettingsRoute._addFileChildren(
   AppSettingsRouteChildren,
 )
 
+interface AppStateFranchisesRouteChildren {
+  AppStateFranchisesStateFranchiseIdRoute: typeof AppStateFranchisesStateFranchiseIdRoute
+}
+
+const AppStateFranchisesRouteChildren: AppStateFranchisesRouteChildren = {
+  AppStateFranchisesStateFranchiseIdRoute:
+    AppStateFranchisesStateFranchiseIdRoute,
+}
+
+const AppStateFranchisesRouteWithChildren =
+  AppStateFranchisesRoute._addFileChildren(AppStateFranchisesRouteChildren)
+
 interface AppWebinarsRouteChildren {
   AppWebinarsWebinarIdRoute: typeof AppWebinarsWebinarIdRoute
   AppWebinarsAnalyticsRoute: typeof AppWebinarsAnalyticsRoute
@@ -1465,8 +1535,10 @@ interface AppRouteChildren {
   AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
+  AppMyStateRoute: typeof AppMyStateRoute
   AppPosRoute: typeof AppPosRouteWithChildren
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
+  AppStateFranchisesRoute: typeof AppStateFranchisesRouteWithChildren
   AppSupportRoute: typeof AppSupportRoute
   AppTrainerRoute: typeof AppTrainerRoute
   AppWebinarsRoute: typeof AppWebinarsRouteWithChildren
@@ -1482,8 +1554,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,
+  AppMyStateRoute: AppMyStateRoute,
   AppPosRoute: AppPosRouteWithChildren,
   AppSettingsRoute: AppSettingsRouteWithChildren,
+  AppStateFranchisesRoute: AppStateFranchisesRouteWithChildren,
   AppSupportRoute: AppSupportRoute,
   AppTrainerRoute: AppTrainerRoute,
   AppWebinarsRoute: AppWebinarsRouteWithChildren,

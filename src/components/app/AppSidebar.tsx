@@ -12,6 +12,7 @@ import {
   Wallet,
   Megaphone,
   ShoppingCart,
+  MapPin,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,6 +33,7 @@ const NAV_MAIN = [
   { title: "Dashboard", url: "/app/dashboard" as const, icon: LayoutDashboard },
   { title: "Leads", url: "/app/leads" as const, icon: Users },
   { title: "Franchisees", url: "/app/franchisees" as const, icon: Building2 },
+  { title: "State Franchises", url: "/app/state-franchises" as const, icon: MapPin },
 ] as const;
 
 const NAV_ACADEMY = [
@@ -64,6 +66,10 @@ const NAV_FRANCHISEE = [
   { title: "My Campaigns", url: "/app/my-franchise" as const, icon: Megaphone, search: { tab: "campaigns" as const } },
 ] as const;
 
+const NAV_STATE_FRANCHISEE = [
+  { title: "My State", url: "/app/my-state" as const, icon: MapPin },
+] as const;
+
 const NAV_FOOTER = [
   { title: "Support", url: "/app/support" as const, icon: LifeBuoy },
   { title: "Settings", url: "/app/settings" as const, icon: Settings },
@@ -73,7 +79,8 @@ export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
   const isFranchisee = hasRole("franchisee");
-  const isFranchiseeOnly = isFranchisee && !isAdmin;
+  const isStateFranchisee = hasRole("state_franchisee");
+  const isFranchiseeOnly = (isFranchisee || isStateFranchisee) && !isAdmin;
   const isTrainer = hasRole("trainer");
   const isAcademyStaff = !isFranchiseeOnly && (isAdmin || hasRole("academy_admin") || hasRole("accounts"));
   const isInventoryStaff = !isFranchiseeOnly && (isAdmin || hasRole("inventory"));
@@ -309,6 +316,33 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                   );
                 })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isStateFranchisee && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              State Franchise
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_STATE_FRANCHISEE.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
