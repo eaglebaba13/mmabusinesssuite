@@ -12,6 +12,7 @@ import {
   Wallet,
   Megaphone,
   ShoppingCart,
+  MapPin,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,6 +33,7 @@ const NAV_MAIN = [
   { title: "Dashboard", url: "/app/dashboard" as const, icon: LayoutDashboard },
   { title: "Leads", url: "/app/leads" as const, icon: Users },
   { title: "Franchisees", url: "/app/franchisees" as const, icon: Building2 },
+  { title: "State Franchises", url: "/app/state-franchises" as const, icon: MapPin },
 ] as const;
 
 const NAV_ACADEMY = [
@@ -62,6 +64,10 @@ const NAV_FRANCHISEE = [
   { title: "My Franchise", url: "/app/my-franchise" as const, icon: Briefcase, search: { tab: "dashboard" as const } },
   { title: "My Leads", url: "/app/my-franchise" as const, icon: Users, search: { tab: "leads" as const } },
   { title: "My Campaigns", url: "/app/my-franchise" as const, icon: Megaphone, search: { tab: "campaigns" as const } },
+] as const;
+
+const NAV_STATE_FRANCHISEE = [
+  { title: "My State", url: "/app/my-state" as const, icon: MapPin },
 ] as const;
 
 const NAV_FOOTER = [
