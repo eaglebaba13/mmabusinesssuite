@@ -16,7 +16,8 @@ export type AppRole =
   | "trainer"
   | "support"
   | "package_sales"
-  | "nail_emporium";
+  | "nail_emporium"
+  | "state_franchisee";
 
 interface AuthContextValue {
   user: User | null;

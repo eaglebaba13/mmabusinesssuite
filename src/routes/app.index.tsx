@@ -14,6 +14,10 @@ function AppIndex() {
     if (loading) return;
     // Franchisees → their own dashboard. Anyone else → master dashboard if they
     // have any "office" role; trainer-only → trainer portal.
+    if (hasRole("state_franchisee") && !isAdmin) {
+      navigate({ to: "/app/my-state", replace: true });
+      return;
+    }
     if (hasRole("franchisee") && !isAdmin) {
       navigate({ to: "/app/my-franchise", replace: true });
       return;
