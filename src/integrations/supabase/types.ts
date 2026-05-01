@@ -2102,6 +2102,95 @@ export type Database = {
           },
         ]
       }
+      state_franchise_credentials: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          delivered: boolean
+          delivered_at: string | null
+          id: string
+          login_email: string
+          state_franchise_id: string
+          temp_password: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          delivered?: boolean
+          delivered_at?: string | null
+          id?: string
+          login_email: string
+          state_franchise_id: string
+          temp_password: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          delivered?: boolean
+          delivered_at?: string | null
+          id?: string
+          login_email?: string
+          state_franchise_id?: string
+          temp_password?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "state_franchise_credentials_state_franchise_id_fkey"
+            columns: ["state_franchise_id"]
+            isOneToOne: false
+            referencedRelation: "state_franchises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      state_franchises: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          investment_amount: number
+          joined_at: string
+          notes: string | null
+          phone: string | null
+          state: string
+          state_partner_pct: number
+          status: Database["public"]["Enums"]["franchisee_status"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          investment_amount?: number
+          joined_at?: string
+          notes?: string | null
+          phone?: string | null
+          state: string
+          state_partner_pct?: number
+          status?: Database["public"]["Enums"]["franchisee_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          investment_amount?: number
+          joined_at?: string
+          notes?: string | null
+          phone?: string | null
+          state?: string
+          state_partner_pct?: number
+          status?: Database["public"]["Enums"]["franchisee_status"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       stock_levels: {
         Row: {
           id: string
@@ -2311,6 +2400,7 @@ export type Database = {
           name: string
           region: string | null
           state: string
+          state_franchise_id: string | null
         }
         Insert: {
           created_at?: string
@@ -2318,6 +2408,7 @@ export type Database = {
           name: string
           region?: string | null
           state: string
+          state_franchise_id?: string | null
         }
         Update: {
           created_at?: string
@@ -2325,8 +2416,17 @@ export type Database = {
           name?: string
           region?: string | null
           state?: string
+          state_franchise_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "territories_state_franchise_id_fkey"
+            columns: ["state_franchise_id"]
+            isOneToOne: false
+            referencedRelation: "state_franchises"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tickets: {
         Row: {
@@ -2641,6 +2741,14 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      state_franchise_owns_franchisee: {
+        Args: { _franchisee_id: string; _user_id: string }
+        Returns: boolean
+      }
+      state_franchise_owns_territory: {
+        Args: { _territory_id: string; _user_id: string }
+        Returns: boolean
+      }
       webinar_seats_taken: { Args: { _webinar_id: string }; Returns: number }
     }
     Enums: {
@@ -2659,6 +2767,7 @@ export type Database = {
         | "support"
         | "package_sales"
         | "nail_emporium"
+        | "state_franchisee"
       attendance_status: "present" | "absent" | "late" | "excused"
       batch_mode: "online" | "offline" | "hybrid"
       batch_status: "upcoming" | "ongoing" | "completed" | "cancelled"
@@ -2889,6 +2998,7 @@ export const Constants = {
         "support",
         "package_sales",
         "nail_emporium",
+        "state_franchisee",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       batch_mode: ["online", "offline", "hybrid"],
