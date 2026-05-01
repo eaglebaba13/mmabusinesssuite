@@ -79,7 +79,8 @@ export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
   const isFranchisee = hasRole("franchisee");
-  const isFranchiseeOnly = isFranchisee && !isAdmin;
+  const isStateFranchisee = hasRole("state_franchisee");
+  const isFranchiseeOnly = (isFranchisee || isStateFranchisee) && !isAdmin;
   const isTrainer = hasRole("trainer");
   const isAcademyStaff = !isFranchiseeOnly && (isAdmin || hasRole("academy_admin") || hasRole("accounts"));
   const isInventoryStaff = !isFranchiseeOnly && (isAdmin || hasRole("inventory"));
