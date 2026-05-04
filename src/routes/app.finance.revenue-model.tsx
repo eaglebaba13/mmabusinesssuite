@@ -157,6 +157,38 @@ function RevenueModelPage() {
     onError: (e: any) => toast.error(e.message || "Update failed"),
   });
 
+  const createItem = useMutation({
+    mutationFn: async (payload: Partial<ModelItem>) => {
+      const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order ?? 0), 0);
+      const { error } = await supabase.from("revenue_model_items").insert({
+        category: payload.category ?? "Other",
+        particulars: payload.particulars ?? "Untitled",
+        description: payload.description ?? null,
+        mrp: payload.mrp ?? 0,
+        offer_value: payload.offer_value ?? 0,
+        offer_cost: payload.offer_cost ?? 0,
+        target_segment: payload.target_segment ?? null,
+        default_target: payload.default_target ?? 0,
+        franchisee_roi_pct: payload.franchisee_roi_pct ?? 3,
+        state_partner_pct: payload.state_partner_pct ?? 10,
+        sort_order: maxSort + 10,
+        active: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Particulars added");
+      setAddOpen(false);
+      qc.invalidateQueries({ queryKey: ["revenue-model-items"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Add failed"),
+  });
+
+  const categories = React.useMemo(
+    () => Array.from(new Set(items.map((i) => i.category).filter(Boolean))).sort(),
+    [items],
+  );
+
   // Totals
   const rows = items.map((i) => {
     const t = valueFor(i.id);
