@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Target, Save, RefreshCw, Pencil } from "lucide-react";
+import { Target, Save, RefreshCw, Pencil, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBlockFranchiseeRoute } from "@/hooks/use-role-guard";
 import { useAuth } from "@/lib/auth-context";
@@ -67,6 +67,7 @@ function RevenueModelPage() {
   const [city, setCity] = React.useState<string>("");
   const [draft, setDraft] = React.useState<Record<string, number>>({});
   const [editItem, setEditItem] = React.useState<ModelItem | null>(null);
+  const [addOpen, setAddOpen] = React.useState(false);
 
   const { data: items = [] } = useQuery({
     queryKey: ["revenue-model-items"],
@@ -156,6 +157,38 @@ function RevenueModelPage() {
     onError: (e: any) => toast.error(e.message || "Update failed"),
   });
 
+  const createItem = useMutation({
+    mutationFn: async (payload: Partial<ModelItem>) => {
+      const maxSort = items.reduce((m, i) => Math.max(m, i.sort_order ?? 0), 0);
+      const { error } = await supabase.from("revenue_model_items").insert({
+        category: payload.category ?? "Other",
+        particulars: payload.particulars ?? "Untitled",
+        description: payload.description ?? null,
+        mrp: payload.mrp ?? 0,
+        offer_value: payload.offer_value ?? 0,
+        offer_cost: payload.offer_cost ?? 0,
+        target_segment: payload.target_segment ?? null,
+        default_target: payload.default_target ?? 0,
+        franchisee_roi_pct: payload.franchisee_roi_pct ?? 3,
+        state_partner_pct: payload.state_partner_pct ?? 10,
+        sort_order: maxSort + 10,
+        active: true,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Particulars added");
+      setAddOpen(false);
+      qc.invalidateQueries({ queryKey: ["revenue-model-items"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Add failed"),
+  });
+
+  const categories = React.useMemo(
+    () => Array.from(new Set(items.map((i) => i.category).filter(Boolean))).sort(),
+    [items],
+  );
+
   // Totals
   const rows = items.map((i) => {
     const t = valueFor(i.id);
@@ -221,6 +254,15 @@ function RevenueModelPage() {
               className="mt-1 w-[180px]"
             />
           </div>
+          {canEditModel && (
+            <Button
+              variant="outline"
+              className="border-gold/50 text-gold hover:bg-gold/10"
+              onClick={() => setAddOpen(true)}
+            >
+              <Plus className="mr-1 h-4 w-4" /> Add Particulars
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => setDraft({})}
@@ -355,21 +397,85 @@ function RevenueModelPage() {
 
       <EditItemDialog
         item={editItem}
+        categories={categories}
         onClose={() => setEditItem(null)}
         onSave={(patch) => updateItem.mutate(patch)}
         saving={updateItem.isPending}
       />
+
+      <AddItemDialog
+        open={addOpen}
+        categories={categories}
+        onClose={() => setAddOpen(false)}
+        onSave={(payload) => createItem.mutate(payload)}
+        saving={createItem.isPending}
+      />
+    </div>
+  );
+}
+
+function CategoryPicker({
+  value,
+  onChange,
+  categories,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  categories: string[];
+}) {
+  const NEW = "__new__";
+  const isCustom = !!value && !categories.includes(value);
+  const [mode, setMode] = React.useState<"existing" | "new">(isCustom ? "new" : "existing");
+  React.useEffect(() => {
+    setMode(value && !categories.includes(value) ? "new" : "existing");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories.length]);
+  return (
+    <div className="space-y-2">
+      <Select
+        value={mode === "new" ? NEW : value}
+        onValueChange={(v) => {
+          if (v === NEW) {
+            setMode("new");
+            onChange("");
+          } else {
+            setMode("existing");
+            onChange(v);
+          }
+        }}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((c) => (
+            <SelectItem key={c} value={c}>
+              {c}
+            </SelectItem>
+          ))}
+          <SelectItem value={NEW}>+ New category…</SelectItem>
+        </SelectContent>
+      </Select>
+      {mode === "new" && (
+        <Input
+          placeholder="New category name"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
     </div>
   );
 }
 
 function EditItemDialog({
   item,
+  categories,
   onClose,
   onSave,
   saving,
 }: {
   item: ModelItem | null;
+  categories: string[];
   onClose: () => void;
   onSave: (patch: Partial<ModelItem> & { id: string }) => void;
   saving: boolean;
@@ -406,7 +512,11 @@ function EditItemDialog({
           </div>
           <div className="col-span-2">
             <Label>Category</Label>
-            <Input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+            <CategoryPicker
+              value={form.category ?? ""}
+              onChange={(v) => setForm({ ...form, category: v })}
+              categories={categories}
+            />
           </div>
           <div>
             <Label>MRP (₹)</Label>
@@ -441,6 +551,110 @@ function EditItemDialog({
             onClick={() => onSave({ id: item.id, ...form })}
           >
             {saving ? "Saving…" : "Save changes"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddItemDialog({
+  open,
+  categories,
+  onClose,
+  onSave,
+  saving,
+}: {
+  open: boolean;
+  categories: string[];
+  onClose: () => void;
+  onSave: (payload: Partial<ModelItem>) => void;
+  saving: boolean;
+}) {
+  const empty: Partial<ModelItem> = {
+    category: "",
+    particulars: "",
+    description: "",
+    mrp: 0,
+    offer_value: 0,
+    offer_cost: 0,
+    target_segment: "",
+    default_target: 0,
+    franchisee_roi_pct: 3,
+    state_partner_pct: 10,
+  };
+  const [form, setForm] = React.useState<Partial<ModelItem>>(empty);
+  React.useEffect(() => {
+    if (open) setForm(empty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+  const num = (v: any) => (v === "" || v == null ? 0 : Number(v));
+  const canSave = !!(form.particulars && form.category);
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add Particulars</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Label>Category</Label>
+            <CategoryPicker
+              value={form.category ?? ""}
+              onChange={(v) => setForm({ ...form, category: v })}
+              categories={categories}
+            />
+          </div>
+          <div className="col-span-2">
+            <Label>Particulars</Label>
+            <Input
+              value={form.particulars ?? ""}
+              onChange={(e) => setForm({ ...form, particulars: e.target.value })}
+              placeholder="e.g. Advanced Nail Art Course"
+            />
+          </div>
+          <div className="col-span-2">
+            <Label>Segment (optional)</Label>
+            <Input
+              value={form.target_segment ?? ""}
+              onChange={(e) => setForm({ ...form, target_segment: e.target.value })}
+              placeholder="e.g. students, walk-ins"
+            />
+          </div>
+          <div>
+            <Label>MRP (₹)</Label>
+            <Input type="number" value={form.mrp ?? 0} onChange={(e) => setForm({ ...form, mrp: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Offer Value (₹)</Label>
+            <Input type="number" value={form.offer_value ?? 0} onChange={(e) => setForm({ ...form, offer_value: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Cost (₹)</Label>
+            <Input type="number" value={form.offer_cost ?? 0} onChange={(e) => setForm({ ...form, offer_cost: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Default Target</Label>
+            <Input type="number" value={form.default_target ?? 0} onChange={(e) => setForm({ ...form, default_target: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Franchisee ROI %</Label>
+            <Input type="number" step="0.01" value={form.franchisee_roi_pct ?? 0} onChange={(e) => setForm({ ...form, franchisee_roi_pct: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>State Partner %</Label>
+            <Input type="number" step="0.01" value={form.state_partner_pct ?? 0} onChange={(e) => setForm({ ...form, state_partner_pct: num(e.target.value) })} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            className="bg-gradient-gold text-background"
+            disabled={!canSave || saving}
+            onClick={() => onSave(form)}
+          >
+            {saving ? "Adding…" : "Add Particulars"}
           </Button>
         </DialogFooter>
       </DialogContent>

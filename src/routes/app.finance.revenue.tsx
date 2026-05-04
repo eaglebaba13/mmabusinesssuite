@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, TrendingUp } from "lucide-react";
+import { Plus, TrendingUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -82,6 +82,20 @@ function RevenuePage() {
       toast.success("Revenue entry added");
       setOpen(false);
       setForm({ source: "other", source_label: "", amount: "", received_on: new Date().toISOString().slice(0, 10), reference: "", notes: "" });
+      qc.invalidateQueries({ queryKey: ["revenue-list"] });
+      qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["fin-recent"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("revenue_entries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Entry moved to trash");
       qc.invalidateQueries({ queryKey: ["revenue-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
       qc.invalidateQueries({ queryKey: ["fin-recent"] });
@@ -208,6 +222,20 @@ function RevenuePage() {
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="border-primary/30 capitalize">{r.source.replace("_", " ")}</Badge>
                 <span className="font-mono text-sm font-medium text-emerald-500">+{formatINR(r.amount)}</span>
+                {!r._readonly && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                    onClick={() => {
+                      if (confirm("Move this entry to trash?")) remove.mutate(r.id);
+                    }}
+                    disabled={remove.isPending}
+                    title="Move to trash"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
             </div>
           ))}

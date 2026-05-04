@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Coins, CheckCircle2 } from "lucide-react";
+import { Plus, Coins, CheckCircle2, Trash2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -92,6 +92,83 @@ function PayoutsPage() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("roi_payouts").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Payout moved to trash");
+      qc.invalidateQueries({ queryKey: ["roi-list"] });
+      qc.invalidateQueries({ queryKey: ["fin-overview"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const autoGenerate = useMutation({
+    mutationFn: async () => {
+      // Compute current month boundaries
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const payoutMonth = monthStart.toISOString().slice(0, 10);
+
+      const [{ data: frs }, { data: sales }, { data: existing }] = await Promise.all([
+        supabase.from("franchisees").select("id, full_name, base_roi_pct, academy_pct, dark_store_pct, emporium_pct").eq("status", "active"),
+        supabase
+          .from("sales_orders")
+          .select("franchisee_id, grand_total")
+          .eq("status", "completed")
+          .gte("completed_at", monthStart.toISOString())
+          .lt("completed_at", monthEnd.toISOString()),
+        supabase.from("roi_payouts").select("franchisee_id").eq("payout_month", payoutMonth),
+      ]);
+
+      const existingSet = new Set((existing ?? []).map((p: any) => p.franchisee_id));
+      const totals = new Map<string, number>();
+      (sales ?? []).forEach((s: any) => {
+        if (!s.franchisee_id) return;
+        totals.set(s.franchisee_id, (totals.get(s.franchisee_id) ?? 0) + Number(s.grand_total ?? 0));
+      });
+
+      const toInsert: any[] = [];
+      for (const f of frs ?? []) {
+        if (existingSet.has(f.id)) continue;
+        const sales_total = totals.get(f.id) ?? 0;
+        if (sales_total <= 0) continue;
+        const base = (sales_total * Number(f.base_roi_pct ?? 0)) / 100;
+        const ai = (sales_total * Number(f.academy_pct ?? 0)) / 100;
+        const ds = (sales_total * Number(f.dark_store_pct ?? 0)) / 100;
+        const em = (sales_total * Number(f.emporium_pct ?? 0)) / 100;
+        toInsert.push({
+          franchisee_id: f.id,
+          payout_month: payoutMonth,
+          base_roi: base,
+          academy_incentive: ai,
+          dark_store_incentive: ds,
+          emporium_incentive: em,
+          total_amount: base + ai + ds + em,
+          status: "pending",
+        });
+      }
+
+      if (!toInsert.length) return { inserted: 0 };
+      const { error } = await supabase.from("roi_payouts").insert(toInsert);
+      if (error) throw error;
+      return { inserted: toInsert.length };
+    },
+    onSuccess: (r) => {
+      if (!r || r.inserted === 0) {
+        toast.info("No new payouts — all active franchisees with sales this month already have payouts.");
+      } else {
+        toast.success(`Generated ${r.inserted} payout${r.inserted > 1 ? "s" : ""} from this month's sales`);
+      }
+      qc.invalidateQueries({ queryKey: ["roi-list"] });
+      qc.invalidateQueries({ queryKey: ["fin-overview"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const [range, setRange] = React.useState(() => {
     const d = defaultDateRange();
     const fromD = new Date();
@@ -148,10 +225,20 @@ function PayoutsPage() {
             {grouped.pending.length} pending ({formatINR(grouped.pendingTotal)}) · {grouped.paid.length} paid ({formatINR(grouped.paidTotal)})
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />New Payout</Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => autoGenerate.mutate()}
+            disabled={autoGenerate.isPending}
+            title="Calculate this month's payouts from completed POS sales"
+          >
+            <Sparkles className="mr-1 h-4 w-4" />
+            {autoGenerate.isPending ? "Generating..." : "Auto-generate"}
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />New Payout</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Create ROI Payout</DialogTitle></DialogHeader>
             <div className="space-y-3">
@@ -179,7 +266,8 @@ function PayoutsPage() {
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <ExportBar
@@ -218,6 +306,18 @@ function PayoutsPage() {
                     <CheckCircle2 className="mr-1 h-3 w-3" />Mark Paid
                   </Button>
                 )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                  onClick={() => {
+                    if (confirm("Move this payout to trash?")) remove.mutate(p.id);
+                  }}
+                  disabled={remove.isPending}
+                  title="Move to trash"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </div>
           ))}

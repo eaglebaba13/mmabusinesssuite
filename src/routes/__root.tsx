@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/lib/auth-context";
+import { ModeProvider } from "@/lib/mode-context";
 import { Toaster } from "@/components/ui/sonner";
 
 interface RouterContext {
@@ -98,8 +99,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
-        <Toaster richColors position="top-right" theme="dark" />
+        <ModeProvider>
+          <Outlet />
+          <Toaster richColors position="top-right" theme="dark" />
+        </ModeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

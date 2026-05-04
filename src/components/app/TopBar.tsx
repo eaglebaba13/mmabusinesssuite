@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth-context";
+import { useMode } from "@/lib/mode-context";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 export function TopBar() {
   const { user, roles, signOut, isAdmin, hasRole } = useAuth();
@@ -46,6 +48,7 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-2">
+        <ModeToggle />
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-4 w-4" />
           <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-gold" />
@@ -89,5 +92,24 @@ export function TopBar() {
         </DropdownMenu>
       </div>
     </header>
+  );
+}
+
+function ModeToggle() {
+  const { mode, setMode, isTesting } = useMode();
+  return (
+    <div
+      className={`hidden items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs md:flex ${
+        isTesting ? "border-amber-500/50 bg-amber-500/10" : "border-emerald-500/40 bg-emerald-500/5"
+      }`}
+      title={isTesting ? "Testing mode — sandbox data, edits won't notify customers" : "Live mode — production data"}
+    >
+      <span className={`font-medium ${isTesting ? "text-amber-400" : "text-muted-foreground"}`}>Test</span>
+      <Switch
+        checked={mode === "live"}
+        onCheckedChange={(v) => setMode(v ? "live" : "testing")}
+      />
+      <span className={`font-medium ${!isTesting ? "text-emerald-400" : "text-muted-foreground"}`}>Live</span>
+    </div>
   );
 }
