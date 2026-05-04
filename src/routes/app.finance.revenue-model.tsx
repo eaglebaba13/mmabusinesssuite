@@ -397,21 +397,85 @@ function RevenueModelPage() {
 
       <EditItemDialog
         item={editItem}
+        categories={categories}
         onClose={() => setEditItem(null)}
         onSave={(patch) => updateItem.mutate(patch)}
         saving={updateItem.isPending}
       />
+
+      <AddItemDialog
+        open={addOpen}
+        categories={categories}
+        onClose={() => setAddOpen(false)}
+        onSave={(payload) => createItem.mutate(payload)}
+        saving={createItem.isPending}
+      />
+    </div>
+  );
+}
+
+function CategoryPicker({
+  value,
+  onChange,
+  categories,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  categories: string[];
+}) {
+  const NEW = "__new__";
+  const isCustom = !!value && !categories.includes(value);
+  const [mode, setMode] = React.useState<"existing" | "new">(isCustom ? "new" : "existing");
+  React.useEffect(() => {
+    setMode(value && !categories.includes(value) ? "new" : "existing");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories.length]);
+  return (
+    <div className="space-y-2">
+      <Select
+        value={mode === "new" ? NEW : value}
+        onValueChange={(v) => {
+          if (v === NEW) {
+            setMode("new");
+            onChange("");
+          } else {
+            setMode("existing");
+            onChange(v);
+          }
+        }}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((c) => (
+            <SelectItem key={c} value={c}>
+              {c}
+            </SelectItem>
+          ))}
+          <SelectItem value={NEW}>+ New category…</SelectItem>
+        </SelectContent>
+      </Select>
+      {mode === "new" && (
+        <Input
+          placeholder="New category name"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
     </div>
   );
 }
 
 function EditItemDialog({
   item,
+  categories,
   onClose,
   onSave,
   saving,
 }: {
   item: ModelItem | null;
+  categories: string[];
   onClose: () => void;
   onSave: (patch: Partial<ModelItem> & { id: string }) => void;
   saving: boolean;
@@ -448,7 +512,11 @@ function EditItemDialog({
           </div>
           <div className="col-span-2">
             <Label>Category</Label>
-            <Input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })} />
+            <CategoryPicker
+              value={form.category ?? ""}
+              onChange={(v) => setForm({ ...form, category: v })}
+              categories={categories}
+            />
           </div>
           <div>
             <Label>MRP (₹)</Label>
