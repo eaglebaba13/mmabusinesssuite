@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, TrendingDown } from "lucide-react";
+import { Plus, TrendingDown, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -94,6 +94,20 @@ function ExpensesPage() {
         status: "paid",
         notes: "",
       });
+      qc.invalidateQueries({ queryKey: ["expenses-list"] });
+      qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["fin-recent"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("expenses").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Expense moved to trash");
       qc.invalidateQueries({ queryKey: ["expenses-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
       qc.invalidateQueries({ queryKey: ["fin-recent"] });
@@ -252,6 +266,18 @@ function ExpensesPage() {
                   {e.status}
                 </Badge>
                 <span className="font-mono text-sm text-red-500">−{formatINR(e.amount)}</span>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                  onClick={() => {
+                    if (confirm("Move this expense to trash?")) remove.mutate(e.id);
+                  }}
+                  disabled={remove.isPending}
+                  title="Move to trash"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </div>
           ))}
