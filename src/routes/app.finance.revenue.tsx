@@ -102,6 +102,8 @@ function RevenuePage() {
     },
     onError: (e: any) => toast.error(e.message),
   });
+
+  const [range, setRange] = React.useState(defaultDateRange());
   const filtered = React.useMemo(
     () => (list.data ?? []).filter((r: any) => inDateRange(r.received_on, range.from, range.to)),
     [list.data, range],
