@@ -222,6 +222,20 @@ function RevenuePage() {
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="border-primary/30 capitalize">{r.source.replace("_", " ")}</Badge>
                 <span className="font-mono text-sm font-medium text-emerald-500">+{formatINR(r.amount)}</span>
+                {!r._readonly && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                    onClick={() => {
+                      if (confirm("Move this entry to trash?")) remove.mutate(r.id);
+                    }}
+                    disabled={remove.isPending}
+                    title="Move to trash"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
             </div>
           ))}
