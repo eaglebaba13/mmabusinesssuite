@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, TrendingUp } from "lucide-react";
+import { Plus, TrendingUp, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -89,7 +89,19 @@ function RevenuePage() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  const [range, setRange] = React.useState(defaultDateRange());
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("revenue_entries").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Entry moved to trash");
+      qc.invalidateQueries({ queryKey: ["revenue-list"] });
+      qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["fin-recent"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
   const filtered = React.useMemo(
     () => (list.data ?? []).filter((r: any) => inDateRange(r.received_on, range.from, range.to)),
     [list.data, range],
