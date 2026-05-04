@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Target, Save, RefreshCw, Pencil } from "lucide-react";
+import { Target, Save, RefreshCw, Pencil, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useBlockFranchiseeRoute } from "@/hooks/use-role-guard";
 import { useAuth } from "@/lib/auth-context";
@@ -67,6 +67,7 @@ function RevenueModelPage() {
   const [city, setCity] = React.useState<string>("");
   const [draft, setDraft] = React.useState<Record<string, number>>({});
   const [editItem, setEditItem] = React.useState<ModelItem | null>(null);
+  const [addOpen, setAddOpen] = React.useState(false);
 
   const { data: items = [] } = useQuery({
     queryKey: ["revenue-model-items"],
