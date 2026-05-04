@@ -225,10 +225,20 @@ function PayoutsPage() {
             {grouped.pending.length} pending ({formatINR(grouped.pendingTotal)}) · {grouped.paid.length} paid ({formatINR(grouped.paidTotal)})
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />New Payout</Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => autoGenerate.mutate()}
+            disabled={autoGenerate.isPending}
+            title="Calculate this month's payouts from completed POS sales"
+          >
+            <Sparkles className="mr-1 h-4 w-4" />
+            {autoGenerate.isPending ? "Generating..." : "Auto-generate"}
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />New Payout</Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>Create ROI Payout</DialogTitle></DialogHeader>
             <div className="space-y-3">
@@ -256,7 +266,8 @@ function PayoutsPage() {
               </Button>
             </div>
           </DialogContent>
-        </Dialog>
+          </Dialog>
+        </div>
       </div>
 
       <ExportBar
@@ -295,6 +306,18 @@ function PayoutsPage() {
                     <CheckCircle2 className="mr-1 h-3 w-3" />Mark Paid
                   </Button>
                 )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-red-500"
+                  onClick={() => {
+                    if (confirm("Move this payout to trash?")) remove.mutate(p.id);
+                  }}
+                  disabled={remove.isPending}
+                  title="Move to trash"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </div>
           ))}
