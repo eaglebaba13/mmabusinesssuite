@@ -557,3 +557,107 @@ function EditItemDialog({
     </Dialog>
   );
 }
+
+function AddItemDialog({
+  open,
+  categories,
+  onClose,
+  onSave,
+  saving,
+}: {
+  open: boolean;
+  categories: string[];
+  onClose: () => void;
+  onSave: (payload: Partial<ModelItem>) => void;
+  saving: boolean;
+}) {
+  const empty: Partial<ModelItem> = {
+    category: "",
+    particulars: "",
+    description: "",
+    mrp: 0,
+    offer_value: 0,
+    offer_cost: 0,
+    target_segment: "",
+    default_target: 0,
+    franchisee_roi_pct: 3,
+    state_partner_pct: 10,
+  };
+  const [form, setForm] = React.useState<Partial<ModelItem>>(empty);
+  React.useEffect(() => {
+    if (open) setForm(empty);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+  const num = (v: any) => (v === "" || v == null ? 0 : Number(v));
+  const canSave = !!(form.particulars && form.category);
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add Particulars</DialogTitle>
+        </DialogHeader>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Label>Category</Label>
+            <CategoryPicker
+              value={form.category ?? ""}
+              onChange={(v) => setForm({ ...form, category: v })}
+              categories={categories}
+            />
+          </div>
+          <div className="col-span-2">
+            <Label>Particulars</Label>
+            <Input
+              value={form.particulars ?? ""}
+              onChange={(e) => setForm({ ...form, particulars: e.target.value })}
+              placeholder="e.g. Advanced Nail Art Course"
+            />
+          </div>
+          <div className="col-span-2">
+            <Label>Segment (optional)</Label>
+            <Input
+              value={form.target_segment ?? ""}
+              onChange={(e) => setForm({ ...form, target_segment: e.target.value })}
+              placeholder="e.g. students, walk-ins"
+            />
+          </div>
+          <div>
+            <Label>MRP (₹)</Label>
+            <Input type="number" value={form.mrp ?? 0} onChange={(e) => setForm({ ...form, mrp: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Offer Value (₹)</Label>
+            <Input type="number" value={form.offer_value ?? 0} onChange={(e) => setForm({ ...form, offer_value: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Cost (₹)</Label>
+            <Input type="number" value={form.offer_cost ?? 0} onChange={(e) => setForm({ ...form, offer_cost: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Default Target</Label>
+            <Input type="number" value={form.default_target ?? 0} onChange={(e) => setForm({ ...form, default_target: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>Franchisee ROI %</Label>
+            <Input type="number" step="0.01" value={form.franchisee_roi_pct ?? 0} onChange={(e) => setForm({ ...form, franchisee_roi_pct: num(e.target.value) })} />
+          </div>
+          <div>
+            <Label>State Partner %</Label>
+            <Input type="number" step="0.01" value={form.state_partner_pct ?? 0} onChange={(e) => setForm({ ...form, state_partner_pct: num(e.target.value) })} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button
+            className="bg-gradient-gold text-background"
+            disabled={!canSave || saving}
+            onClick={() => onSave(form)}
+          >
+            {saving ? "Adding…" : "Add Particulars"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
