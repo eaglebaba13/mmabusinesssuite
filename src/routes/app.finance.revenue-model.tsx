@@ -254,6 +254,15 @@ function RevenueModelPage() {
               className="mt-1 w-[180px]"
             />
           </div>
+          {canEditModel && (
+            <Button
+              variant="outline"
+              className="border-gold/50 text-gold hover:bg-gold/10"
+              onClick={() => setAddOpen(true)}
+            >
+              <Plus className="mr-1 h-4 w-4" /> Add Particulars
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => setDraft({})}
