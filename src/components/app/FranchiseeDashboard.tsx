@@ -285,7 +285,7 @@ export function FranchiseeDashboard({
       {(() => {
         const roiBlocks = [
           { label: "Base monthly ROI", value: baseRoiPct, hint: "Fixed every month" },
-          { label: "Nail Emporium incentive", value: emporiumPct, hint: "On Emporium sales" },
+          { label: "Nail Emporium incentive", value: emporiumPct, hint: "On Nail Emporium sales" },
           { label: "Academy incentive", value: academyPct, hint: "On batch fees" },
           { label: "Mall of Salon Dark Store", value: darkPct, hint: "On dark store sales" },
         ].filter((b) => b.value > 0);
