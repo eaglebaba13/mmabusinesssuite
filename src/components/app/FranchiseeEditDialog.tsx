@@ -198,7 +198,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label>Emporium %</Label>
+                <Label>Nail Emporium %</Label>
                 <Input
                   type="number"
                   step="0.01"

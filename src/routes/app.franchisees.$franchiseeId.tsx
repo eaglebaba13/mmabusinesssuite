@@ -173,7 +173,7 @@ function FranchiseeDetailPage() {
                   <tr>
                     <th className="px-2 py-2 text-left">Month</th>
                     <th className="px-2 py-2 text-right">Base ROI</th>
-                    <th className="px-2 py-2 text-right">Emporium</th>
+                    <th className="px-2 py-2 text-right">Nail Emporium</th>
                     <th className="px-2 py-2 text-right">Academy</th>
                     <th className="px-2 py-2 text-right">Dark Store</th>
                     <th className="px-2 py-2 text-right">Total</th>

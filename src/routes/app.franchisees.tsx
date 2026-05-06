@@ -253,11 +253,11 @@ function FranchiseesPage() {
                     <div><Label>Base monthly ROI %</Label><Input type="number" step="0.01" value={form.base_roi_pct} onChange={(e) => setForm({ ...form, base_roi_pct: e.target.value })} className="mt-1" /></div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    <div><Label>Emporium %</Label><Input type="number" step="0.01" value={form.emporium_pct} onChange={(e) => setForm({ ...form, emporium_pct: e.target.value })} className="mt-1" /></div>
+                    <div><Label>Nail Emporium %</Label><Input type="number" step="0.01" value={form.emporium_pct} onChange={(e) => setForm({ ...form, emporium_pct: e.target.value })} className="mt-1" /></div>
                     <div><Label>Academy %</Label><Input type="number" step="0.01" value={form.academy_pct} onChange={(e) => setForm({ ...form, academy_pct: e.target.value })} className="mt-1" /></div>
                     <div><Label>Dark store %</Label><Input type="number" step="0.01" value={form.dark_store_pct} onChange={(e) => setForm({ ...form, dark_store_pct: e.target.value })} className="mt-1" /></div>
                   </div>
-                  <p className="text-xs text-muted-foreground">Defaults: ₹5L fee · 3% fixed ROI · 10% Emporium · 3% Academy · 3% Dark store.</p>
+                  <p className="text-xs text-muted-foreground">Defaults: ₹5L fee · 3% fixed ROI · 10% Nail Emporium · 3% Academy · 3% Dark store.</p>
                 </div>
               )}
 
