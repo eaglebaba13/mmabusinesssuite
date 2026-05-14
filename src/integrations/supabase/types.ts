@@ -248,6 +248,71 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          active: boolean
+          address: Json | null
+          brand: string | null
+          company_type: Database["public"]["Enums"]["company_type"]
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          gstin: string | null
+          id: string
+          invoice_prefix: string | null
+          is_demo: boolean
+          legal_name: string | null
+          name: string
+          pan: string | null
+          parent_company_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: Json | null
+          brand?: string | null
+          company_type?: Database["public"]["Enums"]["company_type"]
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          gstin?: string | null
+          id?: string
+          invoice_prefix?: string | null
+          is_demo?: boolean
+          legal_name?: string | null
+          name: string
+          pan?: string | null
+          parent_company_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: Json | null
+          brand?: string | null
+          company_type?: Database["public"]["Enums"]["company_type"]
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          gstin?: string | null
+          id?: string
+          invoice_prefix?: string | null
+          is_demo?: boolean
+          legal_name?: string | null
+          name?: string
+          pan?: string | null
+          parent_company_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_parent_company_id_fkey"
+            columns: ["parent_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           code: string | null
@@ -317,6 +382,45 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          created_at: string
+          doc_kind: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          external_url: string | null
+          id: string
+          is_demo: boolean
+          storage_path: string | null
+          title: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          doc_kind?: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          external_url?: string | null
+          id?: string
+          is_demo?: boolean
+          storage_path?: string | null
+          title: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          doc_kind?: string
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          external_url?: string | null
+          id?: string
+          is_demo?: boolean
+          storage_path?: string | null
+          title?: string
+          uploaded_by?: string | null
         }
         Relationships: []
       }
@@ -803,6 +907,7 @@ export type Database = {
           full_name: string
           id: string
           investment_amount: number
+          is_demo: boolean
           joined_at: string
           notes: string | null
           phone: string | null
@@ -832,6 +937,7 @@ export type Database = {
           full_name: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -861,6 +967,7 @@ export type Database = {
           full_name?: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -885,6 +992,196 @@ export type Database = {
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impersonation_audit: {
+        Row: {
+          action: string
+          at: string
+          id: string
+          payload: Json | null
+          resource: string | null
+          session_id: string
+        }
+        Insert: {
+          action: string
+          at?: string
+          id?: string
+          payload?: Json | null
+          resource?: string | null
+          session_id: string
+        }
+        Update: {
+          action?: string
+          at?: string
+          id?: string
+          payload?: Json | null
+          resource?: string | null
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "impersonation_audit_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "impersonation_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      impersonation_sessions: {
+        Row: {
+          acting_admin_id: string
+          ended_at: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          expires_at: string
+          id: string
+          impersonated_user_id: string | null
+          ip: string | null
+          mode: Database["public"]["Enums"]["impersonation_mode"]
+          started_at: string
+          token_hash: string
+          user_agent: string | null
+        }
+        Insert: {
+          acting_admin_id: string
+          ended_at?: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          expires_at: string
+          id?: string
+          impersonated_user_id?: string | null
+          ip?: string | null
+          mode?: Database["public"]["Enums"]["impersonation_mode"]
+          started_at?: string
+          token_hash: string
+          user_agent?: string | null
+        }
+        Update: {
+          acting_admin_id?: string
+          ended_at?: string | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          expires_at?: string
+          id?: string
+          impersonated_user_id?: string | null
+          ip?: string | null
+          mode?: Database["public"]["Enums"]["impersonation_mode"]
+          started_at?: string
+          token_hash?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          discount_pct: number
+          gst_pct: number
+          hsn_code: string | null
+          id: string
+          invoice_id: string
+          is_student_product: boolean
+          line_gst: number
+          line_subtotal: number
+          line_total: number
+          product_id: string | null
+          quantity: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          discount_pct?: number
+          gst_pct?: number
+          hsn_code?: string | null
+          id?: string
+          invoice_id: string
+          is_student_product?: boolean
+          line_gst?: number
+          line_subtotal?: number
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          discount_pct?: number
+          gst_pct?: number
+          hsn_code?: string | null
+          id?: string
+          invoice_id?: string
+          is_student_product?: boolean
+          line_gst?: number
+          line_subtotal?: number
+          line_total?: number
+          product_id?: string | null
+          quantity?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoice_numbering_rules: {
+        Row: {
+          company_id: string
+          created_at: string
+          current_seq: number
+          doc_type: Database["public"]["Enums"]["invoice_doc_type"]
+          financial_year: string
+          format: string
+          id: string
+          prefix: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          current_seq?: number
+          doc_type: Database["public"]["Enums"]["invoice_doc_type"]
+          financial_year: string
+          format?: string
+          id?: string
+          prefix: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          current_seq?: number
+          doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
+          financial_year?: string
+          format?: string
+          id?: string
+          prefix?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_numbering_rules_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -920,6 +1217,125 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "sales_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount_paid: number
+          bill_to_address: Json | null
+          bill_to_company_id: string | null
+          bill_to_entity_id: string | null
+          bill_to_entity_type: Database["public"]["Enums"]["entity_type"] | null
+          bill_to_gstin: string | null
+          bill_to_name: string | null
+          cancellation_reason: string | null
+          company_id: string
+          created_at: string
+          discount_total: number
+          doc_type: Database["public"]["Enums"]["invoice_doc_type"]
+          due_date: string | null
+          grand_total: number
+          gst_total: number
+          id: string
+          invoice_date: string
+          invoice_number: string | null
+          is_demo: boolean
+          issued_at: string | null
+          issued_by: string | null
+          notes: string | null
+          parent_invoice_id: string | null
+          payment_status: Database["public"]["Enums"]["pos_payment_status"]
+          revision_no: number
+          status: Database["public"]["Enums"]["invoice_status"]
+          subtotal: number
+          updated_at: string
+        }
+        Insert: {
+          amount_paid?: number
+          bill_to_address?: Json | null
+          bill_to_company_id?: string | null
+          bill_to_entity_id?: string | null
+          bill_to_entity_type?:
+            | Database["public"]["Enums"]["entity_type"]
+            | null
+          bill_to_gstin?: string | null
+          bill_to_name?: string | null
+          cancellation_reason?: string | null
+          company_id: string
+          created_at?: string
+          discount_total?: number
+          doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
+          due_date?: string | null
+          grand_total?: number
+          gst_total?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string | null
+          is_demo?: boolean
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          parent_invoice_id?: string | null
+          payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          revision_no?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          updated_at?: string
+        }
+        Update: {
+          amount_paid?: number
+          bill_to_address?: Json | null
+          bill_to_company_id?: string | null
+          bill_to_entity_id?: string | null
+          bill_to_entity_type?:
+            | Database["public"]["Enums"]["entity_type"]
+            | null
+          bill_to_gstin?: string | null
+          bill_to_name?: string | null
+          cancellation_reason?: string | null
+          company_id?: string
+          created_at?: string
+          discount_total?: number
+          doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
+          due_date?: string | null
+          grand_total?: number
+          gst_total?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string | null
+          is_demo?: boolean
+          issued_at?: string | null
+          issued_by?: string | null
+          notes?: string | null
+          parent_invoice_id?: string | null
+          payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          revision_no?: number
+          status?: Database["public"]["Enums"]["invoice_status"]
+          subtotal?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_bill_to_company_id_fkey"
+            columns: ["bill_to_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_parent_invoice_id_fkey"
+            columns: ["parent_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -1242,6 +1658,87 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          company_id: string
+          counterparty_entity_id: string | null
+          counterparty_entity_type:
+            | Database["public"]["Enums"]["entity_type"]
+            | null
+          counterparty_name: string | null
+          created_at: string
+          direction: Database["public"]["Enums"]["payment_direction"]
+          id: string
+          invoice_id: string | null
+          is_demo: boolean
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          payment_date: string
+          recorded_by: string | null
+          reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          company_id: string
+          counterparty_entity_id?: string | null
+          counterparty_entity_type?:
+            | Database["public"]["Enums"]["entity_type"]
+            | null
+          counterparty_name?: string | null
+          created_at?: string
+          direction: Database["public"]["Enums"]["payment_direction"]
+          id?: string
+          invoice_id?: string | null
+          is_demo?: boolean
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          payment_date?: string
+          recorded_by?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          company_id?: string
+          counterparty_entity_id?: string | null
+          counterparty_entity_type?:
+            | Database["public"]["Enums"]["entity_type"]
+            | null
+          counterparty_name?: string | null
+          created_at?: string
+          direction?: Database["public"]["Enums"]["payment_direction"]
+          id?: string
+          invoice_id?: string | null
+          is_demo?: boolean
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          payment_date?: string
+          recorded_by?: string | null
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_items: {
         Row: {
           allowances: number
@@ -1370,6 +1867,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_student_product: boolean
           name: string
           parent_id: string | null
           slug: string
@@ -1379,6 +1877,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_student_product?: boolean
           name: string
           parent_id?: string | null
           slug: string
@@ -1388,6 +1887,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_student_product?: boolean
           name?: string
           parent_id?: string | null
           slug?: string
@@ -1868,6 +2368,7 @@ export type Database = {
         Row: {
           amount_paid: number
           cgst_amount: number
+          company_id: string | null
           completed_at: string | null
           created_at: string
           customer_address: string | null
@@ -1887,6 +2388,7 @@ export type Database = {
           invoice_number: string | null
           notes: string | null
           payment_status: Database["public"]["Enums"]["pos_payment_status"]
+          salon_branch_id: string | null
           served_by: string | null
           sgst_amount: number
           status: Database["public"]["Enums"]["pos_order_status"]
@@ -1897,6 +2399,7 @@ export type Database = {
         Insert: {
           amount_paid?: number
           cgst_amount?: number
+          company_id?: string | null
           completed_at?: string | null
           created_at?: string
           customer_address?: string | null
@@ -1916,6 +2419,7 @@ export type Database = {
           invoice_number?: string | null
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          salon_branch_id?: string | null
           served_by?: string | null
           sgst_amount?: number
           status?: Database["public"]["Enums"]["pos_order_status"]
@@ -1926,6 +2430,7 @@ export type Database = {
         Update: {
           amount_paid?: number
           cgst_amount?: number
+          company_id?: string | null
           completed_at?: string | null
           created_at?: string
           customer_address?: string | null
@@ -1945,6 +2450,7 @@ export type Database = {
           invoice_number?: string | null
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          salon_branch_id?: string | null
           served_by?: string | null
           sgst_amount?: number
           status?: Database["public"]["Enums"]["pos_order_status"]
@@ -1954,6 +2460,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "sales_orders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "sales_orders_franchisee_id_fkey"
             columns: ["franchisee_id"]
             isOneToOne: false
@@ -1961,10 +2474,86 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "sales_orders_salon_branch_id_fkey"
+            columns: ["salon_branch_id"]
+            isOneToOne: false
+            referencedRelation: "salon_branches"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "sales_orders_warehouse_id_fkey"
             columns: ["warehouse_id"]
             isOneToOne: false
             referencedRelation: "warehouses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salon_branches: {
+        Row: {
+          address: Json | null
+          city: string | null
+          code: string | null
+          company_id: string | null
+          created_at: string
+          id: string
+          is_demo: boolean
+          manager_user_id: string | null
+          name: string
+          parent_brand: string
+          service_catalog: Json
+          state: string | null
+          status: string
+          territory_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          city?: string | null
+          code?: string | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          manager_user_id?: string | null
+          name: string
+          parent_brand?: string
+          service_catalog?: Json
+          state?: string | null
+          status?: string
+          territory_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          city?: string | null
+          code?: string | null
+          company_id?: string | null
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          manager_user_id?: string | null
+          name?: string
+          parent_brand?: string
+          service_catalog?: Json
+          state?: string | null
+          status?: string
+          territory_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salon_branches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "salon_branches_territory_id_fkey"
+            columns: ["territory_id"]
+            isOneToOne: false
+            referencedRelation: "territories"
             referencedColumns: ["id"]
           },
         ]
@@ -2143,6 +2732,178 @@ export type Database = {
           },
         ]
       }
+      state_franchise_incentive_ledger: {
+        Row: {
+          amount: number
+          basis_amount: number | null
+          created_at: string
+          id: string
+          is_demo: boolean
+          kind: string
+          notes: string | null
+          paid_amount: number
+          paid_at: string | null
+          pct: number | null
+          period_month: string
+          related_entity_id: string | null
+          related_entity_type: Database["public"]["Enums"]["entity_type"] | null
+          state_franchise_id: string
+          status: Database["public"]["Enums"]["ledger_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          basis_amount?: number | null
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          kind: string
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          pct?: number | null
+          period_month: string
+          related_entity_id?: string | null
+          related_entity_type?:
+            | Database["public"]["Enums"]["entity_type"]
+            | null
+          state_franchise_id: string
+          status?: Database["public"]["Enums"]["ledger_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          basis_amount?: number | null
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          kind?: string
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          pct?: number | null
+          period_month?: string
+          related_entity_id?: string | null
+          related_entity_type?:
+            | Database["public"]["Enums"]["entity_type"]
+            | null
+          state_franchise_id?: string
+          status?: Database["public"]["Enums"]["ledger_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "state_franchise_incentive_ledger_state_franchise_id_fkey"
+            columns: ["state_franchise_id"]
+            isOneToOne: false
+            referencedRelation: "state_franchises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      state_franchise_roi_ledger: {
+        Row: {
+          basis_amount: number
+          created_at: string
+          id: string
+          is_demo: boolean
+          notes: string | null
+          paid_amount: number
+          paid_at: string | null
+          period_month: string
+          roi_due: number
+          roi_pct: number
+          state_franchise_id: string
+          status: Database["public"]["Enums"]["ledger_status"]
+          updated_at: string
+        }
+        Insert: {
+          basis_amount?: number
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          period_month: string
+          roi_due?: number
+          roi_pct?: number
+          state_franchise_id: string
+          status?: Database["public"]["Enums"]["ledger_status"]
+          updated_at?: string
+        }
+        Update: {
+          basis_amount?: number
+          created_at?: string
+          id?: string
+          is_demo?: boolean
+          notes?: string | null
+          paid_amount?: number
+          paid_at?: string | null
+          period_month?: string
+          roi_due?: number
+          roi_pct?: number
+          state_franchise_id?: string
+          status?: Database["public"]["Enums"]["ledger_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "state_franchise_roi_ledger_state_franchise_id_fkey"
+            columns: ["state_franchise_id"]
+            isOneToOne: false
+            referencedRelation: "state_franchises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      state_franchise_targets: {
+        Row: {
+          activated_count: number
+          contract_year: number
+          created_at: string
+          ends_on: string | null
+          id: string
+          per_activation_amount: number
+          starts_on: string | null
+          state_franchise_id: string
+          target_count: number
+          updated_at: string
+        }
+        Insert: {
+          activated_count?: number
+          contract_year?: number
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          per_activation_amount?: number
+          starts_on?: string | null
+          state_franchise_id: string
+          target_count?: number
+          updated_at?: string
+        }
+        Update: {
+          activated_count?: number
+          contract_year?: number
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          per_activation_amount?: number
+          starts_on?: string | null
+          state_franchise_id?: string
+          target_count?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "state_franchise_targets_state_franchise_id_fkey"
+            columns: ["state_franchise_id"]
+            isOneToOne: false
+            referencedRelation: "state_franchises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       state_franchises: {
         Row: {
           created_at: string
@@ -2150,6 +2911,7 @@ export type Database = {
           full_name: string
           id: string
           investment_amount: number
+          is_demo: boolean
           joined_at: string
           notes: string | null
           phone: string | null
@@ -2165,6 +2927,7 @@ export type Database = {
           full_name: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -2180,6 +2943,7 @@ export type Database = {
           full_name?: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -2503,6 +3267,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_entity_access: {
+        Row: {
+          can_write: boolean
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          granted_at: string
+          granted_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          can_write?: boolean
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["entity_type"]
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          can_write?: boolean
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["entity_type"]
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -2749,6 +3543,14 @@ export type Database = {
         Args: { _territory_id: string; _user_id: string }
         Returns: boolean
       }
+      user_has_entity: {
+        Args: {
+          _entity_id: string
+          _entity_type: Database["public"]["Enums"]["entity_type"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       webinar_seats_taken: { Args: { _webinar_id: string }; Returns: number }
     }
     Enums: {
@@ -2768,9 +3570,14 @@ export type Database = {
         | "package_sales"
         | "nail_emporium"
         | "state_franchisee"
+        | "academy_user"
+        | "dark_store_user"
+        | "salon_branch_user"
+        | "auditor"
       attendance_status: "present" | "absent" | "late" | "excused"
       batch_mode: "online" | "offline" | "hybrid"
       batch_status: "upcoming" | "ongoing" | "completed" | "cancelled"
+      company_type: "group" | "distributor" | "retailer" | "operator"
       course_status: "draft" | "published" | "archived"
       emp_attendance_status:
         | "present"
@@ -2792,9 +3599,27 @@ export type Database = {
         | "intern"
         | "consultant"
       enrollment_status: "active" | "completed" | "dropped" | "suspended"
+      entity_type:
+        | "company"
+        | "state_franchise"
+        | "city_franchise"
+        | "academy"
+        | "dark_store"
+        | "salon_branch"
+        | "department"
       expense_status: "pending" | "paid" | "cancelled"
       fee_status: "pending" | "paid" | "partial" | "overdue" | "waived"
       franchisee_status: "active" | "onboarding" | "suspended" | "closed"
+      impersonation_mode: "read_only" | "read_write"
+      invoice_doc_type:
+        | "b2b_tax"
+        | "b2c"
+        | "proforma"
+        | "quotation"
+        | "receipt"
+        | "credit_note"
+        | "debit_note"
+      invoice_status: "draft" | "issued" | "cancelled" | "revised" | "paid"
       lead_source:
         | "meta"
         | "google"
@@ -2819,7 +3644,9 @@ export type Database = {
         | "comp_off"
         | "maternity"
         | "paternity"
+      ledger_status: "accrued" | "approved" | "paid" | "cancelled"
       movement_type: "purchase_in" | "sale_out" | "transfer" | "adjustment"
+      payment_direction: "in" | "out"
       payment_method:
         | "cash"
         | "bank_transfer"
@@ -2999,10 +3826,15 @@ export const Constants = {
         "package_sales",
         "nail_emporium",
         "state_franchisee",
+        "academy_user",
+        "dark_store_user",
+        "salon_branch_user",
+        "auditor",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       batch_mode: ["online", "offline", "hybrid"],
       batch_status: ["upcoming", "ongoing", "completed", "cancelled"],
+      company_type: ["group", "distributor", "retailer", "operator"],
       course_status: ["draft", "published", "archived"],
       emp_attendance_status: [
         "present",
@@ -3027,9 +3859,29 @@ export const Constants = {
         "consultant",
       ],
       enrollment_status: ["active", "completed", "dropped", "suspended"],
+      entity_type: [
+        "company",
+        "state_franchise",
+        "city_franchise",
+        "academy",
+        "dark_store",
+        "salon_branch",
+        "department",
+      ],
       expense_status: ["pending", "paid", "cancelled"],
       fee_status: ["pending", "paid", "partial", "overdue", "waived"],
       franchisee_status: ["active", "onboarding", "suspended", "closed"],
+      impersonation_mode: ["read_only", "read_write"],
+      invoice_doc_type: [
+        "b2b_tax",
+        "b2c",
+        "proforma",
+        "quotation",
+        "receipt",
+        "credit_note",
+        "debit_note",
+      ],
+      invoice_status: ["draft", "issued", "cancelled", "revised", "paid"],
       lead_source: [
         "meta",
         "google",
@@ -3057,7 +3909,9 @@ export const Constants = {
         "maternity",
         "paternity",
       ],
+      ledger_status: ["accrued", "approved", "paid", "cancelled"],
       movement_type: ["purchase_in", "sale_out", "transfer", "adjustment"],
+      payment_direction: ["in", "out"],
       payment_method: [
         "cash",
         "bank_transfer",

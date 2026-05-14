@@ -1,98 +1,335 @@
-# State Franchise Panel
 
-## What we're building
+# MMA Suite – Business OS — Phase 1 Plan
 
-A new **State Franchise** layer that sits above city-level Franchisees. Each state partner owns one or more `territories` (cities). When a city franchisee is created, you assign them to a territory, and the state franchise that owns that territory automatically sees:
+Approach: **Hybrid** — keep existing 51 tables intact, add missing tables/columns, redesign sidebar + dashboards + permission layer per spec. Live data stays; new demo data carries `is_demo = true`.
 
-- All franchisees running under their state
-- Combined sales / POS revenue, expenses, ROI commission earned (`state_partner_pct` from revenue model)
-- Lead pipeline rolled up across their cities
-- Inventory snapshot across their warehouses
+---
 
-State franchises get their **own login** (just like city franchisees) and see a read-only state-level dashboard.
+## 1) Current Module Audit
 
-## Database changes (one migration)
+| Spec module | Status in current app | Gap |
+|---|---|---|
+| Master Dashboard | `app.dashboard.tsx` (admin), `FranchiseeDashboard` | KPIs partially live; missing: company-level rollups, payouts trend, receivables/payables aging, MRR, top-states/cities tables |
+| Leads CRM + Franchise Pipeline | `leads`, `lead_activities`, `lead_routing_rules` ✓ | Convert-to-Franchise action, Kanban view, duplicate detection missing |
+| State Franchises | Table + routes exist; basic onboarding ✓ | ROI ledger, ₹1.5L activation incentive, 10% turnover, 7% student margin, payout statements **missing** |
+| City Franchises | `franchisees` table + ROI percentages (3/10/3/3) ✓ | ROI/incentive **ledger** + payout approval workflow missing |
+| Academies | `students`, `enrollments`, `fee_payments`, `batches`, `courses`, `trainers`, `certificates`, `attendance` ✓ | Academy-scoped role + dashboard portal missing |
+| Dark Stores | Modeled as `warehouses` linked to franchisee ✓ | Entity type + dedicated dashboard/portal missing |
+| Nail Emporium / X Nail Bar | Role `nail_emporium` exists; no branch entity | **Salon branch table + service catalog + branch P&L missing** |
+| Customers / Vendors | `suppliers` ✓; no customers table | Customer master missing (POS currently stores customer inline) |
+| Products / Inventory / Purchases | Full set ✓ | OK |
+| Billing / Invoices | `sales_orders` (single company) | **Multi-company chain HDK→MOS→Nail Emporium→downstream missing**, no proforma/credit/debit note types, no inter-company invoices |
+| Payments | `sale_payments` only | Generic payments table (across companies, AR/AP) missing |
+| Payouts / ROI / Incentives | `roi_payouts` table ✓, `franchisee_targets` ✓ | State-side payout ledger + rule engine + approval workflow missing |
+| Accounts Department | `accounts` role exists, finance routes ✓ | Dedicated department dashboard + correction/cancellation workflow missing |
+| Reports Center | None | **Entire module missing** |
+| Documents | None | Missing |
+| Support Tickets | `tickets` table ✓ | OK |
+| Users & Roles | `user_roles`, `app_role` enum (15 values) ✓ | Missing: `academy_user`, `dark_store_user`, `salon_branch_user`, `city_franchisee` (current uses `franchisee`); permission matrix missing |
+| Audit Logs | `audit_logs` table ✓ | Module-level UI viewer + impersonation events missing |
+| Impersonation | None | **Entire system missing** |
 
-1. **Add role** `state_franchisee` to `app_role` enum.
-2. **New table `state_franchises`** — mirrors `franchisees` shape but for state-level partners:
-   - `id`, `full_name`, `email`, `phone`, `state` (text, e.g. "Maharashtra"), `user_id`, `investment_amount`, `state_partner_pct` (default 10), `joined_at`, `status`, timestamps.
-3. **Link territories → state franchise**: add `state_franchise_id uuid` column to `territories` (nullable). One state franchise owns many territories; one territory belongs to one state franchise.
-4. **Credentials table** `state_franchise_credentials` (same shape as `franchisee_credentials`).
-5. **RLS policies**:
-   - Admin/founder/accounts: full access on `state_franchises`.
-   - State franchisee self: SELECT own row by `user_id = auth.uid()`.
-   - Add a SECURITY DEFINER helper `state_franchise_owns_territory(_user_id, _territory_id)` and use it to grant state franchisee SELECT on:
-     - `franchisees` whose `territory_id` is in their state
-     - `leads`, `lead_activities` in their territories
-     - `sales_orders`, `sale_payments`, `revenue_entries`, `expenses` for those franchisees
-     - `stock_levels` for warehouses linked to those franchisees
-6. **Trigger** `auto_link_state_franchise_on_user_signup` — same pattern as the existing franchisee one, links by email on user creation.
+---
 
-No data migration needed — existing 12 territories stay as-is until you assign each to a state franchise.
+## 2) Phase 1 — Foundation (this iteration)
 
-## Server function
+### 2.1 Database schema deltas
 
-`src/server/state-franchise-user.functions.ts` — clone of `franchisee-user.functions.ts`:
-- `createStateFranchiseUser` — admin-only, creates auth user, grants `state_franchisee` role, links `state_franchises.user_id`, saves temp password to `state_franchise_credentials`.
-- `resetStateFranchisePassword` — admin/accounts can rotate.
+```sql
+-- New enums
+CREATE TYPE entity_type AS ENUM (
+  'company','state_franchise','city_franchise','academy',
+  'dark_store','salon_branch','department'
+);
+CREATE TYPE company_type AS ENUM ('group','distributor','retailer','operator');
+CREATE TYPE invoice_doc_type AS ENUM (
+  'b2b_tax','b2c','proforma','quotation','receipt','credit_note','debit_note'
+);
+CREATE TYPE impersonation_mode AS ENUM ('read_only','read_write');
 
-## New routes
+-- Add missing role values
+ALTER TYPE app_role ADD VALUE 'academy_user';
+ALTER TYPE app_role ADD VALUE 'dark_store_user';
+ALTER TYPE app_role ADD VALUE 'salon_branch_user';
+ALTER TYPE app_role ADD VALUE 'auditor';
 
-1. **`src/routes/app.state-franchises.tsx`** — admin roster page (mirrors `app.franchisees.tsx`):
-   - Card grid with name, state, # cities, # franchisees, total invested.
-   - "Onboard State Franchise" wizard: Partner → Commission % → Assign territories (multi-select from unassigned `territories`) → Save → Generate login (5-step flow, identical UX to city franchisee onboarding).
-   - Search, date range, ImportButton, ExportBar.
-2. **`src/routes/app.state-franchises.$stateFranchiseId.tsx`** — admin detail page:
-   - Header with name/state/status, edit, reset password, "Open dashboard" (opens state dashboard in new tab with `as_state_franchise=1` for impersonation, same pattern as `FranchiseeActions`).
-   - Tabs: Overview (KPIs), Territories (list + assign/unassign), Franchisees (city partners under this state), Sales (rolled up POS + revenue_entries), Commission ledger (computed: their `%` × sales of each city franchisee per `revenue_model_items.state_partner_pct`).
-3. **`src/routes/app.my-state.tsx`** — state-franchisee-only own dashboard (mirrors `app.my-franchise.tsx`):
-   - Tabs: Dashboard | Franchisees | Leads | Sales | Commission.
-   - Read-only views; same styling as `FranchiseeDashboard`.
+-- Demo-data flag on all new tables; backfill flag on key existing tables
+ALTER TABLE state_franchises ADD COLUMN is_demo boolean NOT NULL DEFAULT false;
+ALTER TABLE franchisees      ADD COLUMN is_demo boolean NOT NULL DEFAULT false;
 
-## Sidebar + auth + routing
+-- Multi-company billing chain
+CREATE TABLE companies (
+  id uuid PK, name text, legal_name text, gstin text, pan text,
+  company_type company_type, parent_company_id uuid, brand text,
+  address jsonb, invoice_prefix text, is_demo bool, ...
+);
+-- Seed: HDK BEAUTY I PVT LTD, MOS, Nail Emporium, X Nail Bar
 
-- `AppSidebar.tsx`: add **"State Franchises"** link (admins/accounts) under Operations group; for state franchisees, show a **"My State"** group with Dashboard/Franchisees/Leads/Sales tabs pointing to `/app/my-state`.
-- `auth-context.tsx`: add `"state_franchisee"` to `AppRole` union.
-- `app.index.tsx`: route state-franchisee-only users to `/app/my-state`.
-- `app.settings.team.tsx`: include `state_franchisee` in role picker.
-- `FranchiseeActions.tsx`: keep as-is. Add a parallel `StateFranchiseActions.tsx` for the new roster.
+CREATE TABLE invoice_numbering_rules (
+  id, company_id, doc_type invoice_doc_type, prefix text,
+  financial_year text, current_seq int, format text
+);
 
-## Onboarding flow (city franchisee tie-in)
+CREATE TABLE invoices (
+  id, company_id (from), bill_to_company_id, bill_to_entity_type entity_type,
+  bill_to_entity_id, doc_type invoice_doc_type, invoice_number,
+  invoice_date, due_date, subtotal, gst_total, grand_total, amount_paid,
+  payment_status, status (draft/issued/cancelled/revised),
+  parent_invoice_id (for credit/debit notes & revisions), revision_no,
+  cancellation_reason, notes, is_demo
+);
+CREATE TABLE invoice_items (id, invoice_id, product_id?, description,
+  qty, unit_price, discount_pct, gst_pct, line_total);
 
-In the existing `app.franchisees.tsx` onboarding wizard step 1, add an optional **Territory** dropdown (already in DB). When admin picks a territory, the city franchisee inherits its `state_franchise_id` automatically (via territory join), so the state franchise's dashboard immediately shows the new city.
+CREATE TABLE payments (
+  id, direction ('in'/'out'), company_id, counterparty_entity_type,
+  counterparty_entity_id, invoice_id?, amount, payment_date,
+  method, reference, status, is_demo
+);
 
-## Commission computation
+-- Salon branches (X Nail Bar)
+CREATE TABLE salon_branches (
+  id, name, code, city, state, territory_id?, manager_user_id?,
+  parent_brand ('nail_emporium' | 'x_nail_bar'), status,
+  service_catalog jsonb, is_demo
+);
+ALTER TABLE sales_orders ADD COLUMN salon_branch_id uuid;
+ALTER TABLE sales_orders ADD COLUMN company_id uuid;
 
-State franchise commission = sum over each city franchisee in their state of:
-`(sales_orders.grand_total) × (state_partner_pct / 100)`
-where `state_partner_pct` comes from the matching `revenue_model_items` row (POS line's product → category → model item), with a fallback to `state_franchises.state_partner_pct` (default 10%) if no model item match.
+-- State Franchise ledgers (NEW)
+CREATE TABLE state_franchise_roi_ledger (
+  id, state_franchise_id, period_month date, basis_amount numeric,
+  roi_pct numeric DEFAULT 3, roi_due numeric, status, paid_at, paid_amount, notes
+);
+CREATE TABLE state_franchise_incentive_ledger (
+  id, state_franchise_id, kind ('city_activation','state_turnover','student_margin'),
+  related_entity_type entity_type, related_entity_id uuid,
+  basis_amount numeric, pct numeric, amount numeric,
+  period_month date, status ('accrued','approved','paid'), paid_at, notes
+);
+CREATE TABLE state_franchise_targets (
+  id, state_franchise_id, contract_year int, target_count int DEFAULT 10,
+  activated_count int DEFAULT 0, per_activation_amount numeric DEFAULT 150000,
+  starts_on date, ends_on date
+);
 
-For the first cut we use the **flat fallback %** to keep it shipping fast; per-product computation can be a follow-up once the revenue-model → product mapping is locked in.
+-- Generic user-to-entity mapping (drives RLS + portal scope)
+CREATE TABLE user_entity_access (
+  id, user_id, entity_type entity_type, entity_id uuid,
+  can_write bool DEFAULT false, granted_by, granted_at
+);
 
-## What doesn't change
+-- Impersonation sessions
+CREATE TABLE impersonation_sessions (
+  id, acting_admin_id uuid, impersonated_user_id uuid,
+  entity_type entity_type, entity_id uuid,
+  mode impersonation_mode DEFAULT 'read_only',
+  token_hash text, started_at, expires_at, ended_at,
+  ip text, user_agent text
+);
+CREATE TABLE impersonation_audit (
+  id, session_id, action text, resource text, payload jsonb, at timestamptz
+);
 
-- City franchisee dashboards, POS, inventory, finance pages — unchanged.
-- Existing 4 franchisees keep working; you can backfill their `territory_id` later from the franchisees roster.
-- No breaking RLS changes — only additive policies for the new role.
-
-## Files touched
-
-```text
-NEW  supabase/migrations/<timestamp>_state_franchise.sql
-NEW  src/server/state-franchise-user.functions.ts
-NEW  src/routes/app.state-franchises.tsx
-NEW  src/routes/app.state-franchises.$stateFranchiseId.tsx
-NEW  src/routes/app.my-state.tsx
-NEW  src/components/app/StateFranchiseActions.tsx
-EDIT src/components/app/AppSidebar.tsx          (add nav)
-EDIT src/lib/auth-context.tsx                   (add role)
-EDIT src/routes/app.index.tsx                   (redirect)
-EDIT src/routes/app.settings.team.tsx           (role label)
-EDIT src/routes/app.franchisees.tsx             (territory picker in wizard)
+-- Document vault
+CREATE TABLE documents (
+  id, entity_type, entity_id, title, doc_kind (agreement/kyc/invoice/other),
+  storage_path text, uploaded_by, uploaded_at, is_demo
+);
 ```
 
-## Result
+### 2.2 Role / Permission Matrix (Phase 1 essentials)
 
-- Admin sees new "State Franchises" section, onboards a state partner (e.g. "ABC Holdings — Maharashtra"), assigns Mumbai Metro + Pune territories to them, generates login.
-- State partner logs in → lands on `/app/my-state` → sees both city franchisees, combined sales, leads, and commission earned.
-- Any new city franchisee assigned to one of their territories shows up automatically.
+| Role | Master DB | Companies | State F. | City F. | Invoices | Payments | Payouts | Reports | Users | Impersonate |
+|---|---|---|---|---|---|---|---|---|---|---|
+| super_admin | RW | RW | RW | RW | RW | RW | RW + approve | R | RW | ✓ RW |
+| founder | R | R | R | R | R | R | R + approve | R | R | ✓ RO |
+| accounts | scoped | R | R | R | RW | RW | R + record | R | – | ✗ |
+| sales | scoped | – | R | R | – | – | – | R (pipeline) | – | ✗ |
+| state_franchisee | own state | – | own | own state cities R | own R | own R | own R | own | – | ✗ |
+| franchisee (=city) | own | – | – | own | own R | own R | own R | own | – | ✗ |
+| academy_user | own | – | – | – | own R | own R | – | own | – | ✗ |
+| dark_store_user | own | – | – | – | own R | own R | – | own | – | ✗ |
+| salon_branch_user | own | – | – | – | own R | own R | – | own | – | ✗ |
+| nail_emporium | brand | – | R | R | RW | R | – | R | – | ✗ |
+| auditor | R-all | R | R | R | R | R | R | R | R | ✗ |
+
+RLS implementation uses two SECURITY DEFINER helpers (already present pattern):
+- `user_has_entity(_user_id, _entity_type, _entity_id)` reading `user_entity_access`.
+- `current_impersonation()` reading a JWT claim `impersonation` set by the impersonation server fn.
+
+### 2.3 Impersonation Flow (server function)
+
+```
+Admin clicks "Open dashboard" on any entity row
+  → POST /sf/impersonate.functions.ts startImpersonation({ entity_type, entity_id, mode })
+  → server fn validates is_admin(auth.uid())
+  → inserts impersonation_sessions row, mints JWT signed with SESSION_SECRET
+     claims: { sid, acting_admin_id, entity_type, entity_id, mode, exp: now+30m }
+  → returns { url: `/imp/${jwt}` }
+  → Admin's browser opens new tab `/imp/{jwt}`
+  → /imp route stores token in sessionStorage (NOT localStorage),
+     sets ImpersonationContext, navigates to that entity's dashboard
+  → All Supabase queries go via a server fn `imp.read()` that:
+     - verifies JWT signature + expiry + DB session row not ended
+     - uses supabaseAdmin with WHERE filters scoped to the impersonated entity
+     - logs every read/write to impersonation_audit
+  → Banner component renders fixed top:
+     "Viewing as {entity.name} • Impersonated by {admin.name} • Expires in {mm:ss} • [Exit]"
+  → Exit → endImpersonation(sid) → marks ended_at, clears sessionStorage
+```
+
+Read-write impersonation gated by `org_settings.allow_rw_impersonation` (super_admin only).
+
+### 2.4 State Franchise ROI Engine
+
+Monthly cron (server fn invoked nightly via `/api/public/cron/accruals` with shared-secret header):
+
+```
+For each active state_franchise sf:
+  basis = sf.investment_amount
+  INSERT INTO state_franchise_roi_ledger(period_month=this_month, roi_due=basis*0.03, status='accrued')
+
+For each newly activated city_franchise in sf's state (joined_at this month):
+  INSERT INTO state_franchise_incentive_ledger(
+    kind='city_activation', amount=150000, basis_amount=null, status='accrued')
+
+Monthly state turnover share (10%):
+  net_turnover = SUM(invoices.grand_total WHERE bill_to_entity in sf.cities AND month)
+                 - SUM(credit_notes for same)
+  INSERT(kind='state_turnover', basis_amount=net_turnover, pct=10, amount=net_turnover*0.10)
+
+Student product margin (7%):
+  margin_basis = SUM(invoices for academy product lines in sf.state)
+  INSERT(kind='student_margin', basis_amount=margin_basis, pct=7, amount=basis*0.07)
+```
+
+Targets: trigger on `franchisees INSERT` increments `state_franchise_targets.activated_count`.
+
+### 2.5 Multi-company Billing Chain
+
+```
+companies seed:
+  HDK BEAUTY I PVT LTD  → parent of everything
+  MOS                   → parent_company_id = HDK
+  Nail Emporium         → parent_company_id = MOS
+  X Nail Bar (operator) → parent_company_id = Nail Emporium
+
+Invoice numbering rules (one per company × doc_type):
+  HDK/B2B_TAX → "HDK/{FY}/{0000}"
+  MOS/B2B_TAX → "MOS/{FY}/{0000}"
+  NE/B2B_TAX  → "NE/{FY}/{0000}"
+  NE/B2C      → "NE-BC/{FY}/{0000}"
+  …
+
+Flow:
+  HDK issues invoice → MOS (AP for MOS / AR for HDK)
+  MOS issues invoice → Nail Emporium
+  Nail Emporium issues invoice → Academy / DarkStore / SalonBranch / Customer
+  Each invoice has bill_to_entity_type so receivables/payables aging
+  rolls up by entity type and by company.
+
+Credit/debit notes reference parent invoice; "Revise" creates revision_no+1 and
+links parent_invoice_id; original is marked status='revised'.
+```
+
+### 2.6 Sidebar redesign
+
+Reorganize `AppSidebar.tsx` into groups (role-filtered):
+
+```
+Overview          : Master Dashboard, Reports Center
+Sales & CRM       : Leads, Franchise Pipeline
+Network           : State Franchises, City Franchises, Academies, Dark Stores,
+                    Nail Emporium, X Nail Bar Branches
+Operations        : POS, Inventory, Products, Purchases, Customers, Vendors
+Finance           : Companies, Billing/Invoices, Payments, Payouts,
+                    ROI & Incentives, Accounts Department, Expenses, Revenue Model
+People            : HR, Academy (admin), Webinars, Support
+Governance        : Users & Roles, Audit Logs, Documents, Settings
+My Portal         : (entity users see their own scoped section here)
+```
+
+### 2.7 Files plan (Phase 1)
+
+```
+NEW supabase/migrations/<ts>_phase1_foundation.sql        (all schema above)
+NEW src/lib/companies.functions.ts                        (CRUD)
+NEW src/lib/invoices.functions.ts                         (issue, revise, cancel, credit/debit)
+NEW src/lib/payments.functions.ts
+NEW src/lib/impersonation.functions.ts                    (start/end/verify)
+NEW src/lib/state-payouts.functions.ts                    (accrue/approve/pay)
+NEW src/lib/accruals.functions.ts                         (monthly engine)
+NEW src/routes/api/public/cron.accruals.ts                (shared-secret endpoint)
+NEW src/routes/app.companies.tsx
+NEW src/routes/app.billing.invoices.tsx
+NEW src/routes/app.billing.invoices.$invoiceId.tsx
+NEW src/routes/app.payments.tsx
+NEW src/routes/app.payouts.state.tsx                      (State Franchise payouts ledger)
+NEW src/routes/app.audit.tsx
+NEW src/routes/app.users.tsx                              (Users & Roles + entity access)
+NEW src/routes/imp.$token.tsx                             (impersonation entry)
+NEW src/components/app/ImpersonationBanner.tsx
+NEW src/components/app/InvoicePrint.tsx                   (B2B/B2C/proforma/CN/DN)
+EDIT src/components/app/AppSidebar.tsx                    (regrouped + role filters)
+EDIT src/routes/app.state-franchises.$stateFranchiseId.tsx (Open Dashboard btn → impersonate)
+EDIT src/routes/app.franchisees.$franchiseeId.tsx          (same)
+EDIT src/lib/auth-context.tsx                              (impersonation context + new roles)
+EDIT src/routes/__root.tsx                                 (mount ImpersonationBanner)
+```
+
+### 2.8 Demo data seeding
+
+After approval, seed (all `is_demo=true`):
+- 4 companies (HDK, MOS, Nail Emporium, X Nail Bar) — companies table real
+- 3 demo state franchises (Maharashtra/Karnataka/Delhi) + credentials
+- 6 demo city franchises across those states
+- 4 demo salon branches under Nail Emporium
+- 30 demo invoices across the chain (HDK→MOS→NE→downstream)
+- 12 months of accrual ledger entries
+- Demo login table (super_admin / accounts / state_demo@ / city_demo@ / academy_demo@ / store_demo@ / branch_demo@) with temp passwords surfaced in admin **Credentials** screen
+
+---
+
+## 3) Phase 2 (next iteration, after Phase 1 ships)
+
+- City Franchise incentive engine (10% NE / 3% Academy / 3% Dark Store) wired to invoice lines
+- Academy portal dashboard (academy_user role, own enrollments/fees only)
+- Dark Store portal dashboard
+- Salon Branch portal dashboard with service catalog + staff performance
+- Customer master + customer-billing detail page
+- Convert-lead-to-franchise flow + Kanban
+
+## 4) Phase 3
+
+- Reports Center with all 18 reports, filters, drill-down, CSV/PDF export
+- Audit log expansion: impersonation event filters, before/after diffs
+- GST summary placeholders for sales & purchases
+- Approval matrix configurator
+- Documents vault (upload to storage bucket + signed URLs)
+- Notification engine for due payouts / overdue invoices
+
+---
+
+## 5) Business rule assumptions (please confirm before Phase 1 starts)
+
+1. **ROI is computed monthly on full invested amount, not on outstanding balance.** Both state and city.
+2. **State activation incentive** (₹1,50,000) is credited the month the city franchise is created with `status='active'`. If a city is later marked inactive, the incentive **stays** (no clawback). OK?
+3. **10% state turnover share** is computed on `net invoiced amount minus credit notes` for invoices whose `bill_to_entity` is inside the state — **excluding** inter-company invoices upstream (HDK→MOS, MOS→NE). OK?
+4. **7% student product margin**: applied to invoice lines tagged `category='student_product'` for academies inside the state. Need a flag on `product_categories` — added in migration.
+5. **Impersonation default = read-only**, with super-admin toggle in Settings to enable read-write per session.
+6. **Demo flag** is admin-visible only; non-admin users never see `is_demo=true` rows (enforced via RLS).
+7. **Invoice numbering** resets per financial year (Apr 1 – Mar 31, India).
+8. **Cancelled invoices** keep their number reserved (no renumbering).
+
+If any of these need to change, tell me before I start the migration.
+
+---
+
+## What I need from you to start Phase 1 build
+
+- ✅ Approve this plan (or edit assumptions in §5)
+- Pick **cron trigger**: I'll add `pg_cron` to call `/api/public/cron/accruals` nightly (no external service needed). Confirm or say "manual run button only for now".
+- Confirm SESSION_SECRET for impersonation JWT signing can be auto-generated and stored as a new secret (`IMPERSONATION_SECRET`).
+
+On approval I'll ship Phase 1 in this order: migration → impersonation infra → companies + billing chain UI → state ROI engine + payouts ledger → sidebar regroup + demo seed.
