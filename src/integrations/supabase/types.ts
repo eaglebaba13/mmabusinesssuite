@@ -803,6 +803,7 @@ export type Database = {
           full_name: string
           id: string
           investment_amount: number
+          is_demo: boolean
           joined_at: string
           notes: string | null
           phone: string | null
@@ -832,6 +833,7 @@ export type Database = {
           full_name: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -861,6 +863,7 @@ export type Database = {
           full_name?: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -1370,6 +1373,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_student_product: boolean
           name: string
           parent_id: string | null
           slug: string
@@ -1379,6 +1383,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_student_product?: boolean
           name: string
           parent_id?: string | null
           slug: string
@@ -1388,6 +1393,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_student_product?: boolean
           name?: string
           parent_id?: string | null
           slug?: string
@@ -2150,6 +2156,7 @@ export type Database = {
           full_name: string
           id: string
           investment_amount: number
+          is_demo: boolean
           joined_at: string
           notes: string | null
           phone: string | null
@@ -2165,6 +2172,7 @@ export type Database = {
           full_name: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -2180,6 +2188,7 @@ export type Database = {
           full_name?: string
           id?: string
           investment_amount?: number
+          is_demo?: boolean
           joined_at?: string
           notes?: string | null
           phone?: string | null
@@ -2768,9 +2777,14 @@ export type Database = {
         | "package_sales"
         | "nail_emporium"
         | "state_franchisee"
+        | "academy_user"
+        | "dark_store_user"
+        | "salon_branch_user"
+        | "auditor"
       attendance_status: "present" | "absent" | "late" | "excused"
       batch_mode: "online" | "offline" | "hybrid"
       batch_status: "upcoming" | "ongoing" | "completed" | "cancelled"
+      company_type: "group" | "distributor" | "retailer" | "operator"
       course_status: "draft" | "published" | "archived"
       emp_attendance_status:
         | "present"
@@ -2792,9 +2806,27 @@ export type Database = {
         | "intern"
         | "consultant"
       enrollment_status: "active" | "completed" | "dropped" | "suspended"
+      entity_type:
+        | "company"
+        | "state_franchise"
+        | "city_franchise"
+        | "academy"
+        | "dark_store"
+        | "salon_branch"
+        | "department"
       expense_status: "pending" | "paid" | "cancelled"
       fee_status: "pending" | "paid" | "partial" | "overdue" | "waived"
       franchisee_status: "active" | "onboarding" | "suspended" | "closed"
+      impersonation_mode: "read_only" | "read_write"
+      invoice_doc_type:
+        | "b2b_tax"
+        | "b2c"
+        | "proforma"
+        | "quotation"
+        | "receipt"
+        | "credit_note"
+        | "debit_note"
+      invoice_status: "draft" | "issued" | "cancelled" | "revised" | "paid"
       lead_source:
         | "meta"
         | "google"
@@ -2819,7 +2851,9 @@ export type Database = {
         | "comp_off"
         | "maternity"
         | "paternity"
+      ledger_status: "accrued" | "approved" | "paid" | "cancelled"
       movement_type: "purchase_in" | "sale_out" | "transfer" | "adjustment"
+      payment_direction: "in" | "out"
       payment_method:
         | "cash"
         | "bank_transfer"
@@ -2999,10 +3033,15 @@ export const Constants = {
         "package_sales",
         "nail_emporium",
         "state_franchisee",
+        "academy_user",
+        "dark_store_user",
+        "salon_branch_user",
+        "auditor",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       batch_mode: ["online", "offline", "hybrid"],
       batch_status: ["upcoming", "ongoing", "completed", "cancelled"],
+      company_type: ["group", "distributor", "retailer", "operator"],
       course_status: ["draft", "published", "archived"],
       emp_attendance_status: [
         "present",
@@ -3027,9 +3066,29 @@ export const Constants = {
         "consultant",
       ],
       enrollment_status: ["active", "completed", "dropped", "suspended"],
+      entity_type: [
+        "company",
+        "state_franchise",
+        "city_franchise",
+        "academy",
+        "dark_store",
+        "salon_branch",
+        "department",
+      ],
       expense_status: ["pending", "paid", "cancelled"],
       fee_status: ["pending", "paid", "partial", "overdue", "waived"],
       franchisee_status: ["active", "onboarding", "suspended", "closed"],
+      impersonation_mode: ["read_only", "read_write"],
+      invoice_doc_type: [
+        "b2b_tax",
+        "b2c",
+        "proforma",
+        "quotation",
+        "receipt",
+        "credit_note",
+        "debit_note",
+      ],
+      invoice_status: ["draft", "issued", "cancelled", "revised", "paid"],
       lead_source: [
         "meta",
         "google",
@@ -3057,7 +3116,9 @@ export const Constants = {
         "maternity",
         "paternity",
       ],
+      ledger_status: ["accrued", "approved", "paid", "cancelled"],
       movement_type: ["purchase_in", "sale_out", "transfer", "adjustment"],
+      payment_direction: ["in", "out"],
       payment_method: [
         "cash",
         "bank_transfer",
