@@ -18,6 +18,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as WebinarSlugRouteImport } from './routes/webinar.$slug'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as InvoiceTokenRouteImport } from './routes/invoice.$token'
+import { Route as ImpTokenRouteImport } from './routes/imp.$token'
 import { Route as AppWebinarsRouteImport } from './routes/app.webinars'
 import { Route as AppTrainerRouteImport } from './routes/app.trainer'
 import { Route as AppSupportRouteImport } from './routes/app.support'
@@ -48,6 +49,7 @@ import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.soc
 import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.settings.lead-routing'
 import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
 import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
+import { Route as AppPayoutsStateRouteImport } from './routes/app.payouts.state'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
 import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
@@ -66,6 +68,7 @@ import { Route as AppFinanceRevenueRouteImport } from './routes/app.finance.reve
 import { Route as AppFinancePayoutsRouteImport } from './routes/app.finance.payouts'
 import { Route as AppFinanceExpensesRouteImport } from './routes/app.finance.expenses'
 import { Route as AppFinanceCategoriesRouteImport } from './routes/app.finance.categories'
+import { Route as AppBillingInvoicesRouteImport } from './routes/app.billing.invoices'
 import { Route as AppAcademyTrainersRouteImport } from './routes/app.academy.trainers'
 import { Route as AppAcademyStudentsRouteImport } from './routes/app.academy.students'
 import { Route as AppAcademyFeesRouteImport } from './routes/app.academy.fees'
@@ -121,6 +124,11 @@ const VerifyCodeRoute = VerifyCodeRouteImport.update({
 const InvoiceTokenRoute = InvoiceTokenRouteImport.update({
   id: '/invoice/$token',
   path: '/invoice/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpTokenRoute = ImpTokenRouteImport.update({
+  id: '/imp/$token',
+  path: '/imp/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppWebinarsRoute = AppWebinarsRouteImport.update({
@@ -274,6 +282,11 @@ const AppPosAnalyticsRoute = AppPosAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AppPosRoute,
 } as any)
+const AppPayoutsStateRoute = AppPayoutsStateRouteImport.update({
+  id: '/payouts/state',
+  path: '/payouts/state',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
   id: '/$leadId',
   path: '/$leadId',
@@ -366,6 +379,11 @@ const AppFinanceCategoriesRoute = AppFinanceCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AppFinanceRoute,
 } as any)
+const AppBillingInvoicesRoute = AppBillingInvoicesRouteImport.update({
+  id: '/billing/invoices',
+  path: '/billing/invoices',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAcademyTrainersRoute = AppAcademyTrainersRouteImport.update({
   id: '/trainers',
   path: '/trainers',
@@ -446,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
+  '/imp/$token': typeof ImpTokenRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
@@ -459,6 +478,7 @@ export interface FileRoutesByFullPath {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
+  '/app/billing/invoices': typeof AppBillingInvoicesRoute
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -477,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/payouts/state': typeof AppPayoutsStateRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
@@ -508,6 +529,7 @@ export interface FileRoutesByTo {
   '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
+  '/imp/$token': typeof ImpTokenRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
@@ -521,6 +543,7 @@ export interface FileRoutesByTo {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
+  '/app/billing/invoices': typeof AppBillingInvoicesRoute
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -539,6 +562,7 @@ export interface FileRoutesByTo {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/payouts/state': typeof AppPayoutsStateRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
@@ -579,6 +603,7 @@ export interface FileRoutesById {
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
+  '/imp/$token': typeof ImpTokenRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
@@ -592,6 +617,7 @@ export interface FileRoutesById {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
+  '/app/billing/invoices': typeof AppBillingInvoicesRoute
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -610,6 +636,7 @@ export interface FileRoutesById {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/payouts/state': typeof AppPayoutsStateRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
@@ -651,6 +678,7 @@ export interface FileRouteTypes {
     | '/app/support'
     | '/app/trainer'
     | '/app/webinars'
+    | '/imp/$token'
     | '/invoice/$token'
     | '/verify/$code'
     | '/webinar/$slug'
@@ -664,6 +692,7 @@ export interface FileRouteTypes {
     | '/app/academy/fees'
     | '/app/academy/students'
     | '/app/academy/trainers'
+    | '/app/billing/invoices'
     | '/app/finance/categories'
     | '/app/finance/expenses'
     | '/app/finance/payouts'
@@ -682,6 +711,7 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/payouts/state'
     | '/app/pos/analytics'
     | '/app/pos/orders'
     | '/app/settings/lead-routing'
@@ -713,6 +743,7 @@ export interface FileRouteTypes {
     | '/app/state-franchises'
     | '/app/support'
     | '/app/trainer'
+    | '/imp/$token'
     | '/invoice/$token'
     | '/verify/$code'
     | '/webinar/$slug'
@@ -726,6 +757,7 @@ export interface FileRouteTypes {
     | '/app/academy/fees'
     | '/app/academy/students'
     | '/app/academy/trainers'
+    | '/app/billing/invoices'
     | '/app/finance/categories'
     | '/app/finance/expenses'
     | '/app/finance/payouts'
@@ -744,6 +776,7 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/payouts/state'
     | '/app/pos/analytics'
     | '/app/pos/orders'
     | '/app/settings/lead-routing'
@@ -783,6 +816,7 @@ export interface FileRouteTypes {
     | '/app/support'
     | '/app/trainer'
     | '/app/webinars'
+    | '/imp/$token'
     | '/invoice/$token'
     | '/verify/$code'
     | '/webinar/$slug'
@@ -796,6 +830,7 @@ export interface FileRouteTypes {
     | '/app/academy/fees'
     | '/app/academy/students'
     | '/app/academy/trainers'
+    | '/app/billing/invoices'
     | '/app/finance/categories'
     | '/app/finance/expenses'
     | '/app/finance/payouts'
@@ -814,6 +849,7 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/payouts/state'
     | '/app/pos/analytics'
     | '/app/pos/orders'
     | '/app/settings/lead-routing'
@@ -839,6 +875,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  ImpTokenRoute: typeof ImpTokenRoute
   InvoiceTokenRoute: typeof InvoiceTokenRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   WebinarSlugRoute: typeof WebinarSlugRoute
@@ -910,6 +947,13 @@ declare module '@tanstack/react-router' {
       path: '/invoice/$token'
       fullPath: '/invoice/$token'
       preLoaderRoute: typeof InvoiceTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/imp/$token': {
+      id: '/imp/$token'
+      path: '/imp/$token'
+      fullPath: '/imp/$token'
+      preLoaderRoute: typeof ImpTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/webinars': {
@@ -1122,6 +1166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPosAnalyticsRouteImport
       parentRoute: typeof AppPosRoute
     }
+    '/app/payouts/state': {
+      id: '/app/payouts/state'
+      path: '/payouts/state'
+      fullPath: '/app/payouts/state'
+      preLoaderRoute: typeof AppPayoutsStateRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/leads/$leadId': {
       id: '/app/leads/$leadId'
       path: '/$leadId'
@@ -1247,6 +1298,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/finance/categories'
       preLoaderRoute: typeof AppFinanceCategoriesRouteImport
       parentRoute: typeof AppFinanceRoute
+    }
+    '/app/billing/invoices': {
+      id: '/app/billing/invoices'
+      path: '/billing/invoices'
+      fullPath: '/app/billing/invoices'
+      preLoaderRoute: typeof AppBillingInvoicesRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/academy/trainers': {
       id: '/app/academy/trainers'
@@ -1543,6 +1601,8 @@ interface AppRouteChildren {
   AppTrainerRoute: typeof AppTrainerRoute
   AppWebinarsRoute: typeof AppWebinarsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
+  AppBillingInvoicesRoute: typeof AppBillingInvoicesRoute
+  AppPayoutsStateRoute: typeof AppPayoutsStateRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1562,6 +1622,8 @@ const AppRouteChildren: AppRouteChildren = {
   AppTrainerRoute: AppTrainerRoute,
   AppWebinarsRoute: AppWebinarsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
+  AppBillingInvoicesRoute: AppBillingInvoicesRoute,
+  AppPayoutsStateRoute: AppPayoutsStateRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -1572,6 +1634,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  ImpTokenRoute: ImpTokenRoute,
   InvoiceTokenRoute: InvoiceTokenRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   WebinarSlugRoute: WebinarSlugRoute,
