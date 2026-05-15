@@ -84,7 +84,7 @@ export const resolveImpersonation = createServerFn({ method: "POST" })
 
     // Resolve entity name
     let name = "Entity";
-    let extra: Record<string, unknown> = {};
+    let extra: any = {};
     if (sess.entity_type === "state_franchise") {
       const { data: e } = await supabaseAdmin.from("state_franchises").select("full_name,state,investment_amount").eq("id", sess.entity_id).maybeSingle();
       name = e?.full_name ?? name;
@@ -161,7 +161,7 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
       throw new Error("Session invalid");
     }
 
-    const out: Record<string, unknown> = {};
+    const out: any = {};
     if (sess.entity_type === "state_franchise") {
       const [roi, inc, targets, cities] = await Promise.all([
         supabaseAdmin.from("state_franchise_roi_ledger").select("*").eq("state_franchise_id", sess.entity_id).order("period_month", { ascending: false }).limit(24),
