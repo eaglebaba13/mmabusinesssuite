@@ -18,6 +18,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as WebinarSlugRouteImport } from './routes/webinar.$slug'
 import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
 import { Route as InvoiceTokenRouteImport } from './routes/invoice.$token'
+import { Route as ImpTokenRouteImport } from './routes/imp.$token'
 import { Route as AppWebinarsRouteImport } from './routes/app.webinars'
 import { Route as AppTrainerRouteImport } from './routes/app.trainer'
 import { Route as AppSupportRouteImport } from './routes/app.support'
@@ -121,6 +122,11 @@ const VerifyCodeRoute = VerifyCodeRouteImport.update({
 const InvoiceTokenRoute = InvoiceTokenRouteImport.update({
   id: '/invoice/$token',
   path: '/invoice/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpTokenRoute = ImpTokenRouteImport.update({
+  id: '/imp/$token',
+  path: '/imp/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppWebinarsRoute = AppWebinarsRouteImport.update({
@@ -446,6 +452,7 @@ export interface FileRoutesByFullPath {
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
+  '/imp/$token': typeof ImpTokenRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
@@ -508,6 +515,7 @@ export interface FileRoutesByTo {
   '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
+  '/imp/$token': typeof ImpTokenRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
@@ -579,6 +587,7 @@ export interface FileRoutesById {
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
   '/app/webinars': typeof AppWebinarsRouteWithChildren
+  '/imp/$token': typeof ImpTokenRoute
   '/invoice/$token': typeof InvoiceTokenRoute
   '/verify/$code': typeof VerifyCodeRoute
   '/webinar/$slug': typeof WebinarSlugRoute
@@ -651,6 +660,7 @@ export interface FileRouteTypes {
     | '/app/support'
     | '/app/trainer'
     | '/app/webinars'
+    | '/imp/$token'
     | '/invoice/$token'
     | '/verify/$code'
     | '/webinar/$slug'
@@ -713,6 +723,7 @@ export interface FileRouteTypes {
     | '/app/state-franchises'
     | '/app/support'
     | '/app/trainer'
+    | '/imp/$token'
     | '/invoice/$token'
     | '/verify/$code'
     | '/webinar/$slug'
@@ -783,6 +794,7 @@ export interface FileRouteTypes {
     | '/app/support'
     | '/app/trainer'
     | '/app/webinars'
+    | '/imp/$token'
     | '/invoice/$token'
     | '/verify/$code'
     | '/webinar/$slug'
@@ -839,6 +851,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  ImpTokenRoute: typeof ImpTokenRoute
   InvoiceTokenRoute: typeof InvoiceTokenRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
   WebinarSlugRoute: typeof WebinarSlugRoute
@@ -910,6 +923,13 @@ declare module '@tanstack/react-router' {
       path: '/invoice/$token'
       fullPath: '/invoice/$token'
       preLoaderRoute: typeof InvoiceTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/imp/$token': {
+      id: '/imp/$token'
+      path: '/imp/$token'
+      fullPath: '/imp/$token'
+      preLoaderRoute: typeof ImpTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/webinars': {
@@ -1572,6 +1592,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  ImpTokenRoute: ImpTokenRoute,
   InvoiceTokenRoute: InvoiceTokenRoute,
   VerifyCodeRoute: VerifyCodeRoute,
   WebinarSlugRoute: WebinarSlugRoute,
