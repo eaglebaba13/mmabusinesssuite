@@ -93,7 +93,7 @@ function ReceivablesTab() {
   const { isTesting } = useMode();
   const q = useQuery({
     queryKey: ["acct-rec", isTesting],
-    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").eq("is_demo", isTesting).neq("status", "draft").neq("status", "cancelled").order("due_date", { ascending: true, nullsFirst: false })).data,
+    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").eq("is_demo", isTesting).in("status", ["issued", "partially_paid"] as any).order("due_date", { ascending: true, nullsFirst: false })).data,
   });
   const rows = ((q.data ?? []) as any[]).filter((r) => Number(r.grand_total) > Number(r.amount_paid));
   const today = new Date().toISOString().slice(0, 10);
