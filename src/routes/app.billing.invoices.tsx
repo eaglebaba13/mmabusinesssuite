@@ -12,10 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { issueInvoice, cancelInvoice, reviseInvoice, createInvoice } from "@/server/invoices.functions";
+import { issueInvoice, cancelInvoice, reviseInvoice, createInvoice, updateInvoice } from "@/server/invoices.functions";
 import { formatINR } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, FileText, Ban, RefreshCw, CheckCircle2 } from "lucide-react";
+import { Plus, FileText, Ban, RefreshCw, CheckCircle2, Pencil, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/billing/invoices")({
   head: () => ({ meta: [{ title: "Invoices — MMA Suite" }] }),
@@ -23,16 +23,30 @@ export const Route = createFileRoute("/app/billing/invoices")({
 });
 
 const DOC_TYPES = ["b2b_tax", "b2c", "proforma", "quotation", "receipt", "credit_note", "debit_note"] as const;
+type DocType = typeof DOC_TYPES[number];
+const STATUSES = ["draft", "issued", "revised", "cancelled"] as const;
+
+type Item = { description: string; quantity: number; unit_price: number; discount_pct: number; gst_pct: number; is_student_product: boolean };
 
 function InvoicesPage() {
   const qc = useQueryClient();
   const [docFilter, setDocFilter] = React.useState<string>("all");
+  const [statusFilter, setStatusFilter] = React.useState<string>("all");
+  const [companyFilter, setCompanyFilter] = React.useState<string>("all");
+  const [from, setFrom] = React.useState("");
+  const [to, setTo] = React.useState("");
+
+  const companies = useQuery({ queryKey: ["companies"], queryFn: async () => (await supabase.from("companies").select("id,name").order("name")).data });
 
   const invoicesQ = useQuery({
-    queryKey: ["invoices", docFilter],
+    queryKey: ["invoices", docFilter, statusFilter, companyFilter, from, to],
     queryFn: async () => {
-      let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name)").order("invoice_date", { ascending: false }).limit(200);
+      let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name)").order("invoice_date", { ascending: false }).limit(300);
       if (docFilter !== "all") q = q.eq("doc_type", docFilter as any);
+      if (statusFilter !== "all") q = q.eq("status", statusFilter as any);
+      if (companyFilter !== "all") q = q.eq("company_id", companyFilter);
+      if (from) q = q.gte("invoice_date", from);
+      if (to) q = q.lte("invoice_date", to);
       const { data, error } = await q;
       if (error) throw error;
       return data;
@@ -43,6 +57,8 @@ function InvoicesPage() {
   const cancelFn = useServerFn(cancelInvoice);
   const reviseFn = useServerFn(reviseInvoice);
 
+  const clearFilters = () => { setDocFilter("all"); setStatusFilter("all"); setCompanyFilter("all"); setFrom(""); setTo(""); };
+
   return (
     <div className="space-y-6 p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -51,20 +67,52 @@ function InvoicesPage() {
           <h1 className="font-display text-3xl">Invoices</h1>
           <p className="mt-1 text-sm text-muted-foreground">Multi-company billing chain across HDK → MOS → Nail Emporium → downstream.</p>
         </div>
-        <div className="flex gap-2">
-          <Select value={docFilter} onValueChange={setDocFilter}>
-            <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All document types</SelectItem>
-              {DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <NewInvoiceDialog onCreated={() => qc.invalidateQueries({ queryKey: ["invoices"] })} />
-        </div>
+        <NewInvoiceDialog companies={companies.data ?? []} onCreated={() => qc.invalidateQueries({ queryKey: ["invoices"] })} />
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">All invoices</CardTitle></CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Filters</CardTitle>
+          <Button size="sm" variant="ghost" onClick={clearFilters}><X className="mr-1 h-3.5 w-3.5" /> Reset</Button>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
+          <div><Label className="text-xs">From date</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
+          <div><Label className="text-xs">To date</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
+          <div>
+            <Label className="text-xs">Document type</Label>
+            <Select value={docFilter} onValueChange={setDocFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                {DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">Status</Label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">From Company</Label>
+            <Select value={companyFilter} onValueChange={setCompanyFilter}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All companies</SelectItem>
+                {(companies.data ?? []).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">All invoices ({invoicesQ.data?.length ?? 0})</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <Table>
             <TableHeader><TableRow>
@@ -90,18 +138,23 @@ function InvoicesPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button asChild size="sm" variant="ghost"><Link to="/invoice/$token" params={{ token: inv.id }}><FileText className="h-3.5 w-3.5" /></Link></Button>
+                      <Button asChild size="sm" variant="ghost" title="View / Print">
+                        <Link to="/app/billing/invoices/$invoiceId" params={{ invoiceId: inv.id }}><FileText className="h-3.5 w-3.5" /></Link>
+                      </Button>
                       {inv.status === "draft" && (
-                        <Button size="sm" variant="outline" onClick={async () => {
-                          try { const r = await issueFn({ data: { id: inv.id } }); toast.success(`Issued as ${r.invoice_number}`); qc.invalidateQueries({ queryKey: ["invoices"] }); } catch (e) { toast.error((e as Error).message); }
-                        }}><CheckCircle2 className="h-3.5 w-3.5" /></Button>
+                        <>
+                          <EditDraftDialog invoiceId={inv.id} onSaved={() => qc.invalidateQueries({ queryKey: ["invoices"] })} />
+                          <Button size="sm" variant="outline" title="Issue" onClick={async () => {
+                            try { const r = await issueFn({ data: { id: inv.id } }); toast.success(`Issued as ${r.invoice_number}`); qc.invalidateQueries({ queryKey: ["invoices"] }); } catch (e) { toast.error((e as Error).message); }
+                          }}><CheckCircle2 className="h-3.5 w-3.5" /></Button>
+                        </>
                       )}
                       {inv.status === "issued" && (
                         <>
-                          <Button size="sm" variant="outline" onClick={async () => {
+                          <Button size="sm" variant="outline" title="Revise" onClick={async () => {
                             try { await reviseFn({ data: { id: inv.id } }); toast.success("Revision created (draft)"); qc.invalidateQueries({ queryKey: ["invoices"] }); } catch (e) { toast.error((e as Error).message); }
                           }}><RefreshCw className="h-3.5 w-3.5" /></Button>
-                          <Button size="sm" variant="ghost" onClick={async () => {
+                          <Button size="sm" variant="ghost" title="Cancel" onClick={async () => {
                             const reason = prompt("Cancellation reason?"); if (!reason) return;
                             try { await cancelFn({ data: { id: inv.id, reason } }); toast.success("Cancelled"); qc.invalidateQueries({ queryKey: ["invoices"] }); } catch (e) { toast.error((e as Error).message); }
                           }}><Ban className="h-3.5 w-3.5" /></Button>
@@ -125,60 +178,119 @@ function InvoicesPage() {
   );
 }
 
-function NewInvoiceDialog({ onCreated }: { onCreated: () => void }) {
+function emptyItem(): Item { return { description: "", quantity: 1, unit_price: 0, discount_pct: 0, gst_pct: 18, is_student_product: false }; }
+
+function InvoiceForm({ companies, value, onChange }: {
+  companies: { id: string; name: string }[];
+  value: { companyId: string; docType: DocType; billToName: string; invoiceDate: string; notes: string; items: Item[] };
+  onChange: (v: any) => void;
+}) {
+  const v = value;
+  const set = (patch: any) => onChange({ ...v, ...patch });
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3">
+        <div><Label>From Company</Label>
+          <Select value={v.companyId} onValueChange={(x) => set({ companyId: x })}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+            <SelectContent>{companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+          </Select></div>
+        <div><Label>Document Type</Label>
+          <Select value={v.docType} onValueChange={(x) => set({ docType: x as DocType })}><SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}</SelectContent>
+          </Select></div>
+        <div className="col-span-2"><Label>Bill To (name)</Label><Input value={v.billToName} onChange={(e) => set({ billToName: e.target.value })} /></div>
+        <div><Label>Invoice Date</Label><Input type="date" value={v.invoiceDate} onChange={(e) => set({ invoiceDate: e.target.value })} /></div>
+      </div>
+      <div className="space-y-2">
+        <Label>Items</Label>
+        {v.items.map((it, i) => (
+          <div key={i} className="grid grid-cols-12 gap-2">
+            <Input className="col-span-5" placeholder="Description" value={it.description} onChange={(e) => { const n = [...v.items]; n[i] = { ...n[i], description: e.target.value }; set({ items: n }); }} />
+            <Input className="col-span-2" type="number" placeholder="Qty" value={it.quantity} onChange={(e) => { const n = [...v.items]; n[i] = { ...n[i], quantity: +e.target.value }; set({ items: n }); }} />
+            <Input className="col-span-2" type="number" placeholder="Unit Price" value={it.unit_price} onChange={(e) => { const n = [...v.items]; n[i] = { ...n[i], unit_price: +e.target.value }; set({ items: n }); }} />
+            <Input className="col-span-1" type="number" placeholder="Disc%" value={it.discount_pct} onChange={(e) => { const n = [...v.items]; n[i] = { ...n[i], discount_pct: +e.target.value }; set({ items: n }); }} />
+            <Input className="col-span-1" type="number" placeholder="GST%" value={it.gst_pct} onChange={(e) => { const n = [...v.items]; n[i] = { ...n[i], gst_pct: +e.target.value }; set({ items: n }); }} />
+            <Button className="col-span-1" size="sm" variant="ghost" onClick={() => set({ items: v.items.filter((_, j) => j !== i) })} disabled={v.items.length === 1}>×</Button>
+          </div>
+        ))}
+        <Button size="sm" variant="outline" onClick={() => set({ items: [...v.items, emptyItem()] })}>+ Add line</Button>
+      </div>
+      <div><Label>Notes</Label><Textarea value={v.notes} onChange={(e) => set({ notes: e.target.value })} /></div>
+    </div>
+  );
+}
+
+function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; name: string }[]; onCreated: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const [companyId, setCompanyId] = React.useState("");
-  const [docType, setDocType] = React.useState<typeof DOC_TYPES[number]>("b2b_tax");
-  const [billToName, setBillToName] = React.useState("");
-  const [invoiceDate, setInvoiceDate] = React.useState(new Date().toISOString().slice(0, 10));
-  const [notes, setNotes] = React.useState("");
-  const [items, setItems] = React.useState([{ description: "", quantity: 1, unit_price: 0, discount_pct: 0, gst_pct: 18, is_student_product: false }]);
-  const [issue, setIssue] = React.useState(false);
-
-  const companies = useQuery({ queryKey: ["companies"], queryFn: async () => (await supabase.from("companies").select("id,name").order("name")).data });
+  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()] });
   const create = useServerFn(createInvoice);
-
-  const submit = async () => {
+  const submit = async (issue: boolean) => {
     try {
-      await create({ data: { company_id: companyId, doc_type: docType, bill_to_name: billToName, invoice_date: invoiceDate, notes, items, issue, is_demo: false } });
+      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, issue, is_demo: false } });
       toast.success(issue ? "Invoice issued" : "Draft saved");
       setOpen(false); onCreated();
+    } catch (e) { toast.error((e as Error).message); }
+  };
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> New Invoice</Button></DialogTrigger>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader><DialogTitle>Create Invoice</DialogTitle></DialogHeader>
+        <InvoiceForm companies={companies} value={form} onChange={setForm} />
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => submit(false)}>Save Draft</Button>
+          <Button onClick={() => submit(true)}>Issue Invoice</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: () => void }) {
+  const [open, setOpen] = React.useState(false);
+  const [form, setForm] = React.useState<any>(null);
+  const companies = useQuery({ queryKey: ["companies"], queryFn: async () => (await supabase.from("companies").select("id,name").order("name")).data });
+  const update = useServerFn(updateInvoice);
+  const issue = useServerFn(issueInvoice);
+
+  React.useEffect(() => {
+    if (!open) return;
+    (async () => {
+      const [{ data: inv }, { data: items }] = await Promise.all([
+        supabase.from("invoices").select("*").eq("id", invoiceId).single(),
+        supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("created_at"),
+      ]);
+      if (!inv) return;
+      setForm({
+        companyId: inv.company_id, docType: inv.doc_type as DocType, billToName: inv.bill_to_name ?? "",
+        invoiceDate: inv.invoice_date, notes: inv.notes ?? "",
+        items: (items ?? []).map((it: any) => ({
+          description: it.description, quantity: Number(it.quantity), unit_price: Number(it.unit_price),
+          discount_pct: Number(it.discount_pct), gst_pct: Number(it.gst_pct), is_student_product: !!it.is_student_product,
+        })) || [emptyItem()],
+      });
+    })();
+  }, [open, invoiceId]);
+
+  const save = async (alsoIssue: boolean) => {
+    if (!form) return;
+    try {
+      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, is_demo: false } });
+      if (alsoIssue) { const r = await issue({ data: { id: invoiceId } }); toast.success(`Issued as ${r.invoice_number}`); }
+      else toast.success("Draft updated");
+      setOpen(false); onSaved();
     } catch (e) { toast.error((e as Error).message); }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> New Invoice</Button></DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader><DialogTitle>Create Invoice</DialogTitle></DialogHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <div><Label>From Company</Label>
-            <Select value={companyId} onValueChange={setCompanyId}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-              <SelectContent>{companies.data?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-            </Select></div>
-          <div><Label>Document Type</Label>
-            <Select value={docType} onValueChange={(v) => setDocType(v as any)}><SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}</SelectContent>
-            </Select></div>
-          <div className="col-span-2"><Label>Bill To (name)</Label><Input value={billToName} onChange={(e) => setBillToName(e.target.value)} /></div>
-          <div><Label>Invoice Date</Label><Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} /></div>
-        </div>
-        <div className="space-y-2">
-          <Label>Items</Label>
-          {items.map((it, i) => (
-            <div key={i} className="grid grid-cols-12 gap-2">
-              <Input className="col-span-5" placeholder="Description" value={it.description} onChange={(e) => { const n = [...items]; n[i].description = e.target.value; setItems(n); }} />
-              <Input className="col-span-2" type="number" placeholder="Qty" value={it.quantity} onChange={(e) => { const n = [...items]; n[i].quantity = +e.target.value; setItems(n); }} />
-              <Input className="col-span-3" type="number" placeholder="Unit Price" value={it.unit_price} onChange={(e) => { const n = [...items]; n[i].unit_price = +e.target.value; setItems(n); }} />
-              <Input className="col-span-2" type="number" placeholder="GST%" value={it.gst_pct} onChange={(e) => { const n = [...items]; n[i].gst_pct = +e.target.value; setItems(n); }} />
-            </div>
-          ))}
-          <Button size="sm" variant="outline" onClick={() => setItems([...items, { description: "", quantity: 1, unit_price: 0, discount_pct: 0, gst_pct: 18, is_student_product: false }])}>+ Add line</Button>
-        </div>
-        <div><Label>Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+      <DialogTrigger asChild><Button size="sm" variant="outline" title="Edit draft"><Pencil className="h-3.5 w-3.5" /></Button></DialogTrigger>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader><DialogTitle>Edit Draft Invoice</DialogTitle></DialogHeader>
+        {form ? <InvoiceForm companies={companies.data ?? []} value={form} onChange={setForm} /> : <p className="text-sm text-muted-foreground">Loading…</p>}
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => { setIssue(false); submit(); }}>Save Draft</Button>
-          <Button onClick={() => { setIssue(true); submit(); }}>Issue Invoice</Button>
+          <Button variant="outline" onClick={() => save(false)} disabled={!form}>Save Draft</Button>
+          <Button onClick={() => save(true)} disabled={!form}>Save & Issue</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

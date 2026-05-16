@@ -14,7 +14,11 @@ const FRANCHISEE_BLOCKED = [
   "/app/dashboard",
   "/app/leads",
   "/app/franchisees",
+  "/app/state-franchises",
   "/app/finance",
+  "/app/billing",
+  "/app/payouts",
+  "/app/audit-logs",
   "/app/hr",
   "/app/academy",
   "/app/inventory",
@@ -24,8 +28,17 @@ const FRANCHISEE_BLOCKED = [
   "/app/trainer",
 ];
 
+// Admin-only routes: only super_admin/founder (and accounts for billing) may enter.
+const ADMIN_ONLY = [
+  "/app/audit-logs",
+  "/app/state-franchises",
+  "/app/payouts",
+  "/app/settings",
+];
+const ACCOUNTS_OR_ADMIN = ["/app/billing", "/app/finance"];
+
 function AppLayout() {
-  const { isAuthenticated, loading, hasRole, isAdmin } = useAuth();
+  const { isAuthenticated, loading, hasRole, hasAnyRole, isAdmin } = useAuth();
   const navigate = useNavigate();
   const router = useRouter();
   const location = useLocation();
@@ -36,18 +49,39 @@ function AppLayout() {
     }
   }, [loading, isAuthenticated, navigate, router]);
 
-  // Block franchisee-only users from admin routes
+  // Role-based route gating
   React.useEffect(() => {
     if (loading || !isAuthenticated) return;
-    if (hasRole("franchisee") && !isAdmin) {
-      const blocked = FRANCHISEE_BLOCKED.some(
-        (p) => location.pathname === p || location.pathname.startsWith(p + "/"),
-      );
-      if (blocked) {
+    const path = location.pathname;
+    const matches = (list: string[]) =>
+      list.some((p) => path === p || path.startsWith(p + "/"));
+
+    // Pure franchisee → only my-franchise
+    if (hasRole("franchisee") && !isAdmin && !hasRole("state_franchisee")) {
+      if (matches(FRANCHISEE_BLOCKED)) {
         navigate({ to: "/app/my-franchise", replace: true });
+        return;
       }
     }
-  }, [loading, isAuthenticated, hasRole, isAdmin, location.pathname, navigate]);
+    // State franchisee (no admin) → only my-state
+    if (hasRole("state_franchisee") && !isAdmin) {
+      const allowed = ["/app/my-state", "/app/my-franchise"];
+      if (!allowed.some((p) => path === p || path.startsWith(p + "/")) && path.startsWith("/app/")) {
+        navigate({ to: "/app/my-state", replace: true });
+        return;
+      }
+    }
+    // Admin-only sections
+    if (!isAdmin && matches(ADMIN_ONLY)) {
+      navigate({ to: "/app", replace: true });
+      return;
+    }
+    // Accounts or admin
+    if (!isAdmin && !hasAnyRole(["accounts"]) && matches(ACCOUNTS_OR_ADMIN)) {
+      navigate({ to: "/app", replace: true });
+      return;
+    }
+  }, [loading, isAuthenticated, hasRole, hasAnyRole, isAdmin, location.pathname, navigate]);
 
   if (loading) {
     return (
