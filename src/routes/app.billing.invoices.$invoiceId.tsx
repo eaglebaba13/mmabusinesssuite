@@ -31,7 +31,7 @@ function InvoicePrintPage() {
       const [inv, items, payments] = await Promise.all([
         supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name,address,city,state,gstin,invoice_prefix), bill_company:companies!invoices_bill_to_company_id_fkey(name,gstin,address,city,state)").eq("id", invoiceId).maybeSingle(),
         supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("created_at"),
-        supabase.from("payments").select("*").eq("reference_invoice_id", invoiceId).order("payment_date", { ascending: false }),
+        supabase.from("payments").select("*").eq("invoice_id", invoiceId).order("payment_date", { ascending: false }),
       ]);
       return { inv: inv.data, items: items.data ?? [], payments: payments.data ?? [] };
     },

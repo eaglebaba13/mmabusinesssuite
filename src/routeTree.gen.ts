@@ -80,6 +80,7 @@ import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/publ
 import { Route as ApiPublicWebinarRegisterHookRouteImport } from './routes/api/public/webinar-register-hook'
 import { Route as ApiPublicSocialLeadHookRouteImport } from './routes/api/public/social-lead-hook'
 import { Route as AppPosOrdersOrderIdRouteImport } from './routes/app.pos.orders.$orderId'
+import { Route as AppBillingInvoicesInvoiceIdRouteImport } from './routes/app.billing.invoices.$invoiceId'
 import { Route as AppAcademyBatchesBatchIdRouteImport } from './routes/app.academy.batches.$batchId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -442,6 +443,12 @@ const AppPosOrdersOrderIdRoute = AppPosOrdersOrderIdRouteImport.update({
   path: '/$orderId',
   getParentRoute: () => AppPosOrdersRoute,
 } as any)
+const AppBillingInvoicesInvoiceIdRoute =
+  AppBillingInvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => AppBillingInvoicesRoute,
+  } as any)
 const AppAcademyBatchesBatchIdRoute =
   AppAcademyBatchesBatchIdRouteImport.update({
     id: '/$batchId',
@@ -485,7 +492,7 @@ export interface FileRoutesByFullPath {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
-  '/app/billing/invoices': typeof AppBillingInvoicesRoute
+  '/app/billing/invoices': typeof AppBillingInvoicesRouteWithChildren
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -521,6 +528,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
+  '/app/billing/invoices/$invoiceId': typeof AppBillingInvoicesInvoiceIdRoute
   '/app/pos/orders/$orderId': typeof AppPosOrdersOrderIdRoute
 }
 export interface FileRoutesByTo {
@@ -551,7 +559,7 @@ export interface FileRoutesByTo {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
-  '/app/billing/invoices': typeof AppBillingInvoicesRoute
+  '/app/billing/invoices': typeof AppBillingInvoicesRouteWithChildren
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -587,6 +595,7 @@ export interface FileRoutesByTo {
   '/app/settings': typeof AppSettingsIndexRoute
   '/app/webinars': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
+  '/app/billing/invoices/$invoiceId': typeof AppBillingInvoicesInvoiceIdRoute
   '/app/pos/orders/$orderId': typeof AppPosOrdersOrderIdRoute
 }
 export interface FileRoutesById {
@@ -626,7 +635,7 @@ export interface FileRoutesById {
   '/app/academy/fees': typeof AppAcademyFeesRoute
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
-  '/app/billing/invoices': typeof AppBillingInvoicesRoute
+  '/app/billing/invoices': typeof AppBillingInvoicesRouteWithChildren
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -662,6 +671,7 @@ export interface FileRoutesById {
   '/app/settings/': typeof AppSettingsIndexRoute
   '/app/webinars/': typeof AppWebinarsIndexRoute
   '/app/academy/batches/$batchId': typeof AppAcademyBatchesBatchIdRoute
+  '/app/billing/invoices/$invoiceId': typeof AppBillingInvoicesInvoiceIdRoute
   '/app/pos/orders/$orderId': typeof AppPosOrdersOrderIdRoute
 }
 export interface FileRouteTypes {
@@ -738,6 +748,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/webinars/'
     | '/app/academy/batches/$batchId'
+    | '/app/billing/invoices/$invoiceId'
     | '/app/pos/orders/$orderId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -804,6 +815,7 @@ export interface FileRouteTypes {
     | '/app/settings'
     | '/app/webinars'
     | '/app/academy/batches/$batchId'
+    | '/app/billing/invoices/$invoiceId'
     | '/app/pos/orders/$orderId'
   id:
     | '__root__'
@@ -878,6 +890,7 @@ export interface FileRouteTypes {
     | '/app/settings/'
     | '/app/webinars/'
     | '/app/academy/batches/$batchId'
+    | '/app/billing/invoices/$invoiceId'
     | '/app/pos/orders/$orderId'
   fileRoutesById: FileRoutesById
 }
@@ -1395,6 +1408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPosOrdersOrderIdRouteImport
       parentRoute: typeof AppPosOrdersRoute
     }
+    '/app/billing/invoices/$invoiceId': {
+      id: '/app/billing/invoices/$invoiceId'
+      path: '/$invoiceId'
+      fullPath: '/app/billing/invoices/$invoiceId'
+      preLoaderRoute: typeof AppBillingInvoicesInvoiceIdRouteImport
+      parentRoute: typeof AppBillingInvoicesRoute
+    }
     '/app/academy/batches/$batchId': {
       id: '/app/academy/batches/$batchId'
       path: '/$batchId'
@@ -1603,6 +1623,17 @@ const AppWebinarsRouteWithChildren = AppWebinarsRoute._addFileChildren(
   AppWebinarsRouteChildren,
 )
 
+interface AppBillingInvoicesRouteChildren {
+  AppBillingInvoicesInvoiceIdRoute: typeof AppBillingInvoicesInvoiceIdRoute
+}
+
+const AppBillingInvoicesRouteChildren: AppBillingInvoicesRouteChildren = {
+  AppBillingInvoicesInvoiceIdRoute: AppBillingInvoicesInvoiceIdRoute,
+}
+
+const AppBillingInvoicesRouteWithChildren =
+  AppBillingInvoicesRoute._addFileChildren(AppBillingInvoicesRouteChildren)
+
 interface AppRouteChildren {
   AppAcademyRoute: typeof AppAcademyRouteWithChildren
   AppAuditLogsRoute: typeof AppAuditLogsRoute
@@ -1621,7 +1652,7 @@ interface AppRouteChildren {
   AppTrainerRoute: typeof AppTrainerRoute
   AppWebinarsRoute: typeof AppWebinarsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
-  AppBillingInvoicesRoute: typeof AppBillingInvoicesRoute
+  AppBillingInvoicesRoute: typeof AppBillingInvoicesRouteWithChildren
   AppPayoutsStateRoute: typeof AppPayoutsStateRoute
 }
 
@@ -1643,7 +1674,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppTrainerRoute: AppTrainerRoute,
   AppWebinarsRoute: AppWebinarsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
-  AppBillingInvoicesRoute: AppBillingInvoicesRoute,
+  AppBillingInvoicesRoute: AppBillingInvoicesRouteWithChildren,
   AppPayoutsStateRoute: AppPayoutsStateRoute,
 }
 
