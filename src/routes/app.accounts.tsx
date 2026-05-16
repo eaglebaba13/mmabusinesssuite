@@ -140,6 +140,7 @@ function ReceivablesTab() {
 }
 
 function PayablesTab() {
+  const today = new Date().toISOString().slice(0, 10);
   const q = useQuery({
     queryKey: ["acct-payables"],
     queryFn: async () => (await supabase.from("expenses").select("id,expense_date,vendor,description,amount,status,payment_method,franchisees(full_name)").order("expense_date", { ascending: false }).limit(500)).data,
@@ -147,16 +148,21 @@ function PayablesTab() {
   const rows = (q.data ?? []) as any[];
   const due = rows.filter((r) => r.status !== "paid").reduce((s, r) => s + Number(r.amount), 0);
   const paid = rows.filter((r) => r.status === "paid").reduce((s, r) => s + Number(r.amount), 0);
+  const buckets = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 } as Record<string, number>;
+  rows.filter((r) => r.status !== "paid").forEach((r) => { buckets[ageBucket(r.expense_date, today)] += Number(r.amount); });
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <Kpi label="Payables Due" value={formatINR(due)} />
-        <Kpi label="Paid (LTD)" value={formatINR(paid)} />
-        <Kpi label="Records" value={`${rows.length}`} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <Kpi label="Current" value={formatINR(buckets.current)} />
+        <Kpi label="1–30 days" value={formatINR(buckets["1-30"])} />
+        <Kpi label="31–60 days" value={formatINR(buckets["31-60"])} />
+        <Kpi label="61–90 days" value={formatINR(buckets["61-90"])} />
+        <Kpi label="90+ days" value={formatINR(buckets["90+"])} />
       </div>
+      <div className="text-xs text-muted-foreground">Due: <span className="font-semibold text-foreground">{formatINR(due)}</span> · Paid (LTD): <span className="font-semibold text-foreground">{formatINR(paid)}</span> · {rows.length} record(s)</div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Vendor</TableHead><TableHead>Description</TableHead><TableHead>Franchisee</TableHead><TableHead>Method</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Vendor</TableHead><TableHead>Description</TableHead><TableHead>Franchisee</TableHead><TableHead>Method</TableHead><TableHead className="text-right">Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.id}>
@@ -165,7 +171,7 @@ function PayablesTab() {
                 <TableCell className="max-w-xs truncate text-xs">{r.description ?? "—"}</TableCell>
                 <TableCell>{r.franchisees?.full_name ?? "—"}</TableCell>
                 <TableCell className="capitalize text-xs">{r.payment_method.replace("_", " ")}</TableCell>
-                <TableCell className="font-mono">{formatINR(r.amount)}</TableCell>
+                <TableCell className="text-right font-mono">{formatINR(r.amount)}</TableCell>
                 <TableCell><Badge variant={r.status === "paid" ? "default" : "secondary"}>{r.status}</Badge></TableCell>
               </TableRow>
             ))}
