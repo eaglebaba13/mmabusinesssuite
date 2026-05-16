@@ -255,7 +255,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {(isAdmin || hasRole("accounts") || hasRole("founder") || hasRole("auditor")) && !isFranchiseeOnly && (
+        {(isAdmin || hasRole("accounts") || hasRole("founder")) && !isFranchiseeOnly && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Insights</SidebarGroupLabel>
             <SidebarGroupContent>
