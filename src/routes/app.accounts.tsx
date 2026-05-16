@@ -93,7 +93,7 @@ function ReceivablesTab() {
   const { isTesting } = useMode();
   const q = useQuery({
     queryKey: ["acct-rec", isTesting],
-    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").eq("is_demo", isTesting).neq("status", "draft").neq("status", "cancelled").order("due_date", { ascending: true, nullsFirst: false })).data,
+    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").eq("is_demo", isTesting).in("status", ["issued", "paid"] as any).order("due_date", { ascending: true, nullsFirst: false })).data,
   });
   const rows = ((q.data ?? []) as any[]).filter((r) => Number(r.grand_total) > Number(r.amount_paid));
   const today = new Date().toISOString().slice(0, 10);
@@ -223,7 +223,7 @@ function LedgersTab() {
 }
 
 function CompanyLedger({ companyId }: { companyId: string }) {
-  const invQ = useQuery({ queryKey: ["ledger-inv", companyId], queryFn: async () => (await supabase.from("invoices").select("id,invoice_date,invoice_number,doc_type,grand_total,amount_paid,bill_to_name").eq("company_id", companyId).neq("status", "draft").order("invoice_date", { ascending: false })).data });
+  const invQ = useQuery({ queryKey: ["ledger-inv", companyId], queryFn: async () => (await supabase.from("invoices").select("id,invoice_date,invoice_number,doc_type,grand_total,amount_paid,bill_to_name,status").eq("company_id", companyId).in("status", ["issued", "paid"] as any).order("invoice_date", { ascending: false })).data });
   const payQ = useQuery({ queryKey: ["ledger-pay", companyId], queryFn: async () => (await supabase.from("payments").select("id,payment_date,direction,amount,counterparty_name,reference,method").eq("company_id", companyId).order("payment_date", { ascending: false })).data });
 
   const inv = (invQ.data ?? []) as any[];
