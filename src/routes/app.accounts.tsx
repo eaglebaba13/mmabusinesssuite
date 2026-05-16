@@ -50,23 +50,25 @@ function AccountsPage() {
 }
 
 function PaymentsTab() {
+  const { isTesting } = useMode();
   const q = useQuery({
-    queryKey: ["acct-payments"],
-    queryFn: async () => (await supabase.from("payments").select("*,companies!company_id(name)").order("payment_date", { ascending: false }).limit(500)).data,
+    queryKey: ["acct-payments", isTesting],
+    queryFn: async () => (await supabase.from("payments").select("*,companies!company_id(name)").eq("is_demo", isTesting).order("payment_date", { ascending: false }).limit(500)).data,
   });
   const rows = (q.data ?? []) as any[];
   const inflow = rows.filter((r) => r.direction === "inflow").reduce((s, r) => s + Number(r.amount), 0);
   const outflow = rows.filter((r) => r.direction === "outflow").reduce((s, r) => s + Number(r.amount), 0);
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi label="Inflow" value={formatINR(inflow)} />
         <Kpi label="Outflow" value={formatINR(outflow)} />
         <Kpi label="Net" value={formatINR(inflow - outflow)} />
+        <Kpi label={isTesting ? "Demo Records" : "Live Records"} value={`${rows.length}`} />
       </div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Company</TableHead><TableHead>Direction</TableHead><TableHead>Counterparty</TableHead><TableHead>Method</TableHead><TableHead>Amount</TableHead><TableHead>Reference</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Company</TableHead><TableHead>Direction</TableHead><TableHead>Counterparty</TableHead><TableHead>Method</TableHead><TableHead className="text-right">Amount</TableHead><TableHead>Reference</TableHead></TableRow></TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.id}>
@@ -75,7 +77,7 @@ function PaymentsTab() {
                 <TableCell><Badge variant={r.direction === "inflow" ? "default" : "secondary"}>{r.direction}</Badge></TableCell>
                 <TableCell>{r.counterparty_name ?? "—"}</TableCell>
                 <TableCell className="capitalize">{r.method.replace("_", " ")}</TableCell>
-                <TableCell className="font-mono">{formatINR(r.amount)}</TableCell>
+                <TableCell className="text-right font-mono">{formatINR(r.amount)}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{r.reference ?? "—"}</TableCell>
               </TableRow>
             ))}
