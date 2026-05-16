@@ -15,7 +15,7 @@ const FRANCHISEE_BLOCKED = [
   "/app/dashboards", "/app/audit-logs", "/app/impersonation-sessions", "/app/hr", "/app/academy", "/app/inventory",
   "/app/webinars", "/app/pos", "/app/settings", "/app/trainer",
 ];
-const ADMIN_ONLY = ["/app/audit-logs", "/app/impersonation-sessions", "/app/state-franchises", "/app/settings", "/app/dashboard", "/app/leads", "/app/franchisees"];
+const ADMIN_ONLY = ["/app/audit-logs", "/app/impersonation-sessions", "/app/state-franchises", "/app/settings", "/app/dashboard"];
 const ACCOUNTS_OR_ADMIN = ["/app/billing", "/app/finance", "/app/payouts", "/app/accounts", "/app/reports", "/app/dashboards"];
 
 function AppLayout() {
