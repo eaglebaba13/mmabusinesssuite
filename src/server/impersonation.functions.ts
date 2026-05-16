@@ -127,6 +127,63 @@ export const resolveImpersonation = createServerFn({ method: "POST" })
     };
   });
 
+export const listActiveImpersonationSessions = createServerFn({ method: "POST" })
+  .middleware([forwardAuth, requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { data: sessions } = await supabaseAdmin
+      .from("impersonation_sessions")
+      .select("id,acting_admin_id,entity_type,entity_id,mode,expires_at,ended_at,created_at")
+      .is("ended_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false });
+
+    const rows = sessions ?? [];
+    const adminIds = Array.from(new Set(rows.map((r) => r.acting_admin_id)));
+    const { data: admins } = adminIds.length
+      ? await supabaseAdmin.from("profiles").select("id,full_name,email").in("id", adminIds)
+      : { data: [] as any[] };
+
+    const enriched = await Promise.all(rows.map(async (s) => {
+      let name = "Entity";
+      try {
+        if (s.entity_type === "state_franchise") {
+          const { data } = await supabaseAdmin.from("state_franchises").select("full_name").eq("id", s.entity_id).maybeSingle();
+          name = data?.full_name ?? name;
+        } else if (s.entity_type === "city_franchise" || s.entity_type === "academy" || s.entity_type === "dark_store") {
+          const { data } = await supabaseAdmin.from("franchisees").select("full_name").eq("id", s.entity_id).maybeSingle();
+          name = data?.full_name ?? name;
+        } else if (s.entity_type === "salon_branch") {
+          const { data } = await supabaseAdmin.from("salon_branches").select("name").eq("id", s.entity_id).maybeSingle();
+          name = data?.name ?? name;
+        } else if (s.entity_type === "company") {
+          const { data } = await supabaseAdmin.from("companies").select("name").eq("id", s.entity_id).maybeSingle();
+          name = data?.name ?? name;
+        }
+      } catch { /* ignore */ }
+      const admin = (admins ?? []).find((a: any) => a.id === s.acting_admin_id);
+      return { ...s, entity_name: name, admin_name: admin?.full_name ?? admin?.email ?? "—" };
+    }));
+    return { sessions: enriched };
+  });
+
+export const revokeImpersonationSession = createServerFn({ method: "POST" })
+  .middleware([forwardAuth, requireSupabaseAuth])
+  .inputValidator((i: unknown) => z.object({ session_id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("impersonation_sessions")
+      .update({ ended_at: new Date().toISOString() })
+      .eq("id", data.session_id)
+      .is("ended_at", null);
+    if (error) throw new Error(error.message);
+    await supabaseAdmin.from("impersonation_audit").insert({
+      session_id: data.session_id, action: "end", payload: { revoked_by: context.userId },
+    });
+    return { ok: true };
+  });
+
 const EndInput = z.object({ token: z.string().min(20) });
 export const endImpersonation = createServerFn({ method: "POST" })
   .middleware([forwardAuth, requireSupabaseAuth])
