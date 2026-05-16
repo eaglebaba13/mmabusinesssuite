@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINR } from "@/lib/format";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
+import { useMode } from "@/lib/mode-context";
 
 export const Route = createFileRoute("/app/payouts/state")({
   head: () => ({ meta: [{ title: "State Payouts — MMA Suite" }] }),
@@ -16,10 +17,14 @@ export const Route = createFileRoute("/app/payouts/state")({
 });
 
 function StatePayoutsPage() {
-  const sfQ = useQuery({ queryKey: ["state-franchises-list"], queryFn: async () => (await supabase.from("state_franchises").select("id,full_name,state").order("full_name")).data });
+  const { isTesting } = useMode();
+  const sfQ = useQuery({
+    queryKey: ["state-franchises-list", isTesting],
+    queryFn: async () => (await supabase.from("state_franchises").select("id,full_name,state,is_demo").eq("is_demo", isTesting).order("full_name")).data,
+  });
   const [sfId, setSfId] = React.useState<string>("");
 
-  React.useEffect(() => { if (!sfId && sfQ.data?.[0]) setSfId(sfQ.data[0].id); }, [sfQ.data, sfId]);
+  React.useEffect(() => { setSfId(sfQ.data?.[0]?.id ?? ""); }, [sfQ.data]);
 
   return (
     <div className="space-y-6 p-4 md:p-8">
