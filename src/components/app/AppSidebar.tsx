@@ -255,6 +255,26 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
+        {(isAdmin || hasRole("accounts") || hasRole("founder") || hasRole("auditor")) && !isFranchiseeOnly && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Insights</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_INSIGHTS.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url) || (item.url.startsWith("/app/dashboards") && location.pathname.startsWith("/app/dashboards"))} tooltip={item.title} className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background">
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
         {isWebinarStaff && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
