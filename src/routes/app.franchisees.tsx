@@ -417,6 +417,11 @@ function FranchiseeCard({ franchisee: f, isInactive }: { franchisee: any; isInac
           <div className="text-sm">{format(new Date(f.joined_at), "MMM yyyy")}</div>
         </div>
       </div>
+      {isAdmin && (
+        <div data-actions className="mt-3 border-t border-border/40 pt-3">
+          <OpenDashboardButton entity_type="city_franchise" entity_id={f.id} label="Open Dashboard" />
+        </div>
+      )}
     </div>
   );
 }
