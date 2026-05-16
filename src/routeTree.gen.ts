@@ -30,6 +30,7 @@ import { Route as AppMyStateRouteImport } from './routes/app.my-state'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
 import { Route as AppLeadsRouteImport } from './routes/app.leads'
 import { Route as AppInventoryRouteImport } from './routes/app.inventory'
+import { Route as AppImpersonationSessionsRouteImport } from './routes/app.impersonation-sessions'
 import { Route as AppHrRouteImport } from './routes/app.hr'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
@@ -195,6 +196,12 @@ const AppInventoryRoute = AppInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AppRoute,
 } as any)
+const AppImpersonationSessionsRoute =
+  AppImpersonationSessionsRouteImport.update({
+    id: '/impersonation-sessions',
+    path: '/impersonation-sessions',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppHrRoute = AppHrRouteImport.update({
   id: '/hr',
   path: '/hr',
@@ -512,6 +519,7 @@ export interface FileRoutesByFullPath {
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
+  '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
@@ -590,6 +598,7 @@ export interface FileRoutesByTo {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
+  '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/my-state': typeof AppMyStateRoute
@@ -669,6 +678,7 @@ export interface FileRoutesById {
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
+  '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
   '/app/inventory': typeof AppInventoryRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
@@ -753,6 +763,7 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/franchisees'
     | '/app/hr'
+    | '/app/impersonation-sessions'
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
@@ -831,6 +842,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/dashboards'
     | '/app/franchisees'
+    | '/app/impersonation-sessions'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/my-state'
@@ -909,6 +921,7 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/franchisees'
     | '/app/hr'
+    | '/app/impersonation-sessions'
     | '/app/inventory'
     | '/app/leads'
     | '/app/my-franchise'
@@ -1140,6 +1153,13 @@ declare module '@tanstack/react-router' {
       path: '/inventory'
       fullPath: '/app/inventory'
       preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/impersonation-sessions': {
+      id: '/app/impersonation-sessions'
+      path: '/impersonation-sessions'
+      fullPath: '/app/impersonation-sessions'
+      preLoaderRoute: typeof AppImpersonationSessionsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/hr': {
@@ -1792,6 +1812,7 @@ interface AppRouteChildren {
   AppFinanceRoute: typeof AppFinanceRouteWithChildren
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
   AppHrRoute: typeof AppHrRouteWithChildren
+  AppImpersonationSessionsRoute: typeof AppImpersonationSessionsRoute
   AppInventoryRoute: typeof AppInventoryRouteWithChildren
   AppLeadsRoute: typeof AppLeadsRouteWithChildren
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
@@ -1818,6 +1839,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFinanceRoute: AppFinanceRouteWithChildren,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
   AppHrRoute: AppHrRouteWithChildren,
+  AppImpersonationSessionsRoute: AppImpersonationSessionsRoute,
   AppInventoryRoute: AppInventoryRouteWithChildren,
   AppLeadsRoute: AppLeadsRouteWithChildren,
   AppMyFranchiseRoute: AppMyFranchiseRoute,

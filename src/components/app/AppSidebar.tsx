@@ -65,6 +65,7 @@ const NAV_INSIGHTS = [
 
 const NAV_ADMIN = [
   { title: "Audit Logs", url: "/app/audit-logs" as const, icon: ShieldCheck },
+  { title: "Impersonation Sessions", url: "/app/impersonation-sessions" as const, icon: ShieldCheck },
 ] as const;
 
 const NAV_WEBINARS = [

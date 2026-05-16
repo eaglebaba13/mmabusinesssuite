@@ -3535,6 +3535,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      recalc_invoice_payment_state: {
+        Args: { _invoice_id: string }
+        Returns: undefined
+      }
       state_franchise_owns_franchisee: {
         Args: { _franchisee_id: string; _user_id: string }
         Returns: boolean

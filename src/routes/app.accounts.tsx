@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatINR } from "@/lib/format";
 import { useMode } from "@/lib/mode-context";
 import { Link } from "@tanstack/react-router";
+import { exportToCSV } from "@/lib/export";
 
 function ageBucket(dueDate: string | null, today: string): "current" | "1-30" | "31-60" | "61-90" | "90+" {
   if (!dueDate || dueDate >= today) return "current";
@@ -114,10 +115,17 @@ function ReceivablesTab() {
         <span>Total outstanding: <span className="font-semibold text-foreground">{formatINR(total)}</span> across {rows.length} open invoice(s).</span>
         <button
           onClick={() => {
-            const headers = ["invoice","date","due","age","from","customer","total","paid","outstanding"];
-            const csv = [headers.join(","), ...withAge.map((r: any) => [r.invoice_number ?? "", r.invoice_date, r.due_date ?? "", r._bucket, r.companies?.name ?? "", (r.bill_to_name ?? "").replace(/,/g," "), r.grand_total, r.amount_paid, r._open].join(","))].join("\n");
-            const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-            const a = document.createElement("a"); a.href = url; a.download = `receivables-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+            exportToCSV(`receivables-${new Date().toISOString().slice(0,10)}`, withAge, [
+              { header: "invoice", accessor: (r: any) => r.invoice_number ?? "" },
+              { header: "date", accessor: (r: any) => r.invoice_date },
+              { header: "due", accessor: (r: any) => r.due_date ?? "" },
+              { header: "age", accessor: (r: any) => r._bucket },
+              { header: "from", accessor: (r: any) => r.companies?.name ?? "" },
+              { header: "customer", accessor: (r: any) => r.bill_to_name ?? "" },
+              { header: "total", accessor: (r: any) => r.grand_total },
+              { header: "paid", accessor: (r: any) => r.amount_paid },
+              { header: "outstanding", accessor: (r: any) => r._open },
+            ]);
           }}
           className="rounded border border-border px-3 py-1 hover:bg-accent"
         >Export CSV</button>
@@ -174,10 +182,15 @@ function PayablesTab() {
         <span>Due: <span className="font-semibold text-foreground">{formatINR(due)}</span> · Paid (LTD): <span className="font-semibold text-foreground">{formatINR(paid)}</span> · {rows.length} record(s)</span>
         <button
           onClick={() => {
-            const headers = ["date","vendor","description","franchisee","method","amount","status"];
-            const csv = [headers.join(","), ...rows.map((r: any) => [r.expense_date, (r.vendor ?? "").replace(/,/g," "), (r.description ?? "").replace(/,/g," "), r.franchisees?.full_name ?? "", r.payment_method, r.amount, r.status].join(","))].join("\n");
-            const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-            const a = document.createElement("a"); a.href = url; a.download = `payables-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+            exportToCSV(`payables-${new Date().toISOString().slice(0,10)}`, rows, [
+              { header: "date", accessor: (r: any) => r.expense_date },
+              { header: "vendor", accessor: (r: any) => r.vendor ?? "" },
+              { header: "description", accessor: (r: any) => r.description ?? "" },
+              { header: "franchisee", accessor: (r: any) => r.franchisees?.full_name ?? "" },
+              { header: "method", accessor: (r: any) => r.payment_method },
+              { header: "amount", accessor: (r: any) => r.amount },
+              { header: "status", accessor: (r: any) => r.status },
+            ]);
           }}
           className="rounded border border-border px-3 py-1 hover:bg-accent"
         >Export CSV</button>
