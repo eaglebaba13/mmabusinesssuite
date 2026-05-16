@@ -138,10 +138,15 @@ function CityContent({ fr }: { fr: any }) {
               <CardTitle className="text-base">Monthly Payouts · {payouts.length}</CardTitle>
               <button
                 onClick={() => {
-                  const headers = ["month","base_roi","emporium","academy","dark_store","total","status"];
-                  const csv = [headers.join(","), ...payouts.map((p: any) => [p.payout_month, p.base_roi, p.emporium_incentive, p.academy_incentive, p.dark_store_incentive, p.total_amount, p.status].join(","))].join("\n");
-                  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-                  const a = document.createElement("a"); a.href = url; a.download = `city-payouts-${fr.full_name}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+                  exportToCSV(`city-payouts-${fr.full_name}-${new Date().toISOString().slice(0,10)}`, payouts as any[], [
+                    { header: "month", accessor: (p: any) => p.payout_month },
+                    { header: "base_roi", accessor: (p: any) => p.base_roi },
+                    { header: "emporium", accessor: (p: any) => p.emporium_incentive },
+                    { header: "academy", accessor: (p: any) => p.academy_incentive },
+                    { header: "dark_store", accessor: (p: any) => p.dark_store_incentive },
+                    { header: "total", accessor: (p: any) => p.total_amount },
+                    { header: "status", accessor: (p: any) => p.status },
+                  ]);
                 }}
                 className="rounded border border-border px-3 py-1 text-xs hover:bg-accent"
               >Export CSV</button>
