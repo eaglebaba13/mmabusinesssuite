@@ -24,6 +24,7 @@ import { Route as AppTrainerRouteImport } from './routes/app.trainer'
 import { Route as AppSupportRouteImport } from './routes/app.support'
 import { Route as AppStateFranchisesRouteImport } from './routes/app.state-franchises'
 import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
 import { Route as AppPosRouteImport } from './routes/app.pos'
 import { Route as AppMyStateRouteImport } from './routes/app.my-state'
 import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
@@ -32,8 +33,10 @@ import { Route as AppInventoryRouteImport } from './routes/app.inventory'
 import { Route as AppHrRouteImport } from './routes/app.hr'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
+import { Route as AppDashboardsRouteImport } from './routes/app.dashboards'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAuditLogsRouteImport } from './routes/app.audit-logs'
+import { Route as AppAccountsRouteImport } from './routes/app.accounts'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
 import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
@@ -51,6 +54,7 @@ import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.setting
 import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
 import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
 import { Route as AppPayoutsStateRouteImport } from './routes/app.payouts.state'
+import { Route as AppPayoutsCityRouteImport } from './routes/app.payouts.city'
 import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
 import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
 import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
@@ -69,6 +73,9 @@ import { Route as AppFinanceRevenueRouteImport } from './routes/app.finance.reve
 import { Route as AppFinancePayoutsRouteImport } from './routes/app.finance.payouts'
 import { Route as AppFinanceExpensesRouteImport } from './routes/app.finance.expenses'
 import { Route as AppFinanceCategoriesRouteImport } from './routes/app.finance.categories'
+import { Route as AppDashboardsSalonRouteImport } from './routes/app.dashboards.salon'
+import { Route as AppDashboardsDarkStoreRouteImport } from './routes/app.dashboards.dark-store'
+import { Route as AppDashboardsAcademyRouteImport } from './routes/app.dashboards.academy'
 import { Route as AppBillingInvoicesRouteImport } from './routes/app.billing.invoices'
 import { Route as AppAcademyTrainersRouteImport } from './routes/app.academy.trainers'
 import { Route as AppAcademyStudentsRouteImport } from './routes/app.academy.students'
@@ -158,6 +165,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPosRoute = AppPosRouteImport.update({
   id: '/pos',
   path: '/pos',
@@ -198,6 +210,11 @@ const AppFinanceRoute = AppFinanceRouteImport.update({
   path: '/finance',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDashboardsRoute = AppDashboardsRouteImport.update({
+  id: '/dashboards',
+  path: '/dashboards',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -206,6 +223,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
 const AppAuditLogsRoute = AppAuditLogsRouteImport.update({
   id: '/audit-logs',
   path: '/audit-logs',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAccountsRoute = AppAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAcademyRoute = AppAcademyRouteImport.update({
@@ -292,6 +314,11 @@ const AppPosAnalyticsRoute = AppPosAnalyticsRouteImport.update({
 const AppPayoutsStateRoute = AppPayoutsStateRouteImport.update({
   id: '/payouts/state',
   path: '/payouts/state',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPayoutsCityRoute = AppPayoutsCityRouteImport.update({
+  id: '/payouts/city',
+  path: '/payouts/city',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
@@ -386,6 +413,21 @@ const AppFinanceCategoriesRoute = AppFinanceCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AppFinanceRoute,
 } as any)
+const AppDashboardsSalonRoute = AppDashboardsSalonRouteImport.update({
+  id: '/salon',
+  path: '/salon',
+  getParentRoute: () => AppDashboardsRoute,
+} as any)
+const AppDashboardsDarkStoreRoute = AppDashboardsDarkStoreRouteImport.update({
+  id: '/dark-store',
+  path: '/dark-store',
+  getParentRoute: () => AppDashboardsRoute,
+} as any)
+const AppDashboardsAcademyRoute = AppDashboardsAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => AppDashboardsRoute,
+} as any)
 const AppBillingInvoicesRoute = AppBillingInvoicesRouteImport.update({
   id: '/billing/invoices',
   path: '/billing/invoices',
@@ -463,8 +505,10 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
+  '/app/accounts': typeof AppAccountsRoute
   '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/dashboards': typeof AppDashboardsRouteWithChildren
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
@@ -473,6 +517,7 @@ export interface FileRoutesByFullPath {
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/my-state': typeof AppMyStateRoute
   '/app/pos': typeof AppPosRouteWithChildren
+  '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
@@ -493,6 +538,9 @@ export interface FileRoutesByFullPath {
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/billing/invoices': typeof AppBillingInvoicesRouteWithChildren
+  '/app/dashboards/academy': typeof AppDashboardsAcademyRoute
+  '/app/dashboards/dark-store': typeof AppDashboardsDarkStoreRoute
+  '/app/dashboards/salon': typeof AppDashboardsSalonRoute
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -511,6 +559,7 @@ export interface FileRoutesByFullPath {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/payouts/city': typeof AppPayoutsCityRoute
   '/app/payouts/state': typeof AppPayoutsStateRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
@@ -536,12 +585,15 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/app/accounts': typeof AppAccountsRoute
   '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/dashboards': typeof AppDashboardsRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/my-state': typeof AppMyStateRoute
+  '/app/reports': typeof AppReportsRoute
   '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
   '/app/trainer': typeof AppTrainerRoute
@@ -560,6 +612,9 @@ export interface FileRoutesByTo {
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/billing/invoices': typeof AppBillingInvoicesRouteWithChildren
+  '/app/dashboards/academy': typeof AppDashboardsAcademyRoute
+  '/app/dashboards/dark-store': typeof AppDashboardsDarkStoreRoute
+  '/app/dashboards/salon': typeof AppDashboardsSalonRoute
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -578,6 +633,7 @@ export interface FileRoutesByTo {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/payouts/city': typeof AppPayoutsCityRoute
   '/app/payouts/state': typeof AppPayoutsStateRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
@@ -606,8 +662,10 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
+  '/app/accounts': typeof AppAccountsRoute
   '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
+  '/app/dashboards': typeof AppDashboardsRouteWithChildren
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
@@ -616,6 +674,7 @@ export interface FileRoutesById {
   '/app/my-franchise': typeof AppMyFranchiseRoute
   '/app/my-state': typeof AppMyStateRoute
   '/app/pos': typeof AppPosRouteWithChildren
+  '/app/reports': typeof AppReportsRoute
   '/app/settings': typeof AppSettingsRouteWithChildren
   '/app/state-franchises': typeof AppStateFranchisesRouteWithChildren
   '/app/support': typeof AppSupportRoute
@@ -636,6 +695,9 @@ export interface FileRoutesById {
   '/app/academy/students': typeof AppAcademyStudentsRoute
   '/app/academy/trainers': typeof AppAcademyTrainersRoute
   '/app/billing/invoices': typeof AppBillingInvoicesRouteWithChildren
+  '/app/dashboards/academy': typeof AppDashboardsAcademyRoute
+  '/app/dashboards/dark-store': typeof AppDashboardsDarkStoreRoute
+  '/app/dashboards/salon': typeof AppDashboardsSalonRoute
   '/app/finance/categories': typeof AppFinanceCategoriesRoute
   '/app/finance/expenses': typeof AppFinanceExpensesRoute
   '/app/finance/payouts': typeof AppFinancePayoutsRoute
@@ -654,6 +716,7 @@ export interface FileRoutesById {
   '/app/inventory/suppliers': typeof AppInventorySuppliersRoute
   '/app/inventory/warehouses': typeof AppInventoryWarehousesRoute
   '/app/leads/$leadId': typeof AppLeadsLeadIdRoute
+  '/app/payouts/city': typeof AppPayoutsCityRoute
   '/app/payouts/state': typeof AppPayoutsStateRoute
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
@@ -683,8 +746,10 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/app/academy'
+    | '/app/accounts'
     | '/app/audit-logs'
     | '/app/dashboard'
+    | '/app/dashboards'
     | '/app/finance'
     | '/app/franchisees'
     | '/app/hr'
@@ -693,6 +758,7 @@ export interface FileRouteTypes {
     | '/app/my-franchise'
     | '/app/my-state'
     | '/app/pos'
+    | '/app/reports'
     | '/app/settings'
     | '/app/state-franchises'
     | '/app/support'
@@ -713,6 +779,9 @@ export interface FileRouteTypes {
     | '/app/academy/students'
     | '/app/academy/trainers'
     | '/app/billing/invoices'
+    | '/app/dashboards/academy'
+    | '/app/dashboards/dark-store'
+    | '/app/dashboards/salon'
     | '/app/finance/categories'
     | '/app/finance/expenses'
     | '/app/finance/payouts'
@@ -731,6 +800,7 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/payouts/city'
     | '/app/payouts/state'
     | '/app/pos/analytics'
     | '/app/pos/orders'
@@ -756,12 +826,15 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/app/accounts'
     | '/app/audit-logs'
     | '/app/dashboard'
+    | '/app/dashboards'
     | '/app/franchisees'
     | '/app/leads'
     | '/app/my-franchise'
     | '/app/my-state'
+    | '/app/reports'
     | '/app/state-franchises'
     | '/app/support'
     | '/app/trainer'
@@ -780,6 +853,9 @@ export interface FileRouteTypes {
     | '/app/academy/students'
     | '/app/academy/trainers'
     | '/app/billing/invoices'
+    | '/app/dashboards/academy'
+    | '/app/dashboards/dark-store'
+    | '/app/dashboards/salon'
     | '/app/finance/categories'
     | '/app/finance/expenses'
     | '/app/finance/payouts'
@@ -798,6 +874,7 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/payouts/city'
     | '/app/payouts/state'
     | '/app/pos/analytics'
     | '/app/pos/orders'
@@ -825,8 +902,10 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/app/academy'
+    | '/app/accounts'
     | '/app/audit-logs'
     | '/app/dashboard'
+    | '/app/dashboards'
     | '/app/finance'
     | '/app/franchisees'
     | '/app/hr'
@@ -835,6 +914,7 @@ export interface FileRouteTypes {
     | '/app/my-franchise'
     | '/app/my-state'
     | '/app/pos'
+    | '/app/reports'
     | '/app/settings'
     | '/app/state-franchises'
     | '/app/support'
@@ -855,6 +935,9 @@ export interface FileRouteTypes {
     | '/app/academy/students'
     | '/app/academy/trainers'
     | '/app/billing/invoices'
+    | '/app/dashboards/academy'
+    | '/app/dashboards/dark-store'
+    | '/app/dashboards/salon'
     | '/app/finance/categories'
     | '/app/finance/expenses'
     | '/app/finance/payouts'
@@ -873,6 +956,7 @@ export interface FileRouteTypes {
     | '/app/inventory/suppliers'
     | '/app/inventory/warehouses'
     | '/app/leads/$leadId'
+    | '/app/payouts/city'
     | '/app/payouts/state'
     | '/app/pos/analytics'
     | '/app/pos/orders'
@@ -1016,6 +1100,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/pos': {
       id: '/app/pos'
       path: '/pos'
@@ -1072,6 +1163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFinanceRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/dashboards': {
+      id: '/app/dashboards'
+      path: '/dashboards'
+      fullPath: '/app/dashboards'
+      preLoaderRoute: typeof AppDashboardsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/dashboard': {
       id: '/app/dashboard'
       path: '/dashboard'
@@ -1084,6 +1182,13 @@ declare module '@tanstack/react-router' {
       path: '/audit-logs'
       fullPath: '/app/audit-logs'
       preLoaderRoute: typeof AppAuditLogsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/accounts': {
+      id: '/app/accounts'
+      path: '/accounts'
+      fullPath: '/app/accounts'
+      preLoaderRoute: typeof AppAccountsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/academy': {
@@ -1203,6 +1308,13 @@ declare module '@tanstack/react-router' {
       path: '/payouts/state'
       fullPath: '/app/payouts/state'
       preLoaderRoute: typeof AppPayoutsStateRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/payouts/city': {
+      id: '/app/payouts/city'
+      path: '/payouts/city'
+      fullPath: '/app/payouts/city'
+      preLoaderRoute: typeof AppPayoutsCityRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/leads/$leadId': {
@@ -1331,6 +1443,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFinanceCategoriesRouteImport
       parentRoute: typeof AppFinanceRoute
     }
+    '/app/dashboards/salon': {
+      id: '/app/dashboards/salon'
+      path: '/salon'
+      fullPath: '/app/dashboards/salon'
+      preLoaderRoute: typeof AppDashboardsSalonRouteImport
+      parentRoute: typeof AppDashboardsRoute
+    }
+    '/app/dashboards/dark-store': {
+      id: '/app/dashboards/dark-store'
+      path: '/dark-store'
+      fullPath: '/app/dashboards/dark-store'
+      preLoaderRoute: typeof AppDashboardsDarkStoreRouteImport
+      parentRoute: typeof AppDashboardsRoute
+    }
+    '/app/dashboards/academy': {
+      id: '/app/dashboards/academy'
+      path: '/academy'
+      fullPath: '/app/dashboards/academy'
+      preLoaderRoute: typeof AppDashboardsAcademyRouteImport
+      parentRoute: typeof AppDashboardsRoute
+    }
     '/app/billing/invoices': {
       id: '/app/billing/invoices'
       path: '/billing/invoices'
@@ -1458,6 +1591,22 @@ const AppAcademyRouteChildren: AppAcademyRouteChildren = {
 
 const AppAcademyRouteWithChildren = AppAcademyRoute._addFileChildren(
   AppAcademyRouteChildren,
+)
+
+interface AppDashboardsRouteChildren {
+  AppDashboardsAcademyRoute: typeof AppDashboardsAcademyRoute
+  AppDashboardsDarkStoreRoute: typeof AppDashboardsDarkStoreRoute
+  AppDashboardsSalonRoute: typeof AppDashboardsSalonRoute
+}
+
+const AppDashboardsRouteChildren: AppDashboardsRouteChildren = {
+  AppDashboardsAcademyRoute: AppDashboardsAcademyRoute,
+  AppDashboardsDarkStoreRoute: AppDashboardsDarkStoreRoute,
+  AppDashboardsSalonRoute: AppDashboardsSalonRoute,
+}
+
+const AppDashboardsRouteWithChildren = AppDashboardsRoute._addFileChildren(
+  AppDashboardsRouteChildren,
 )
 
 interface AppFinanceRouteChildren {
@@ -1636,8 +1785,10 @@ const AppBillingInvoicesRouteWithChildren =
 
 interface AppRouteChildren {
   AppAcademyRoute: typeof AppAcademyRouteWithChildren
+  AppAccountsRoute: typeof AppAccountsRoute
   AppAuditLogsRoute: typeof AppAuditLogsRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppDashboardsRoute: typeof AppDashboardsRouteWithChildren
   AppFinanceRoute: typeof AppFinanceRouteWithChildren
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
   AppHrRoute: typeof AppHrRouteWithChildren
@@ -1646,6 +1797,7 @@ interface AppRouteChildren {
   AppMyFranchiseRoute: typeof AppMyFranchiseRoute
   AppMyStateRoute: typeof AppMyStateRoute
   AppPosRoute: typeof AppPosRouteWithChildren
+  AppReportsRoute: typeof AppReportsRoute
   AppSettingsRoute: typeof AppSettingsRouteWithChildren
   AppStateFranchisesRoute: typeof AppStateFranchisesRouteWithChildren
   AppSupportRoute: typeof AppSupportRoute
@@ -1653,13 +1805,16 @@ interface AppRouteChildren {
   AppWebinarsRoute: typeof AppWebinarsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
   AppBillingInvoicesRoute: typeof AppBillingInvoicesRouteWithChildren
+  AppPayoutsCityRoute: typeof AppPayoutsCityRoute
   AppPayoutsStateRoute: typeof AppPayoutsStateRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAcademyRoute: AppAcademyRouteWithChildren,
+  AppAccountsRoute: AppAccountsRoute,
   AppAuditLogsRoute: AppAuditLogsRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppDashboardsRoute: AppDashboardsRouteWithChildren,
   AppFinanceRoute: AppFinanceRouteWithChildren,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
   AppHrRoute: AppHrRouteWithChildren,
@@ -1668,6 +1823,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMyFranchiseRoute: AppMyFranchiseRoute,
   AppMyStateRoute: AppMyStateRoute,
   AppPosRoute: AppPosRouteWithChildren,
+  AppReportsRoute: AppReportsRoute,
   AppSettingsRoute: AppSettingsRouteWithChildren,
   AppStateFranchisesRoute: AppStateFranchisesRouteWithChildren,
   AppSupportRoute: AppSupportRoute,
@@ -1675,6 +1831,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppWebinarsRoute: AppWebinarsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
   AppBillingInvoicesRoute: AppBillingInvoicesRouteWithChildren,
+  AppPayoutsCityRoute: AppPayoutsCityRoute,
   AppPayoutsStateRoute: AppPayoutsStateRoute,
 }
 
@@ -1697,12 +1854,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

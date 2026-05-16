@@ -16,6 +16,9 @@ import {
   FileText,
   Coins,
   ShieldCheck,
+  BarChart3,
+  Calculator,
+  Store,
 } from "lucide-react";
 import {
   Sidebar,
@@ -50,7 +53,14 @@ const NAV_INVENTORY = [
 const NAV_FINANCE = [
   { title: "Finance", url: "/app/finance" as const, icon: Wallet },
   { title: "Invoices", url: "/app/billing/invoices" as const, icon: FileText },
+  { title: "Accounts", url: "/app/accounts" as const, icon: Calculator },
   { title: "State Payouts", url: "/app/payouts/state" as const, icon: Coins },
+  { title: "City Payouts", url: "/app/payouts/city" as const, icon: Coins },
+] as const;
+
+const NAV_INSIGHTS = [
+  { title: "Reports", url: "/app/reports" as const, icon: BarChart3 },
+  { title: "Entity Dashboards", url: "/app/dashboards/academy" as const, icon: Store },
 ] as const;
 
 const NAV_ADMIN = [
