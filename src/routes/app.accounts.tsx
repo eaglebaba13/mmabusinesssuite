@@ -110,7 +110,18 @@ function ReceivablesTab() {
         <Kpi label="61–90 days" value={formatINR(buckets["61-90"])} />
         <Kpi label="90+ days" value={formatINR(buckets["90+"])} />
       </div>
-      <div className="text-xs text-muted-foreground">Total outstanding: <span className="font-semibold text-foreground">{formatINR(total)}</span> across {rows.length} open invoice(s).</div>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>Total outstanding: <span className="font-semibold text-foreground">{formatINR(total)}</span> across {rows.length} open invoice(s).</span>
+        <button
+          onClick={() => {
+            const headers = ["invoice","date","due","age","from","customer","total","paid","outstanding"];
+            const csv = [headers.join(","), ...withAge.map((r: any) => [r.invoice_number ?? "", r.invoice_date, r.due_date ?? "", r._bucket, r.companies?.name ?? "", (r.bill_to_name ?? "").replace(/,/g," "), r.grand_total, r.amount_paid, r._open].join(","))].join("\n");
+            const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+            const a = document.createElement("a"); a.href = url; a.download = `receivables-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+          }}
+          className="rounded border border-border px-3 py-1 hover:bg-accent"
+        >Export CSV</button>
+      </div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
           <TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Date</TableHead><TableHead>Due</TableHead><TableHead>Age</TableHead><TableHead>From</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Outstanding</TableHead></TableRow></TableHeader>
