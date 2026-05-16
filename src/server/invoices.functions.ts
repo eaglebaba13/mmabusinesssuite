@@ -174,7 +174,7 @@ export const updateInvoice = createServerFn({ method: "POST" })
       fullPatch.gst_total = totals.gst_total;
       fullPatch.grand_total = totals.grand_total;
     }
-    const { error } = await supabaseAdmin.from("invoices").update(fullPatch).eq("id", id).eq("status", "draft");
+    const { error } = await supabaseAdmin.from("invoices").update(fullPatch as any).eq("id", id).eq("status", "draft");
     if (error) throw new Error(error.message);
     if (items && totals) {
       await supabaseAdmin.from("invoice_items").delete().eq("invoice_id", id);
