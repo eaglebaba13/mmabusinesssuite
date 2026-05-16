@@ -13,6 +13,9 @@ import {
   Megaphone,
   ShoppingCart,
   MapPin,
+  FileText,
+  Coins,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,6 +49,12 @@ const NAV_INVENTORY = [
 
 const NAV_FINANCE = [
   { title: "Finance", url: "/app/finance" as const, icon: Wallet },
+  { title: "Invoices", url: "/app/billing/invoices" as const, icon: FileText },
+  { title: "State Payouts", url: "/app/payouts/state" as const, icon: Coins },
+] as const;
+
+const NAV_ADMIN = [
+  { title: "Audit Logs", url: "/app/audit-logs" as const, icon: ShieldCheck },
 ] as const;
 
 const NAV_WEBINARS = [
