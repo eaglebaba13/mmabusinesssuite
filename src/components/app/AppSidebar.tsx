@@ -13,6 +13,9 @@ import {
   Megaphone,
   ShoppingCart,
   MapPin,
+  FileText,
+  Coins,
+  ShieldCheck,
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,6 +49,12 @@ const NAV_INVENTORY = [
 
 const NAV_FINANCE = [
   { title: "Finance", url: "/app/finance" as const, icon: Wallet },
+  { title: "Invoices", url: "/app/billing/invoices" as const, icon: FileText },
+  { title: "State Payouts", url: "/app/payouts/state" as const, icon: Coins },
+] as const;
+
+const NAV_ADMIN = [
+  { title: "Audit Logs", url: "/app/audit-logs" as const, icon: ShieldCheck },
 ] as const;
 
 const NAV_WEBINARS = [
@@ -329,6 +338,33 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {NAV_STATE_FRANCHISEE.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Admin
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_ADMIN.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild

@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { createStateFranchiseUser } from "@/server/state-franchise-user.functions";
+import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 
 export const Route = createFileRoute("/app/state-franchises")({
   head: () => ({ meta: [{ title: "State Franchises — MMA Suite" }] }),
@@ -335,6 +336,9 @@ function StateFranchisesPage() {
                 </div>
               </div>
               <div className="mt-3 text-right text-xs text-muted-foreground">Joined {format(new Date(r.joined_at), "MMM yyyy")}</div>
+              <div className="mt-3 border-t border-border/40 pt-3" onClick={(e) => e.stopPropagation()}>
+                <OpenDashboardButton entity_type="state_franchise" entity_id={r.id} label="Open Dashboard" />
+              </div>
             </div>
           );
         })}

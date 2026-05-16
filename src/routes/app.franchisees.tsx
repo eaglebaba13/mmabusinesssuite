@@ -17,6 +17,8 @@ import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/e
 import { createFranchiseeUser } from "@/server/franchisee-user.functions";
 import { FranchiseeActions } from "@/components/app/FranchiseeActions";
 import { ImportButton } from "@/components/app/ImportButton";
+import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/app/franchisees")({
   head: () => ({ meta: [{ title: "Franchisees — MMA Suite" }] }),
@@ -365,6 +367,7 @@ function FranchiseesPage() {
 
 function FranchiseeCard({ franchisee: f, isInactive }: { franchisee: any; isInactive: boolean }) {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest("[data-actions]")) return;
     navigate({ to: "/app/franchisees/$franchiseeId", params: { franchiseeId: f.id } });
@@ -414,6 +417,11 @@ function FranchiseeCard({ franchisee: f, isInactive }: { franchisee: any; isInac
           <div className="text-sm">{format(new Date(f.joined_at), "MMM yyyy")}</div>
         </div>
       </div>
+      {isAdmin && (
+        <div data-actions className="mt-3 border-t border-border/40 pt-3">
+          <OpenDashboardButton entity_type="city_franchise" entity_id={f.id} label="Open Dashboard" />
+        </div>
+      )}
     </div>
   );
 }

@@ -33,6 +33,7 @@ import { Route as AppHrRouteImport } from './routes/app.hr'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppAuditLogsRouteImport } from './routes/app.audit-logs'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
 import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
@@ -199,6 +200,11 @@ const AppFinanceRoute = AppFinanceRouteImport.update({
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAuditLogsRoute = AppAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAcademyRoute = AppAcademyRouteImport.update({
@@ -450,6 +456,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
+  '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
@@ -521,6 +528,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -589,6 +597,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
+  '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
@@ -664,6 +673,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/app/academy'
+    | '/app/audit-logs'
     | '/app/dashboard'
     | '/app/finance'
     | '/app/franchisees'
@@ -735,6 +745,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/app/audit-logs'
     | '/app/dashboard'
     | '/app/franchisees'
     | '/app/leads'
@@ -802,6 +813,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/signup'
     | '/app/academy'
+    | '/app/audit-logs'
     | '/app/dashboard'
     | '/app/finance'
     | '/app/franchisees'
@@ -1052,6 +1064,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/app/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/audit-logs': {
+      id: '/app/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/app/audit-logs'
+      preLoaderRoute: typeof AppAuditLogsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/academy': {
@@ -1586,6 +1605,7 @@ const AppWebinarsRouteWithChildren = AppWebinarsRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppAcademyRoute: typeof AppAcademyRouteWithChildren
+  AppAuditLogsRoute: typeof AppAuditLogsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppFinanceRoute: typeof AppFinanceRouteWithChildren
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
@@ -1607,6 +1627,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppAcademyRoute: AppAcademyRouteWithChildren,
+  AppAuditLogsRoute: AppAuditLogsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppFinanceRoute: AppFinanceRouteWithChildren,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
