@@ -71,6 +71,25 @@ async function nextInvoiceNumber(company_id: string, doc_type: string): Promise<
   return format.replace("{PREFIX}", prefix).replace("{FY}", fy).replace(/\{SEQ:\d+\}/, String(seq).padStart(pad, "0"));
 }
 
+type ItemIn = { quantity: number; unit_price: number; discount_pct: number; gst_pct: number };
+function computeTotals(items: ItemIn[]) {
+  let subtotal = 0, discount_total = 0, gst_total = 0;
+  const lines = items.map((it) => {
+    const gross = Number(it.quantity) * Number(it.unit_price);
+    const disc = gross * Number(it.discount_pct) / 100;
+    const net = gross - disc;
+    const gst = net * Number(it.gst_pct) / 100;
+    subtotal += gross; discount_total += disc; gst_total += gst;
+    return { line_subtotal: net, line_gst: gst, line_total: net + gst };
+  });
+  const grand_total = subtotal - discount_total + gst_total;
+  return { subtotal, discount_total, gst_total, grand_total, lines };
+}
+
+async function writeAudit(userId: string, action: string, entity_id: string, metadata: Record<string, unknown> = {}) {
+  await supabaseAdmin.from("audit_logs").insert({ user_id: userId, action, entity: "invoice", entity_id, metadata });
+}
+
 const ItemSchema = z.object({
   description: z.string().min(1).max(500),
   quantity: z.number().min(0.001),
