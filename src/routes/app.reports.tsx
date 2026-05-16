@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatINR } from "@/lib/format";
 import { Download } from "lucide-react";
+import { useMode } from "@/lib/mode-context";
+import { Link } from "@tanstack/react-router";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/app/reports")({
   head: () => ({ meta: [{ title: "Reports Center — MMA Suite" }] }),
@@ -198,45 +201,84 @@ function IncentiveReport({ from, to }: { from: string; to: string }) {
 }
 
 function InvoiceRegister({ from, to }: { from: string; to: string }) {
+  const { isTesting } = useMode();
+  const [companyId, setCompanyId] = React.useState<string>("all");
+  const [status, setStatus] = React.useState<string>("all");
+  const compQ = useQuery({ queryKey: ["rep-inv-companies"], queryFn: async () => (await supabase.from("companies").select("id,name").eq("active", true).order("name")).data });
   const q = useQuery({
-    queryKey: ["rep-inv", from, to],
-    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,doc_type,invoice_date,bill_to_name,subtotal,gst_total,grand_total,amount_paid,status,payment_status,companies!company_id(name)").gte("invoice_date", from).lte("invoice_date", to).order("invoice_date", { ascending: false })).data,
+    queryKey: ["rep-inv", from, to, isTesting, companyId, status],
+    queryFn: async () => {
+      let qb = supabase.from("invoices")
+        .select("id,invoice_number,doc_type,invoice_date,bill_to_name,subtotal,gst_total,grand_total,amount_paid,status,payment_status,companies!company_id(name)")
+        .eq("is_demo", isTesting)
+        .gte("invoice_date", from).lte("invoice_date", to)
+        .order("invoice_date", { ascending: false });
+      if (companyId !== "all") qb = qb.eq("company_id", companyId);
+      if (status !== "all") qb = qb.eq("status", status as any);
+      return (await qb).data;
+    },
   });
   const rows = (q.data ?? []) as any[];
   const total = rows.reduce((s, r) => s + Number(r.grand_total), 0);
   const paid = rows.reduce((s, r) => s + Number(r.amount_paid), 0);
+  const outstanding = total - paid;
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Invoice Register · {rows.length} docs · {formatINR(total)} billed · {formatINR(paid)} collected</CardTitle>
-        <Button size="sm" variant="outline" onClick={() => downloadCSV("invoice-register", rows.map((r) => ({ number: r.invoice_number, type: r.doc_type, date: r.invoice_date, from: r.companies?.name, to: r.bill_to_name, subtotal: r.subtotal, gst: r.gst_total, total: r.grand_total, paid: r.amount_paid, status: r.status, payment: r.payment_status })))}><Download className="mr-1 h-3 w-3" /> CSV</Button>
-      </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
-          <TableHeader><TableRow><TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>Date</TableHead><TableHead>From</TableHead><TableHead>To</TableHead><TableHead>Total</TableHead><TableHead>Paid</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>
-            {rows.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell className="font-mono text-xs">{r.invoice_number ?? "DRAFT"}</TableCell>
-                <TableCell><Badge variant="outline" className="text-xs">{r.doc_type}</Badge></TableCell>
-                <TableCell>{r.invoice_date}</TableCell>
-                <TableCell>{r.companies?.name ?? "—"}</TableCell>
-                <TableCell>{r.bill_to_name ?? "—"}</TableCell>
-                <TableCell>{formatINR(r.grand_total)}</TableCell>
-                <TableCell>{formatINR(r.amount_paid)}</TableCell>
-                <TableCell><Badge variant={r.payment_status === "paid" ? "default" : "secondary"}>{r.payment_status}</Badge></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Kpi label="Documents" value={`${rows.length}`} />
+        <Kpi label="Billed" value={formatINR(total)} />
+        <Kpi label="Collected" value={formatINR(paid)} />
+        <Kpi label="Outstanding" value={formatINR(outstanding)} />
+      </div>
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+          <CardTitle className="text-base">Invoice Register</CardTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select value={companyId} onValueChange={setCompanyId}>
+              <SelectTrigger className="h-8 w-48"><SelectValue placeholder="All companies" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All companies</SelectItem>
+                {compQ.data?.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="h-8 w-36"><SelectValue placeholder="All statuses" /></SelectTrigger>
+              <SelectContent>
+                {["all", "draft", "issued", "paid", "partial", "cancelled", "revised"].map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={() => downloadCSV("invoice-register", rows.map((r) => ({ number: r.invoice_number, type: r.doc_type, date: r.invoice_date, from: r.companies?.name, to: r.bill_to_name, subtotal: r.subtotal, gst: r.gst_total, total: r.grand_total, paid: r.amount_paid, status: r.status, payment: r.payment_status })))}><Download className="mr-1 h-3 w-3" /> CSV</Button>
+          </div>
+        </CardHeader>
+        <CardContent className="overflow-x-auto p-0">
+          <Table>
+            <TableHeader><TableRow><TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>Date</TableHead><TableHead>From</TableHead><TableHead>To</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-mono text-xs"><Link to="/app/billing/invoices/$invoiceId" params={{ invoiceId: r.id }} className="hover:underline">{r.invoice_number ?? "DRAFT"}</Link></TableCell>
+                  <TableCell><Badge variant="outline" className="text-xs">{r.doc_type}</Badge></TableCell>
+                  <TableCell>{r.invoice_date}</TableCell>
+                  <TableCell>{r.companies?.name ?? "—"}</TableCell>
+                  <TableCell>{r.bill_to_name ?? "—"}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.grand_total)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.amount_paid)}</TableCell>
+                  <TableCell><Badge variant={r.payment_status === "paid" ? "default" : "secondary"}>{r.payment_status}</Badge></TableCell>
+                </TableRow>
+              ))}
+              {rows.length === 0 && <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No invoices in this range</TableCell></TableRow>}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
 function EntityPerformance() {
-  const frQ = useQuery({ queryKey: ["rep-entities-fr"], queryFn: async () => (await supabase.from("franchisees").select("id,full_name,investment_amount,joined_at,status")).data });
+  const { isTesting } = useMode();
+  const frQ = useQuery({ queryKey: ["rep-entities-fr", isTesting], queryFn: async () => (await supabase.from("franchisees").select("id,full_name,investment_amount,joined_at,status").eq("is_demo", isTesting)).data });
   const revQ = useQuery({ queryKey: ["rep-entities-rev"], queryFn: async () => (await supabase.from("revenue_entries").select("franchisee_id,amount")).data });
   const roiQ = useQuery({ queryKey: ["rep-entities-roi"], queryFn: async () => (await supabase.from("roi_payouts").select("franchisee_id,total_amount,status")).data });
 
@@ -247,33 +289,49 @@ function EntityPerformance() {
     const fRev = rev.filter((r) => r.franchisee_id === f.id).reduce((a, r) => a + Number(r.amount), 0);
     const fRoiPaid = roi.filter((r) => r.franchisee_id === f.id && r.status === "paid").reduce((a, r) => a + Number(r.total_amount), 0);
     const fRoiDue = roi.filter((r) => r.franchisee_id === f.id && r.status !== "paid").reduce((a, r) => a + Number(r.total_amount), 0);
-    return { id: f.id, name: f.full_name, investment: Number(f.investment_amount), revenue: fRev, roi_paid: fRoiPaid, roi_due: fRoiDue, status: f.status };
+    const roiPct = Number(f.investment_amount) > 0 ? (fRoiPaid / Number(f.investment_amount)) * 100 : 0;
+    return { id: f.id, name: f.full_name, investment: Number(f.investment_amount), revenue: fRev, roi_paid: fRoiPaid, roi_due: fRoiDue, roiPct, status: f.status };
   });
 
+  const totalInvested = rows.reduce((s, r) => s + r.investment, 0);
+  const totalRevenue = rows.reduce((s, r) => s + r.revenue, 0);
+  const totalRoiPaid = rows.reduce((s, r) => s + r.roi_paid, 0);
+  const totalRoiDue = rows.reduce((s, r) => s + r.roi_due, 0);
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Franchisee Performance</CardTitle>
-        <Button size="sm" variant="outline" onClick={() => downloadCSV("entity-performance", rows)}><Download className="mr-1 h-3 w-3" /> CSV</Button>
-      </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
-          <TableHeader><TableRow><TableHead>Franchisee</TableHead><TableHead>Investment</TableHead><TableHead>Revenue</TableHead><TableHead>ROI Paid</TableHead><TableHead>ROI Due</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>
-            {rows.sort((a, b) => b.revenue - a.revenue).map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.name}</TableCell>
-                <TableCell>{formatINR(r.investment)}</TableCell>
-                <TableCell>{formatINR(r.revenue)}</TableCell>
-                <TableCell>{formatINR(r.roi_paid)}</TableCell>
-                <TableCell>{formatINR(r.roi_due)}</TableCell>
-                <TableCell><Badge variant="outline">{r.status}</Badge></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Kpi label="Total Invested" value={formatINR(totalInvested)} />
+        <Kpi label="Total Revenue" value={formatINR(totalRevenue)} />
+        <Kpi label="ROI Paid" value={formatINR(totalRoiPaid)} />
+        <Kpi label="ROI Due" value={formatINR(totalRoiDue)} />
+      </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Franchisee Performance · {rows.length} entities</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => downloadCSV("entity-performance", rows)}><Download className="mr-1 h-3 w-3" /> CSV</Button>
+        </CardHeader>
+        <CardContent className="overflow-x-auto p-0">
+          <Table>
+            <TableHeader><TableRow><TableHead>Franchisee</TableHead><TableHead className="text-right">Investment</TableHead><TableHead className="text-right">Revenue</TableHead><TableHead className="text-right">ROI Paid</TableHead><TableHead className="text-right">ROI Due</TableHead><TableHead className="text-right">ROI %</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {rows.sort((a, b) => b.revenue - a.revenue).map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell><Link to="/app/franchisees/$franchiseeId" params={{ franchiseeId: r.id }} className="hover:underline">{r.name}</Link></TableCell>
+                  <TableCell className="text-right">{formatINR(r.investment)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.revenue)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.roi_paid)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.roi_due)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">{r.roiPct.toFixed(1)}%</TableCell>
+                  <TableCell><Badge variant="outline">{r.status}</Badge></TableCell>
+                </TableRow>
+              ))}
+              {rows.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No franchisees in current mode</TableCell></TableRow>}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

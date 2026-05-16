@@ -8,6 +8,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINR } from "@/lib/format";
+import { useMode } from "@/lib/mode-context";
+import { Link } from "@tanstack/react-router";
+
+function ageBucket(dueDate: string | null, today: string): "current" | "1-30" | "31-60" | "61-90" | "90+" {
+  if (!dueDate || dueDate >= today) return "current";
+  const days = Math.floor((new Date(today).getTime() - new Date(dueDate).getTime()) / 86400000);
+  if (days <= 30) return "1-30";
+  if (days <= 60) return "31-60";
+  if (days <= 90) return "61-90";
+  return "90+";
+}
 
 export const Route = createFileRoute("/app/accounts")({
   head: () => ({ meta: [{ title: "Accounts — MMA Suite" }] }),
@@ -39,23 +50,25 @@ function AccountsPage() {
 }
 
 function PaymentsTab() {
+  const { isTesting } = useMode();
   const q = useQuery({
-    queryKey: ["acct-payments"],
-    queryFn: async () => (await supabase.from("payments").select("*,companies!company_id(name)").order("payment_date", { ascending: false }).limit(500)).data,
+    queryKey: ["acct-payments", isTesting],
+    queryFn: async () => (await supabase.from("payments").select("*,companies!company_id(name)").eq("is_demo", isTesting).order("payment_date", { ascending: false }).limit(500)).data,
   });
   const rows = (q.data ?? []) as any[];
   const inflow = rows.filter((r) => r.direction === "inflow").reduce((s, r) => s + Number(r.amount), 0);
   const outflow = rows.filter((r) => r.direction === "outflow").reduce((s, r) => s + Number(r.amount), 0);
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi label="Inflow" value={formatINR(inflow)} />
         <Kpi label="Outflow" value={formatINR(outflow)} />
         <Kpi label="Net" value={formatINR(inflow - outflow)} />
+        <Kpi label={isTesting ? "Demo Records" : "Live Records"} value={`${rows.length}`} />
       </div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Company</TableHead><TableHead>Direction</TableHead><TableHead>Counterparty</TableHead><TableHead>Method</TableHead><TableHead>Amount</TableHead><TableHead>Reference</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Company</TableHead><TableHead>Direction</TableHead><TableHead>Counterparty</TableHead><TableHead>Method</TableHead><TableHead className="text-right">Amount</TableHead><TableHead>Reference</TableHead></TableRow></TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.id}>
@@ -64,7 +77,7 @@ function PaymentsTab() {
                 <TableCell><Badge variant={r.direction === "inflow" ? "default" : "secondary"}>{r.direction}</Badge></TableCell>
                 <TableCell>{r.counterparty_name ?? "—"}</TableCell>
                 <TableCell className="capitalize">{r.method.replace("_", " ")}</TableCell>
-                <TableCell className="font-mono">{formatINR(r.amount)}</TableCell>
+                <TableCell className="text-right font-mono">{formatINR(r.amount)}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">{r.reference ?? "—"}</TableCell>
               </TableRow>
             ))}
@@ -77,41 +90,48 @@ function PaymentsTab() {
 }
 
 function ReceivablesTab() {
+  const { isTesting } = useMode();
   const q = useQuery({
-    queryKey: ["acct-rec"],
-    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").neq("status", "draft").neq("status", "cancelled").order("due_date", { ascending: true, nullsFirst: false })).data,
+    queryKey: ["acct-rec", isTesting],
+    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").eq("is_demo", isTesting).neq("status", "draft").neq("status", "cancelled").order("due_date", { ascending: true, nullsFirst: false })).data,
   });
   const rows = ((q.data ?? []) as any[]).filter((r) => Number(r.grand_total) > Number(r.amount_paid));
-  const total = rows.reduce((s, r) => s + (Number(r.grand_total) - Number(r.amount_paid)), 0);
   const today = new Date().toISOString().slice(0, 10);
-  const overdue = rows.filter((r) => r.due_date && r.due_date < today).reduce((s, r) => s + (Number(r.grand_total) - Number(r.amount_paid)), 0);
+  const withAge = rows.map((r) => ({ ...r, _open: Number(r.grand_total) - Number(r.amount_paid), _bucket: ageBucket(r.due_date, today) }));
+  const total = withAge.reduce((s, r) => s + r._open, 0);
+  const buckets = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 } as Record<string, number>;
+  withAge.forEach((r) => { buckets[r._bucket] += r._open; });
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <Kpi label="Outstanding" value={formatINR(total)} />
-        <Kpi label="Overdue" value={formatINR(overdue)} />
-        <Kpi label="Open Invoices" value={`${rows.length}`} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <Kpi label="Current" value={formatINR(buckets.current)} />
+        <Kpi label="1–30 days" value={formatINR(buckets["1-30"])} />
+        <Kpi label="31–60 days" value={formatINR(buckets["31-60"])} />
+        <Kpi label="61–90 days" value={formatINR(buckets["61-90"])} />
+        <Kpi label="90+ days" value={formatINR(buckets["90+"])} />
       </div>
+      <div className="text-xs text-muted-foreground">Total outstanding: <span className="font-semibold text-foreground">{formatINR(total)}</span> across {rows.length} open invoice(s).</div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Date</TableHead><TableHead>Due</TableHead><TableHead>From</TableHead><TableHead>Customer</TableHead><TableHead>Total</TableHead><TableHead>Paid</TableHead><TableHead>Outstanding</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Date</TableHead><TableHead>Due</TableHead><TableHead>Age</TableHead><TableHead>From</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Outstanding</TableHead></TableRow></TableHeader>
           <TableBody>
-            {rows.map((r) => {
-              const open = Number(r.grand_total) - Number(r.amount_paid);
-              const isOverdue = r.due_date && r.due_date < today;
+            {withAge.map((r) => {
+              const isOverdue = r._bucket !== "current";
               return (
                 <TableRow key={r.id} className={isOverdue ? "bg-destructive/5" : ""}>
-                  <TableCell className="font-mono text-xs">{r.invoice_number ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-xs"><Link to="/app/billing/invoices/$invoiceId" params={{ invoiceId: r.id }} className="hover:underline">{r.invoice_number ?? "—"}</Link></TableCell>
                   <TableCell>{r.invoice_date}</TableCell>
                   <TableCell className={isOverdue ? "text-destructive font-semibold" : ""}>{r.due_date ?? "—"}</TableCell>
+                  <TableCell><Badge variant={isOverdue ? "destructive" : "outline"} className="text-xs">{r._bucket}</Badge></TableCell>
                   <TableCell>{r.companies?.name ?? "—"}</TableCell>
                   <TableCell>{r.bill_to_name ?? "—"}</TableCell>
-                  <TableCell>{formatINR(r.grand_total)}</TableCell>
-                  <TableCell>{formatINR(r.amount_paid)}</TableCell>
-                  <TableCell className="font-mono font-semibold">{formatINR(open)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.grand_total)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.amount_paid)}</TableCell>
+                  <TableCell className="text-right font-mono font-semibold">{formatINR(r._open)}</TableCell>
                 </TableRow>
               );
             })}
+            {withAge.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No outstanding receivables</TableCell></TableRow>}
           </TableBody>
         </Table>
       </CardContent></Card>
@@ -120,6 +140,7 @@ function ReceivablesTab() {
 }
 
 function PayablesTab() {
+  const today = new Date().toISOString().slice(0, 10);
   const q = useQuery({
     queryKey: ["acct-payables"],
     queryFn: async () => (await supabase.from("expenses").select("id,expense_date,vendor,description,amount,status,payment_method,franchisees(full_name)").order("expense_date", { ascending: false }).limit(500)).data,
@@ -127,16 +148,21 @@ function PayablesTab() {
   const rows = (q.data ?? []) as any[];
   const due = rows.filter((r) => r.status !== "paid").reduce((s, r) => s + Number(r.amount), 0);
   const paid = rows.filter((r) => r.status === "paid").reduce((s, r) => s + Number(r.amount), 0);
+  const buckets = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 } as Record<string, number>;
+  rows.filter((r) => r.status !== "paid").forEach((r) => { buckets[ageBucket(r.expense_date, today)] += Number(r.amount); });
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <Kpi label="Payables Due" value={formatINR(due)} />
-        <Kpi label="Paid (LTD)" value={formatINR(paid)} />
-        <Kpi label="Records" value={`${rows.length}`} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <Kpi label="Current" value={formatINR(buckets.current)} />
+        <Kpi label="1–30 days" value={formatINR(buckets["1-30"])} />
+        <Kpi label="31–60 days" value={formatINR(buckets["31-60"])} />
+        <Kpi label="61–90 days" value={formatINR(buckets["61-90"])} />
+        <Kpi label="90+ days" value={formatINR(buckets["90+"])} />
       </div>
+      <div className="text-xs text-muted-foreground">Due: <span className="font-semibold text-foreground">{formatINR(due)}</span> · Paid (LTD): <span className="font-semibold text-foreground">{formatINR(paid)}</span> · {rows.length} record(s)</div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Vendor</TableHead><TableHead>Description</TableHead><TableHead>Franchisee</TableHead><TableHead>Method</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Vendor</TableHead><TableHead>Description</TableHead><TableHead>Franchisee</TableHead><TableHead>Method</TableHead><TableHead className="text-right">Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
           <TableBody>
             {rows.map((r) => (
               <TableRow key={r.id}>
@@ -145,7 +171,7 @@ function PayablesTab() {
                 <TableCell className="max-w-xs truncate text-xs">{r.description ?? "—"}</TableCell>
                 <TableCell>{r.franchisees?.full_name ?? "—"}</TableCell>
                 <TableCell className="capitalize text-xs">{r.payment_method.replace("_", " ")}</TableCell>
-                <TableCell className="font-mono">{formatINR(r.amount)}</TableCell>
+                <TableCell className="text-right font-mono">{formatINR(r.amount)}</TableCell>
                 <TableCell><Badge variant={r.status === "paid" ? "default" : "secondary"}>{r.status}</Badge></TableCell>
               </TableRow>
             ))}
