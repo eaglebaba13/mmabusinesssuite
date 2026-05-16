@@ -17,16 +17,18 @@ export const Route = createFileRoute("/app/payouts/city")({
 });
 
 function CityPayoutsPage() {
+  const { isTesting } = useMode();
   const frQ = useQuery({
-    queryKey: ["fr-list-payouts"],
+    queryKey: ["fr-list-payouts", isTesting],
     queryFn: async () =>
       (await supabase
         .from("franchisees")
-        .select("id,full_name,investment_amount,base_roi_pct,emporium_pct,academy_pct,dark_store_pct,joined_at,status,territory_id")
+        .select("id,full_name,investment_amount,base_roi_pct,emporium_pct,academy_pct,dark_store_pct,joined_at,status,territory_id,is_demo")
+        .eq("is_demo", isTesting)
         .order("full_name")).data,
   });
   const [frId, setFrId] = React.useState<string>("");
-  React.useEffect(() => { if (!frId && frQ.data?.[0]) setFrId(frQ.data[0].id); }, [frQ.data, frId]);
+  React.useEffect(() => { setFrId(frQ.data?.[0]?.id ?? ""); }, [frQ.data]);
 
   const selected = frQ.data?.find((f) => f.id === frId);
 
