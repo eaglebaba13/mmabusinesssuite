@@ -26,6 +26,11 @@ function AppIndex() {
       navigate({ to: "/app/trainer", replace: true });
       return;
     }
+    // Accounts (non-admin) → accounts workflow, not executive master dashboard
+    if (hasRole("accounts") && !isAdmin) {
+      navigate({ to: "/app/accounts", replace: true });
+      return;
+    }
     navigate({ to: "/app/dashboard", replace: true });
   }, [loading, hasRole, isAdmin, hasAnyRole, navigate]);
 
