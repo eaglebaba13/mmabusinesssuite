@@ -277,7 +277,8 @@ function InvoiceRegister({ from, to }: { from: string; to: string }) {
 }
 
 function EntityPerformance() {
-  const frQ = useQuery({ queryKey: ["rep-entities-fr"], queryFn: async () => (await supabase.from("franchisees").select("id,full_name,investment_amount,joined_at,status")).data });
+  const { isTesting } = useMode();
+  const frQ = useQuery({ queryKey: ["rep-entities-fr", isTesting], queryFn: async () => (await supabase.from("franchisees").select("id,full_name,investment_amount,joined_at,status").eq("is_demo", isTesting)).data });
   const revQ = useQuery({ queryKey: ["rep-entities-rev"], queryFn: async () => (await supabase.from("revenue_entries").select("franchisee_id,amount")).data });
   const roiQ = useQuery({ queryKey: ["rep-entities-roi"], queryFn: async () => (await supabase.from("roi_payouts").select("franchisee_id,total_amount,status")).data });
 
@@ -288,33 +289,49 @@ function EntityPerformance() {
     const fRev = rev.filter((r) => r.franchisee_id === f.id).reduce((a, r) => a + Number(r.amount), 0);
     const fRoiPaid = roi.filter((r) => r.franchisee_id === f.id && r.status === "paid").reduce((a, r) => a + Number(r.total_amount), 0);
     const fRoiDue = roi.filter((r) => r.franchisee_id === f.id && r.status !== "paid").reduce((a, r) => a + Number(r.total_amount), 0);
-    return { id: f.id, name: f.full_name, investment: Number(f.investment_amount), revenue: fRev, roi_paid: fRoiPaid, roi_due: fRoiDue, status: f.status };
+    const roiPct = Number(f.investment_amount) > 0 ? (fRoiPaid / Number(f.investment_amount)) * 100 : 0;
+    return { id: f.id, name: f.full_name, investment: Number(f.investment_amount), revenue: fRev, roi_paid: fRoiPaid, roi_due: fRoiDue, roiPct, status: f.status };
   });
 
+  const totalInvested = rows.reduce((s, r) => s + r.investment, 0);
+  const totalRevenue = rows.reduce((s, r) => s + r.revenue, 0);
+  const totalRoiPaid = rows.reduce((s, r) => s + r.roi_paid, 0);
+  const totalRoiDue = rows.reduce((s, r) => s + r.roi_due, 0);
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Franchisee Performance</CardTitle>
-        <Button size="sm" variant="outline" onClick={() => downloadCSV("entity-performance", rows)}><Download className="mr-1 h-3 w-3" /> CSV</Button>
-      </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
-          <TableHeader><TableRow><TableHead>Franchisee</TableHead><TableHead>Investment</TableHead><TableHead>Revenue</TableHead><TableHead>ROI Paid</TableHead><TableHead>ROI Due</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
-          <TableBody>
-            {rows.sort((a, b) => b.revenue - a.revenue).map((r) => (
-              <TableRow key={r.id}>
-                <TableCell>{r.name}</TableCell>
-                <TableCell>{formatINR(r.investment)}</TableCell>
-                <TableCell>{formatINR(r.revenue)}</TableCell>
-                <TableCell>{formatINR(r.roi_paid)}</TableCell>
-                <TableCell>{formatINR(r.roi_due)}</TableCell>
-                <TableCell><Badge variant="outline">{r.status}</Badge></TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Kpi label="Total Invested" value={formatINR(totalInvested)} />
+        <Kpi label="Total Revenue" value={formatINR(totalRevenue)} />
+        <Kpi label="ROI Paid" value={formatINR(totalRoiPaid)} />
+        <Kpi label="ROI Due" value={formatINR(totalRoiDue)} />
+      </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Franchisee Performance · {rows.length} entities</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => downloadCSV("entity-performance", rows)}><Download className="mr-1 h-3 w-3" /> CSV</Button>
+        </CardHeader>
+        <CardContent className="overflow-x-auto p-0">
+          <Table>
+            <TableHeader><TableRow><TableHead>Franchisee</TableHead><TableHead className="text-right">Investment</TableHead><TableHead className="text-right">Revenue</TableHead><TableHead className="text-right">ROI Paid</TableHead><TableHead className="text-right">ROI Due</TableHead><TableHead className="text-right">ROI %</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+            <TableBody>
+              {rows.sort((a, b) => b.revenue - a.revenue).map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell><Link to="/app/franchisees/$franchiseeId" params={{ franchiseeId: r.id }} className="hover:underline">{r.name}</Link></TableCell>
+                  <TableCell className="text-right">{formatINR(r.investment)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.revenue)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.roi_paid)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.roi_due)}</TableCell>
+                  <TableCell className="text-right font-mono text-xs">{r.roiPct.toFixed(1)}%</TableCell>
+                  <TableCell><Badge variant="outline">{r.status}</Badge></TableCell>
+                </TableRow>
+              ))}
+              {rows.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No franchisees in current mode</TableCell></TableRow>}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
