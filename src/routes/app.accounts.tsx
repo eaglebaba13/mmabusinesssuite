@@ -90,41 +90,48 @@ function PaymentsTab() {
 }
 
 function ReceivablesTab() {
+  const { isTesting } = useMode();
   const q = useQuery({
-    queryKey: ["acct-rec"],
-    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").neq("status", "draft").neq("status", "cancelled").order("due_date", { ascending: true, nullsFirst: false })).data,
+    queryKey: ["acct-rec", isTesting],
+    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").eq("is_demo", isTesting).neq("status", "draft").neq("status", "cancelled").order("due_date", { ascending: true, nullsFirst: false })).data,
   });
   const rows = ((q.data ?? []) as any[]).filter((r) => Number(r.grand_total) > Number(r.amount_paid));
-  const total = rows.reduce((s, r) => s + (Number(r.grand_total) - Number(r.amount_paid)), 0);
   const today = new Date().toISOString().slice(0, 10);
-  const overdue = rows.filter((r) => r.due_date && r.due_date < today).reduce((s, r) => s + (Number(r.grand_total) - Number(r.amount_paid)), 0);
+  const withAge = rows.map((r) => ({ ...r, _open: Number(r.grand_total) - Number(r.amount_paid), _bucket: ageBucket(r.due_date, today) }));
+  const total = withAge.reduce((s, r) => s + r._open, 0);
+  const buckets = { current: 0, "1-30": 0, "31-60": 0, "61-90": 0, "90+": 0 } as Record<string, number>;
+  withAge.forEach((r) => { buckets[r._bucket] += r._open; });
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        <Kpi label="Outstanding" value={formatINR(total)} />
-        <Kpi label="Overdue" value={formatINR(overdue)} />
-        <Kpi label="Open Invoices" value={`${rows.length}`} />
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <Kpi label="Current" value={formatINR(buckets.current)} />
+        <Kpi label="1–30 days" value={formatINR(buckets["1-30"])} />
+        <Kpi label="31–60 days" value={formatINR(buckets["31-60"])} />
+        <Kpi label="61–90 days" value={formatINR(buckets["61-90"])} />
+        <Kpi label="90+ days" value={formatINR(buckets["90+"])} />
       </div>
+      <div className="text-xs text-muted-foreground">Total outstanding: <span className="font-semibold text-foreground">{formatINR(total)}</span> across {rows.length} open invoice(s).</div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Date</TableHead><TableHead>Due</TableHead><TableHead>From</TableHead><TableHead>Customer</TableHead><TableHead>Total</TableHead><TableHead>Paid</TableHead><TableHead>Outstanding</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Date</TableHead><TableHead>Due</TableHead><TableHead>Age</TableHead><TableHead>From</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Outstanding</TableHead></TableRow></TableHeader>
           <TableBody>
-            {rows.map((r) => {
-              const open = Number(r.grand_total) - Number(r.amount_paid);
-              const isOverdue = r.due_date && r.due_date < today;
+            {withAge.map((r) => {
+              const isOverdue = r._bucket !== "current";
               return (
                 <TableRow key={r.id} className={isOverdue ? "bg-destructive/5" : ""}>
-                  <TableCell className="font-mono text-xs">{r.invoice_number ?? "—"}</TableCell>
+                  <TableCell className="font-mono text-xs"><Link to="/app/billing/invoices/$invoiceId" params={{ invoiceId: r.id }} className="hover:underline">{r.invoice_number ?? "—"}</Link></TableCell>
                   <TableCell>{r.invoice_date}</TableCell>
                   <TableCell className={isOverdue ? "text-destructive font-semibold" : ""}>{r.due_date ?? "—"}</TableCell>
+                  <TableCell><Badge variant={isOverdue ? "destructive" : "outline"} className="text-xs">{r._bucket}</Badge></TableCell>
                   <TableCell>{r.companies?.name ?? "—"}</TableCell>
                   <TableCell>{r.bill_to_name ?? "—"}</TableCell>
-                  <TableCell>{formatINR(r.grand_total)}</TableCell>
-                  <TableCell>{formatINR(r.amount_paid)}</TableCell>
-                  <TableCell className="font-mono font-semibold">{formatINR(open)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.grand_total)}</TableCell>
+                  <TableCell className="text-right">{formatINR(r.amount_paid)}</TableCell>
+                  <TableCell className="text-right font-mono font-semibold">{formatINR(r._open)}</TableCell>
                 </TableRow>
               );
             })}
+            {withAge.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No outstanding receivables</TableCell></TableRow>}
           </TableBody>
         </Table>
       </CardContent></Card>
