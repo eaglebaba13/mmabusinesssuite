@@ -16,6 +16,9 @@ import {
   FileText,
   Coins,
   ShieldCheck,
+  BarChart3,
+  Calculator,
+  Store,
 } from "lucide-react";
 import {
   Sidebar,
@@ -50,7 +53,14 @@ const NAV_INVENTORY = [
 const NAV_FINANCE = [
   { title: "Finance", url: "/app/finance" as const, icon: Wallet },
   { title: "Invoices", url: "/app/billing/invoices" as const, icon: FileText },
+  { title: "Accounts", url: "/app/accounts" as const, icon: Calculator },
   { title: "State Payouts", url: "/app/payouts/state" as const, icon: Coins },
+  { title: "City Payouts", url: "/app/payouts/city" as const, icon: Coins },
+] as const;
+
+const NAV_INSIGHTS = [
+  { title: "Reports", url: "/app/reports" as const, icon: BarChart3 },
+  { title: "Entity Dashboards", url: "/app/dashboards/academy" as const, icon: Store },
 ] as const;
 
 const NAV_ADMIN = [
@@ -233,6 +243,26 @@ export function AppSidebar() {
                       tooltip={item.title}
                       className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
                     >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {(isAdmin || hasRole("accounts") || hasRole("founder")) && !isFranchiseeOnly && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Insights</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_INSIGHTS.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url) || (item.url.startsWith("/app/dashboards") && location.pathname.startsWith("/app/dashboards"))} tooltip={item.title} className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background">
                       <Link to={item.url}>
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
