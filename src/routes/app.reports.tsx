@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatINR } from "@/lib/format";
 import { Download } from "lucide-react";
+import { useMode } from "@/lib/mode-context";
+import { Link } from "@tanstack/react-router";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/app/reports")({
   head: () => ({ meta: [{ title: "Reports Center — MMA Suite" }] }),
