@@ -9,33 +9,14 @@ export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
 
-// Routes a pure franchisee (no admin role) is NOT allowed to visit.
 const FRANCHISEE_BLOCKED = [
-  "/app/dashboard",
-  "/app/leads",
-  "/app/franchisees",
-  "/app/state-franchises",
-  "/app/finance",
-  "/app/billing",
-  "/app/payouts",
-  "/app/audit-logs",
-  "/app/hr",
-  "/app/academy",
-  "/app/inventory",
-  "/app/webinars",
-  "/app/pos",
-  "/app/settings",
-  "/app/trainer",
+  "/app/dashboard", "/app/leads", "/app/franchisees", "/app/state-franchises",
+  "/app/finance", "/app/billing", "/app/payouts", "/app/accounts", "/app/reports",
+  "/app/dashboards", "/app/audit-logs", "/app/hr", "/app/academy", "/app/inventory",
+  "/app/webinars", "/app/pos", "/app/settings", "/app/trainer",
 ];
-
-// Admin-only routes: only super_admin/founder (and accounts for billing) may enter.
-const ADMIN_ONLY = [
-  "/app/audit-logs",
-  "/app/state-franchises",
-  "/app/payouts",
-  "/app/settings",
-];
-const ACCOUNTS_OR_ADMIN = ["/app/billing", "/app/finance"];
+const ADMIN_ONLY = ["/app/audit-logs", "/app/state-franchises", "/app/settings"];
+const ACCOUNTS_OR_ADMIN = ["/app/billing", "/app/finance", "/app/payouts", "/app/accounts", "/app/reports", "/app/dashboards"];
 
 function AppLayout() {
   const { isAuthenticated, loading, hasRole, hasAnyRole, isAdmin } = useAuth();
