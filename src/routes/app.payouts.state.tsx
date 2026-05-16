@@ -75,12 +75,16 @@ function StateContent({ stateFranchiseId }: { stateFranchiseId: string }) {
 
       {tgt && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Activation Target — Year {tgt.contract_year}</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base">Activation Target — Year {tgt.contract_year}</CardTitle>
+            <span className="text-sm font-semibold text-gold">{Math.min(100, Math.round((tgt.activated_count / Math.max(1, tgt.target_count)) * 100))}%</span>
+          </CardHeader>
           <CardContent>
             <div className="h-2 w-full rounded-full bg-muted">
-              <div className="h-2 rounded-full bg-gradient-gold" style={{ width: `${Math.min(100, (tgt.activated_count / tgt.target_count) * 100)}%` }} />
+              <div className="h-2 rounded-full bg-gradient-gold transition-all" style={{ width: `${Math.min(100, (tgt.activated_count / Math.max(1, tgt.target_count)) * 100)}%` }} />
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">{tgt.activated_count} of {tgt.target_count} activations · {formatINR(Number(tgt.per_activation_amount))} each · {tgt.starts_on} → {tgt.ends_on}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{tgt.activated_count} of {tgt.target_count} activations · {formatINR(Number(tgt.per_activation_amount))} per activation · Period {tgt.starts_on} → {tgt.ends_on}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Target value: <span className="font-semibold text-foreground">{formatINR(Number(tgt.per_activation_amount) * tgt.target_count)}</span> · Earned: <span className="font-semibold text-foreground">{formatINR(Number(tgt.per_activation_amount) * tgt.activated_count)}</span></p>
           </CardContent>
         </Card>
       )}
