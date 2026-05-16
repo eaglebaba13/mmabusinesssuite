@@ -182,10 +182,15 @@ function PayablesTab() {
         <span>Due: <span className="font-semibold text-foreground">{formatINR(due)}</span> · Paid (LTD): <span className="font-semibold text-foreground">{formatINR(paid)}</span> · {rows.length} record(s)</span>
         <button
           onClick={() => {
-            const headers = ["date","vendor","description","franchisee","method","amount","status"];
-            const csv = [headers.join(","), ...rows.map((r: any) => [r.expense_date, (r.vendor ?? "").replace(/,/g," "), (r.description ?? "").replace(/,/g," "), r.franchisees?.full_name ?? "", r.payment_method, r.amount, r.status].join(","))].join("\n");
-            const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-            const a = document.createElement("a"); a.href = url; a.download = `payables-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+            exportToCSV(`payables-${new Date().toISOString().slice(0,10)}`, rows, [
+              { header: "date", accessor: (r: any) => r.expense_date },
+              { header: "vendor", accessor: (r: any) => r.vendor ?? "" },
+              { header: "description", accessor: (r: any) => r.description ?? "" },
+              { header: "franchisee", accessor: (r: any) => r.franchisees?.full_name ?? "" },
+              { header: "method", accessor: (r: any) => r.payment_method },
+              { header: "amount", accessor: (r: any) => r.amount },
+              { header: "status", accessor: (r: any) => r.status },
+            ]);
           }}
           className="rounded border border-border px-3 py-1 hover:bg-accent"
         >Export CSV</button>
