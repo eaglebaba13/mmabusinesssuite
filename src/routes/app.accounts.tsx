@@ -115,10 +115,17 @@ function ReceivablesTab() {
         <span>Total outstanding: <span className="font-semibold text-foreground">{formatINR(total)}</span> across {rows.length} open invoice(s).</span>
         <button
           onClick={() => {
-            const headers = ["invoice","date","due","age","from","customer","total","paid","outstanding"];
-            const csv = [headers.join(","), ...withAge.map((r: any) => [r.invoice_number ?? "", r.invoice_date, r.due_date ?? "", r._bucket, r.companies?.name ?? "", (r.bill_to_name ?? "").replace(/,/g," "), r.grand_total, r.amount_paid, r._open].join(","))].join("\n");
-            const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-            const a = document.createElement("a"); a.href = url; a.download = `receivables-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+            exportToCSV(`receivables-${new Date().toISOString().slice(0,10)}`, withAge, [
+              { header: "invoice", accessor: (r: any) => r.invoice_number ?? "" },
+              { header: "date", accessor: (r: any) => r.invoice_date },
+              { header: "due", accessor: (r: any) => r.due_date ?? "" },
+              { header: "age", accessor: (r: any) => r._bucket },
+              { header: "from", accessor: (r: any) => r.companies?.name ?? "" },
+              { header: "customer", accessor: (r: any) => r.bill_to_name ?? "" },
+              { header: "total", accessor: (r: any) => r.grand_total },
+              { header: "paid", accessor: (r: any) => r.amount_paid },
+              { header: "outstanding", accessor: (r: any) => r._open },
+            ]);
           }}
           className="rounded border border-border px-3 py-1 hover:bg-accent"
         >Export CSV</button>
