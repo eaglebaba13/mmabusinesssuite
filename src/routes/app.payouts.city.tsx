@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINR } from "@/lib/format";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
+import { useMode } from "@/lib/mode-context";
 
 export const Route = createFileRoute("/app/payouts/city")({
   head: () => ({ meta: [{ title: "City Franchise Payouts — MMA Suite" }] }),
