@@ -87,7 +87,7 @@ function computeTotals(items: ItemIn[]) {
 }
 
 async function writeAudit(userId: string, action: string, entity_id: string, metadata: Record<string, unknown> = {}) {
-  await supabaseAdmin.from("audit_logs").insert({ user_id: userId, action, entity: "invoice", entity_id, metadata });
+  await supabaseAdmin.from("audit_logs").insert({ user_id: userId, action, entity: "invoice", entity_id, metadata } as any);
 }
 
 const ItemSchema = z.object({
