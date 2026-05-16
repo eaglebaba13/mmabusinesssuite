@@ -71,6 +71,25 @@ async function nextInvoiceNumber(company_id: string, doc_type: string): Promise<
   return format.replace("{PREFIX}", prefix).replace("{FY}", fy).replace(/\{SEQ:\d+\}/, String(seq).padStart(pad, "0"));
 }
 
+type ItemIn = { quantity: number; unit_price: number; discount_pct: number; gst_pct: number };
+function computeTotals(items: ItemIn[]) {
+  let subtotal = 0, discount_total = 0, gst_total = 0;
+  const lines = items.map((it) => {
+    const gross = Number(it.quantity) * Number(it.unit_price);
+    const disc = gross * Number(it.discount_pct) / 100;
+    const net = gross - disc;
+    const gst = net * Number(it.gst_pct) / 100;
+    subtotal += gross; discount_total += disc; gst_total += gst;
+    return { line_subtotal: net, line_gst: gst, line_total: net + gst };
+  });
+  const grand_total = subtotal - discount_total + gst_total;
+  return { subtotal, discount_total, gst_total, grand_total, lines };
+}
+
+async function writeAudit(userId: string, action: string, entity_id: string, metadata: Record<string, unknown> = {}) {
+  await supabaseAdmin.from("audit_logs").insert({ user_id: userId, action, entity: "invoice", entity_id, metadata } as any);
+}
+
 const ItemSchema = z.object({
   description: z.string().min(1).max(500),
   quantity: z.number().min(0.001),
@@ -102,6 +121,7 @@ export const createInvoice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
     const number = data.issue ? await nextInvoiceNumber(data.company_id, data.doc_type) : null;
+    const totals = computeTotals(data.items);
     const { data: inv, error } = await supabaseAdmin
       .from("invoices")
       .insert({
@@ -120,13 +140,18 @@ export const createInvoice = createServerFn({ method: "POST" })
         issued_at: data.issue ? new Date().toISOString() : null,
         issued_by: data.issue ? context.userId : null,
         is_demo: data.is_demo,
+        subtotal: totals.subtotal,
+        discount_total: totals.discount_total,
+        gst_total: totals.gst_total,
+        grand_total: totals.grand_total,
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
-    const items = data.items.map((it) => ({ ...it, invoice_id: inv.id }));
+    const items = data.items.map((it, idx) => ({ ...it, invoice_id: inv.id, ...totals.lines[idx] }));
     const { error: ie } = await supabaseAdmin.from("invoice_items").insert(items);
     if (ie) throw new Error(ie.message);
+    await writeAudit(context.userId, data.issue ? "invoice.issue" : "invoice.create", inv.id, { doc_type: data.doc_type, grand_total: totals.grand_total, invoice_number: number });
     return { id: inv.id, invoice_number: number };
   });
 
@@ -140,12 +165,22 @@ export const updateInvoice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
     const { id, items, ...patch } = data;
-    const { error } = await supabaseAdmin.from("invoices").update(patch).eq("id", id).eq("status", "draft");
-    if (error) throw new Error(error.message);
+    const fullPatch: Record<string, unknown> = { ...patch };
+    let totals: ReturnType<typeof computeTotals> | null = null;
     if (items) {
-      await supabaseAdmin.from("invoice_items").delete().eq("invoice_id", id);
-      await supabaseAdmin.from("invoice_items").insert(items.map((it) => ({ ...it, invoice_id: id })));
+      totals = computeTotals(items);
+      fullPatch.subtotal = totals.subtotal;
+      fullPatch.discount_total = totals.discount_total;
+      fullPatch.gst_total = totals.gst_total;
+      fullPatch.grand_total = totals.grand_total;
     }
+    const { error } = await supabaseAdmin.from("invoices").update(fullPatch as any).eq("id", id).eq("status", "draft");
+    if (error) throw new Error(error.message);
+    if (items && totals) {
+      await supabaseAdmin.from("invoice_items").delete().eq("invoice_id", id);
+      await supabaseAdmin.from("invoice_items").insert(items.map((it, idx) => ({ ...it, invoice_id: id, ...totals!.lines[idx] })));
+    }
+    await writeAudit(context.userId, "invoice.update", id, { items_replaced: !!items });
     return { ok: true };
   });
 
@@ -154,7 +189,7 @@ export const issueInvoice = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
-    const { data: inv } = await supabaseAdmin.from("invoices").select("id,company_id,doc_type,status,invoice_number").eq("id", data.id).single();
+    const { data: inv } = await supabaseAdmin.from("invoices").select("id,company_id,doc_type,status,invoice_number,grand_total").eq("id", data.id).single();
     if (!inv) throw new Error("Not found");
     if (inv.status !== "draft") throw new Error("Already issued");
     const number = inv.invoice_number ?? (await nextInvoiceNumber(inv.company_id, inv.doc_type));
@@ -162,6 +197,7 @@ export const issueInvoice = createServerFn({ method: "POST" })
       status: "issued", invoice_number: number, issued_at: new Date().toISOString(), issued_by: context.userId,
     }).eq("id", data.id);
     if (error) throw new Error(error.message);
+    await writeAudit(context.userId, "invoice.issue", data.id, { invoice_number: number, grand_total: inv.grand_total });
     return { invoice_number: number };
   });
 
@@ -174,6 +210,7 @@ export const cancelInvoice = createServerFn({ method: "POST" })
       status: "cancelled", cancellation_reason: data.reason,
     }).eq("id", data.id);
     if (error) throw new Error(error.message);
+    await writeAudit(context.userId, "invoice.cancel", data.id, { reason: data.reason });
     return { ok: true };
   });
 
@@ -185,6 +222,12 @@ export const reviseInvoice = createServerFn({ method: "POST" })
     const { data: orig } = await supabaseAdmin.from("invoices").select("*").eq("id", data.id).single();
     if (!orig) throw new Error("Not found");
     const { data: items } = await supabaseAdmin.from("invoice_items").select("*").eq("invoice_id", data.id);
+
+    const itemsForTotals = (items ?? []).map((it: any) => ({
+      quantity: Number(it.quantity), unit_price: Number(it.unit_price),
+      discount_pct: Number(it.discount_pct), gst_pct: Number(it.gst_pct),
+    }));
+    const totals = computeTotals(itemsForTotals);
 
     const { data: rev, error } = await supabaseAdmin.from("invoices").insert({
       company_id: orig.company_id,
@@ -201,18 +244,24 @@ export const reviseInvoice = createServerFn({ method: "POST" })
       revision_no: (orig.revision_no ?? 0) + 1,
       status: "draft",
       is_demo: orig.is_demo,
+      subtotal: totals.subtotal,
+      discount_total: totals.discount_total,
+      gst_total: totals.gst_total,
+      grand_total: totals.grand_total,
     }).select("id").single();
     if (error) throw new Error(error.message);
 
     if (items?.length) {
-      await supabaseAdmin.from("invoice_items").insert(items.map((it: any) => ({
+      await supabaseAdmin.from("invoice_items").insert(items.map((it: any, idx: number) => ({
         invoice_id: rev.id,
         description: it.description, quantity: it.quantity, unit_price: it.unit_price,
         discount_pct: it.discount_pct, gst_pct: it.gst_pct, is_student_product: it.is_student_product,
         product_id: it.product_id,
+        ...totals.lines[idx],
       })));
     }
     await supabaseAdmin.from("invoices").update({ status: "revised" }).eq("id", orig.id);
+    await writeAudit(context.userId, "invoice.revise", orig.id, { revision_id: rev.id, revision_no: (orig.revision_no ?? 0) + 1 });
     return { id: rev.id };
   });
 

@@ -129,9 +129,23 @@ function CityContent({ fr }: { fr: any }) {
         <TabsList>
           <TabsTrigger value="payouts">Monthly Payouts</TabsTrigger>
           <TabsTrigger value="revenue">Linked Unit Revenue</TabsTrigger>
+          <TabsTrigger value="statement">Payout Statement</TabsTrigger>
         </TabsList>
         <TabsContent value="payouts">
-          <Card><CardContent className="overflow-x-auto p-0">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Monthly Payouts · {payouts.length}</CardTitle>
+              <button
+                onClick={() => {
+                  const headers = ["month","base_roi","emporium","academy","dark_store","total","status"];
+                  const csv = [headers.join(","), ...payouts.map((p: any) => [p.payout_month, p.base_roi, p.emporium_incentive, p.academy_incentive, p.dark_store_incentive, p.total_amount, p.status].join(","))].join("\n");
+                  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+                  const a = document.createElement("a"); a.href = url; a.download = `city-payouts-${fr.full_name}-${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url);
+                }}
+                className="rounded border border-border px-3 py-1 text-xs hover:bg-accent"
+              >Export CSV</button>
+            </CardHeader>
+            <CardContent className="overflow-x-auto p-0">
             <Table>
               <TableHeader><TableRow><TableHead>Month</TableHead><TableHead>Base ROI</TableHead><TableHead>Emporium</TableHead><TableHead>Academy</TableHead><TableHead>Dark Store</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
               <TableBody>
@@ -167,6 +181,26 @@ function CityContent({ fr }: { fr: any }) {
               </TableBody>
             </Table>
           </CardContent></Card>
+        </TabsContent>
+        <TabsContent value="statement">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">{fr.full_name} — Payout Statement</CardTitle>
+              <button onClick={() => window.print()} className="rounded border border-border px-3 py-1 text-xs hover:bg-accent print:hidden">Print</button>
+            </CardHeader>
+            <CardContent className="space-y-1 text-sm">
+              <p className="text-xs text-muted-foreground">Generated {new Date().toLocaleDateString("en-IN")} · Joined {fr.joined_at} · {monthsActive} months active</p>
+              <div className="my-2 h-px bg-border" />
+              <div className="flex justify-between"><span>Investment</span><span>{formatINR(Number(fr.investment_amount))}</span></div>
+              <div className="flex justify-between"><span>Expected accrual (LTD)</span><span>{formatINR(expectedTotal)}</span></div>
+              <div className="my-2 h-px bg-border" />
+              <div className="flex justify-between"><span>Total payouts accrued</span><span>{formatINR(totalROI)}</span></div>
+              <div className="flex justify-between"><span>Total paid (LTD)</span><span>{formatINR(paidROI)}</span></div>
+              <div className="flex justify-between font-semibold"><span>Outstanding balance</span><span>{formatINR(dueROI)}</span></div>
+              <div className="my-2 h-px bg-border" />
+              <div className="flex justify-between text-xs text-muted-foreground"><span>Variance vs expected</span><span>{formatINR(expectedTotal - totalROI)}</span></div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </>
