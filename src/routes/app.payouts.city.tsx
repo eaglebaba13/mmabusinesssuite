@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatINR } from "@/lib/format";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 import { useMode } from "@/lib/mode-context";
+import { exportToCSV } from "@/lib/export";
 
 export const Route = createFileRoute("/app/payouts/city")({
   head: () => ({ meta: [{ title: "City Franchise Payouts — MMA Suite" }] }),
