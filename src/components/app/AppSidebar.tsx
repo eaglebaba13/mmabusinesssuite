@@ -107,7 +107,8 @@ export function AppSidebar() {
   const isFinanceStaff = !isFranchiseeOnly && (isAdmin || hasRole("accounts"));
   const isWebinarStaff = !isFranchiseeOnly && (isAdmin || hasRole("webinar") || hasRole("sales"));
   const isPosStaff = !isFranchiseeOnly && (isAdmin || hasRole("package_sales") || hasRole("accounts") || hasRole("inventory"));
-  const showOps = !isFranchiseeOnly && (isAdmin || hasRole("sales") || hasRole("accounts"));
+  const showOps = !isFranchiseeOnly && (isAdmin || hasRole("sales"));
+  const navMainFiltered = NAV_MAIN.filter((item) => isAdmin || item.url !== "/app/dashboard");
 
   const isActive = (url: string) =>
     location.pathname === url || location.pathname.startsWith(url + "/");
