@@ -136,8 +136,14 @@ function StateContent({ stateFranchiseId }: { stateFranchiseId: string }) {
           </CardContent></Card>
         </TabsContent>
         <TabsContent value="statement">
-          <Card><CardHeader><CardTitle className="text-base">Consolidated Statement</CardTitle></CardHeader>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Consolidated Payout Statement</CardTitle>
+              <button onClick={() => window.print()} className="rounded border border-border px-3 py-1 text-xs hover:bg-accent print:hidden">Print</button>
+            </CardHeader>
             <CardContent className="space-y-2">
+              <p className="text-xs text-muted-foreground">Generated {new Date().toLocaleDateString("en-IN")}</p>
+              <div className="my-2 h-px bg-border" />
               <Row label="Total ROI accrued (LTD)" value={formatINR(roi.reduce((s, r) => s + Number(r.roi_due), 0))} />
               <Row label="Total ROI paid" value={formatINR(roiPaid)} />
               <Row label="ROI outstanding" value={formatINR(roiDue)} bold />
