@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatINR } from "@/lib/format";
 import { useMode } from "@/lib/mode-context";
 import { Link } from "@tanstack/react-router";
+import { exportToCSV } from "@/lib/export";
 
 function ageBucket(dueDate: string | null, today: string): "current" | "1-30" | "31-60" | "61-90" | "90+" {
   if (!dueDate || dueDate >= today) return "current";
