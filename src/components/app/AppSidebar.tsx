@@ -129,7 +129,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_MAIN.map((item) => (
+                {navMainFiltered.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
