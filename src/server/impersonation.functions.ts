@@ -133,10 +133,10 @@ export const listActiveImpersonationSessions = createServerFn({ method: "POST" }
     await assertAdmin(context.userId);
     const { data: sessions } = await supabaseAdmin
       .from("impersonation_sessions")
-      .select("id,acting_admin_id,entity_type,entity_id,mode,expires_at,ended_at,created_at")
+      .select("id,acting_admin_id,entity_type,entity_id,mode,expires_at,ended_at,started_at")
       .is("ended_at", null)
       .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false });
+      .order("started_at", { ascending: false });
 
     const rows = sessions ?? [];
     const adminIds = Array.from(new Set(rows.map((r) => r.acting_admin_id)));
