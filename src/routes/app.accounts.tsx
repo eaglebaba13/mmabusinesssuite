@@ -223,7 +223,7 @@ function LedgersTab() {
 }
 
 function CompanyLedger({ companyId }: { companyId: string }) {
-  const invQ = useQuery({ queryKey: ["ledger-inv", companyId], queryFn: async () => (await supabase.from("invoices").select("id,invoice_date,invoice_number,doc_type,grand_total,amount_paid,bill_to_name").eq("company_id", companyId).neq("status", "draft").order("invoice_date", { ascending: false })).data });
+  const invQ = useQuery({ queryKey: ["ledger-inv", companyId], queryFn: async () => (await supabase.from("invoices").select("id,invoice_date,invoice_number,doc_type,grand_total,amount_paid,bill_to_name,status").eq("company_id", companyId).in("status", ["issued", "paid"] as any).order("invoice_date", { ascending: false })).data });
   const payQ = useQuery({ queryKey: ["ledger-pay", companyId], queryFn: async () => (await supabase.from("payments").select("id,payment_date,direction,amount,counterparty_name,reference,method").eq("company_id", companyId).order("payment_date", { ascending: false })).data });
 
   const inv = (invQ.data ?? []) as any[];
