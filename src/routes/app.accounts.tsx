@@ -8,6 +8,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatINR } from "@/lib/format";
+import { useMode } from "@/lib/mode-context";
+import { Link } from "@tanstack/react-router";
+
+function ageBucket(dueDate: string | null, today: string): "current" | "1-30" | "31-60" | "61-90" | "90+" {
+  if (!dueDate || dueDate >= today) return "current";
+  const days = Math.floor((new Date(today).getTime() - new Date(dueDate).getTime()) / 86400000);
+  if (days <= 30) return "1-30";
+  if (days <= 60) return "31-60";
+  if (days <= 90) return "61-90";
+  return "90+";
+}
 
 export const Route = createFileRoute("/app/accounts")({
   head: () => ({ meta: [{ title: "Accounts — MMA Suite" }] }),
