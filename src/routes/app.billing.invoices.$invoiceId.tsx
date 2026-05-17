@@ -90,6 +90,42 @@ function InvoicePrintPage() {
           )}
         </div>
 
+        {/* Traceability: Source Document + Territory Mapping */}
+        {(inv.source_document_ref || inv.source_document_url || inv.franchisee || inv.state_franchise || inv.is_intercompany) && (
+          <div className="mt-4 grid gap-4 rounded-lg border border-border/60 bg-muted/20 p-3 text-sm md:grid-cols-2">
+            {(inv.source_document_ref || inv.source_document_url) && (
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Source Document</p>
+                <p className="font-medium">
+                  {inv.source_document_url ? (
+                    <a href={inv.source_document_url} target="_blank" rel="noreferrer" className="text-gold underline-offset-2 hover:underline">
+                      {inv.source_document_ref ?? "View source"}
+                    </a>
+                  ) : (
+                    <span className="font-mono text-xs">{inv.source_document_ref}</span>
+                  )}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Read-only originating reference</p>
+              </div>
+            )}
+            {(inv.franchisee || inv.state_franchise) && (
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution</p>
+                {inv.state_franchise && (
+                  <p className="text-xs"><span className="text-muted-foreground">State Franchise:</span> <span className="font-medium">{inv.state_franchise.full_name}</span>{inv.state_franchise.state ? ` · ${inv.state_franchise.state}` : ""}</p>
+                )}
+                {inv.franchisee?.territories && (
+                  <p className="text-xs"><span className="text-muted-foreground">Territory:</span> <span className="font-medium">{inv.franchisee.territories.name}</span>{inv.franchisee.territories.state ? ` · ${inv.franchisee.territories.state}` : ""}</p>
+                )}
+                {inv.franchisee && (
+                  <p className="text-xs"><span className="text-muted-foreground">City Franchisee:</span> <span className="font-medium">{inv.franchisee.full_name}</span></p>
+                )}
+                {inv.is_intercompany && <Badge variant="outline" className="mt-1 text-[10px]">inter-company (excluded from external revenue)</Badge>}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Items */}
         {!isReceipt && (
           <div className="mt-6 overflow-x-auto">
