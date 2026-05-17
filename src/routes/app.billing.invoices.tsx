@@ -276,13 +276,25 @@ function InvoiceForm({ companies, value, onChange }: {
                 })}
               </SelectContent>
             </Select>
-            {selectedFr && (
+            {selectedFr ? (
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Maps to State Franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
                 {selectedFr.territories?.name && <> · Territory: <strong>{selectedFr.territories.name}</strong></>}
                 <br/>State franchise will be derived automatically.
               </p>
+            ) : (
+              <p className="mt-1 rounded border border-dashed border-border/60 bg-background/40 p-2 text-[11px] text-muted-foreground">
+                <strong>State Franchisee:</strong> Not Assigned · <strong>Parent Company:</strong> MOS · <strong>State Commission:</strong> N/A
+              </p>
             )}
+          </div>
+          <div className="col-span-2">
+            <Label>Source Document Upload (PDF/JPG/PNG)</Label>
+            <SourceDocUpload
+              currentUrl={v.sourceDocumentUrl}
+              onUploaded={(url, name) => set({ sourceDocumentUrl: url, sourceDocumentRef: v.sourceDocumentRef || name })}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">You can upload a file <em>and/or</em> paste a URL below.</p>
           </div>
           <div><Label>Source Document Ref</Label><Input value={v.sourceDocumentRef ?? ""} onChange={(e) => set({ sourceDocumentRef: e.target.value })} placeholder="e.g. PI/1021" /></div>
           <div><Label>Source Document URL</Label><Input value={v.sourceDocumentUrl ?? ""} onChange={(e) => set({ sourceDocumentUrl: e.target.value })} placeholder="https://…/proforma.pdf" /></div>
