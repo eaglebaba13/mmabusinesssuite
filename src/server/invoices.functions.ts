@@ -295,6 +295,9 @@ export const reviseInvoice = createServerFn({ method: "POST" })
       bill_to_entity_id: orig.bill_to_entity_id,
       bill_to_name: orig.bill_to_name,
       bill_to_gstin: orig.bill_to_gstin,
+      place_of_supply: orig.place_of_supply,
+      from_state: orig.from_state,
+      tax_mode: orig.tax_mode,
       invoice_date: new Date().toISOString().slice(0, 10),
       due_date: orig.due_date,
       notes: orig.notes,
@@ -305,6 +308,9 @@ export const reviseInvoice = createServerFn({ method: "POST" })
       subtotal: totals.subtotal,
       discount_total: totals.discount_total,
       gst_total: totals.gst_total,
+      cgst_total: orig.tax_mode === "inter" ? 0 : totals.gst_total / 2,
+      sgst_total: orig.tax_mode === "inter" ? 0 : totals.gst_total / 2,
+      igst_total: orig.tax_mode === "inter" ? totals.gst_total : 0,
       grand_total: totals.grand_total,
     }).select("id").single();
     if (error) throw new Error(error.message);
