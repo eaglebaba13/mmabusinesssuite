@@ -29,7 +29,7 @@ function InvoicePrintPage() {
     queryKey: ["invoice-detail", invoiceId],
     queryFn: async () => {
       const [inv, items, payments] = await Promise.all([
-        supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name,address,city,state,gstin,invoice_prefix), bill_company:companies!invoices_bill_to_company_id_fkey(name,gstin,address,city,state)").eq("id", invoiceId).maybeSingle(),
+        supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name,address,city,state,gstin,invoice_prefix), bill_company:companies!invoices_bill_to_company_id_fkey(name,gstin,address,city,state), franchisee:franchisees!invoices_franchisee_id_fkey(id,full_name,territory_id,territories(id,name,state,state_franchise_id)), state_franchise:state_franchises!invoices_state_franchise_id_fkey(id,full_name,state)").eq("id", invoiceId).maybeSingle(),
         supabase.from("invoice_items").select("*").eq("invoice_id", invoiceId).order("created_at"),
         supabase.from("payments").select("*").eq("invoice_id", invoiceId).order("payment_date", { ascending: false }),
       ]);
