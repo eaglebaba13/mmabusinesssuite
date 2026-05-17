@@ -90,41 +90,50 @@ function InvoicePrintPage() {
           )}
         </div>
 
-        {/* Traceability: Source Document + Territory Mapping */}
-        {(inv.source_document_ref || inv.source_document_url || inv.franchisee || inv.state_franchise || inv.is_intercompany) && (
-          <div className="mt-4 grid gap-4 rounded-lg border border-border/60 bg-muted/20 p-3 text-sm md:grid-cols-2">
-            {(inv.source_document_ref || inv.source_document_url) && (
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Source Document</p>
+        {/* Traceability: Source Document + Territory Mapping (always visible for accounting trail) */}
+        <div className="mt-4 grid gap-4 rounded-lg border border-border/60 bg-muted/20 p-3 text-sm md:grid-cols-2">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Source Document</p>
+            {(inv.source_document_ref || inv.source_document_url) ? (
+              <>
                 <p className="font-medium">
                   {inv.source_document_url ? (
                     <a href={inv.source_document_url} target="_blank" rel="noreferrer" className="text-gold underline-offset-2 hover:underline">
-                      {inv.source_document_ref ?? "View source"}
+                      {inv.source_document_ref ?? "Open uploaded file"}
                     </a>
                   ) : (
                     <span className="font-mono text-xs">{inv.source_document_ref}</span>
                   )}
                 </p>
-                <p className="text-[11px] text-muted-foreground">Read-only originating reference</p>
-              </div>
-            )}
-            {(inv.franchisee || inv.state_franchise) && (
-              <div>
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution</p>
-                {inv.state_franchise && (
-                  <p className="text-xs"><span className="text-muted-foreground">State Franchise:</span> <span className="font-medium">{inv.state_franchise.full_name}</span>{inv.state_franchise.state ? ` · ${inv.state_franchise.state}` : ""}</p>
+                {inv.source_document_url && (
+                  <Button asChild size="sm" variant="outline" className="mt-2 print:hidden">
+                    <a href={inv.source_document_url} target="_blank" rel="noreferrer">Preview / Open file</a>
+                  </Button>
                 )}
-                {inv.franchisee?.territories && (
-                  <p className="text-xs"><span className="text-muted-foreground">Territory:</span> <span className="font-medium">{inv.franchisee.territories.name}</span>{inv.franchisee.territories.state ? ` · ${inv.franchisee.territories.state}` : ""}</p>
-                )}
-                {inv.franchisee && (
-                  <p className="text-xs"><span className="text-muted-foreground">City Franchisee:</span> <span className="font-medium">{inv.franchisee.full_name}</span></p>
-                )}
-                {inv.is_intercompany && <Badge variant="outline" className="mt-1 text-[10px]">inter-company (excluded from external revenue)</Badge>}
-              </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">Read-only originating reference</p>
+              </>
+            ) : (
+              <p className="text-xs text-muted-foreground">No source document linked</p>
             )}
           </div>
-        )}
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution</p>
+            {inv.state_franchise ? (
+              <p className="text-xs"><span className="text-muted-foreground">State Franchise:</span> <span className="font-medium">{inv.state_franchise.full_name}</span>{inv.state_franchise.state ? ` · ${inv.state_franchise.state}` : ""}</p>
+            ) : (
+              <p className="text-xs"><span className="text-muted-foreground">State Franchisee:</span> <span className="font-medium">Not Assigned</span> · <span className="text-muted-foreground">Parent Company:</span> <span className="font-medium">MOS</span> · <span className="text-muted-foreground">State Commission:</span> <span className="font-medium">N/A</span></p>
+            )}
+            {inv.franchisee?.territories && (
+              <p className="text-xs"><span className="text-muted-foreground">Territory:</span> <span className="font-medium">{inv.franchisee.territories.name}</span>{inv.franchisee.territories.state ? ` · ${inv.franchisee.territories.state}` : ""}</p>
+            )}
+            {inv.franchisee ? (
+              <p className="text-xs"><span className="text-muted-foreground">City Franchisee:</span> <span className="font-medium">{inv.franchisee.full_name}</span></p>
+            ) : (
+              <p className="text-xs"><span className="text-muted-foreground">City Franchisee:</span> <span className="text-muted-foreground italic">Not mapped</span></p>
+            )}
+            {inv.is_intercompany && <Badge variant="outline" className="mt-1 text-[10px]">inter-company (excluded from external revenue)</Badge>}
+          </div>
+        </div>
 
         {/* Items */}
         {!isReceipt && (
@@ -221,6 +230,49 @@ function InvoicePrintPage() {
           </div>
         )}
       </div>
+
+      <AuditHistory invoiceId={invoiceId} />
+    </div>
+  );
+}
+
+function AuditHistory({ invoiceId }: { invoiceId: string }) {
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ["invoice-audit", invoiceId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("audit_logs")
+        .select("id, action, metadata, created_at, user_id")
+        .eq("entity", "invoice")
+        .eq("entity_id", invoiceId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      return data ?? [];
+    },
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 print:hidden">
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">Audit history</p>
+      {isLoading ? (
+        <p className="mt-2 text-sm text-muted-foreground">Loading…</p>
+      ) : events.length === 0 ? (
+        <p className="mt-2 text-sm text-muted-foreground">No events recorded yet.</p>
+      ) : (
+        <ol className="mt-3 space-y-2 text-xs">
+          {events.map((e: any) => (
+            <li key={e.id} className="rounded border border-border/40 bg-background/40 p-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-semibold">{e.action}</span>
+                <span className="text-muted-foreground">{new Date(e.created_at).toLocaleString()}</span>
+              </div>
+              {e.metadata && Object.keys(e.metadata).length > 0 && (
+                <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-all text-[10px] text-muted-foreground">{JSON.stringify(e.metadata, null, 2)}</pre>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }

@@ -276,13 +276,25 @@ function InvoiceForm({ companies, value, onChange }: {
                 })}
               </SelectContent>
             </Select>
-            {selectedFr && (
+            {selectedFr ? (
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Maps to State Franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
                 {selectedFr.territories?.name && <> · Territory: <strong>{selectedFr.territories.name}</strong></>}
                 <br/>State franchise will be derived automatically.
               </p>
+            ) : (
+              <p className="mt-1 rounded border border-dashed border-border/60 bg-background/40 p-2 text-[11px] text-muted-foreground">
+                <strong>State Franchisee:</strong> Not Assigned · <strong>Parent Company:</strong> MOS · <strong>State Commission:</strong> N/A
+              </p>
             )}
+          </div>
+          <div className="col-span-2">
+            <Label>Source Document Upload (PDF/JPG/PNG)</Label>
+            <SourceDocUpload
+              currentUrl={v.sourceDocumentUrl}
+              onUploaded={(url, name) => set({ sourceDocumentUrl: url, sourceDocumentRef: v.sourceDocumentRef || name })}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">You can upload a file <em>and/or</em> paste a URL below.</p>
           </div>
           <div><Label>Source Document Ref</Label><Input value={v.sourceDocumentRef ?? ""} onChange={(e) => set({ sourceDocumentRef: e.target.value })} placeholder="e.g. PI/1021" /></div>
           <div><Label>Source Document URL</Label><Input value={v.sourceDocumentUrl ?? ""} onChange={(e) => set({ sourceDocumentUrl: e.target.value })} placeholder="https://…/proforma.pdf" /></div>
@@ -446,5 +458,45 @@ function NumberingRulesTable() {
         ))}
       </TableBody>
     </Table>
+  );
+}
+
+function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUploaded: (url: string, name: string) => void }) {
+  const [uploading, setUploading] = React.useState(false);
+  const [name, setName] = React.useState<string | null>(null);
+
+  const handleFile = async (file: File) => {
+    if (!file) return;
+    const ok = ["application/pdf", "image/png", "image/jpeg"].includes(file.type);
+    if (!ok) { toast.error("Only PDF, JPG, PNG allowed"); return; }
+    if (file.size > 15 * 1024 * 1024) { toast.error("Max 15MB"); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("invoice-sources").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from("invoice-sources").getPublicUrl(path);
+      setName(file.name);
+      onUploaded(data.publicUrl, file.name);
+      toast.success("Source document uploaded");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1">
+      <Input type="file" accept="application/pdf,image/png,image/jpeg" disabled={uploading} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+      {uploading && <p className="text-[11px] text-muted-foreground">Uploading…</p>}
+      {(name || currentUrl) && (
+        <p className="text-[11px] text-muted-foreground">
+          {name && <>Uploaded: <strong>{name}</strong> · </>}
+          {currentUrl && <a href={currentUrl} target="_blank" rel="noreferrer" className="text-gold underline-offset-2 hover:underline">Open file</a>}
+        </p>
+      )}
+    </div>
   );
 }
