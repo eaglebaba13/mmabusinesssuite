@@ -90,6 +90,25 @@ async function writeAudit(userId: string, action: string, entity_id: string, met
   await supabaseAdmin.from("audit_logs").insert({ user_id: userId, action, entity: "invoice", entity_id, metadata } as any);
 }
 
+async function resolveAttributionChain(invoice_id: string) {
+  const { data } = await supabaseAdmin
+    .from("invoices")
+    .select("franchisee_id, state_franchise_id, franchisees(full_name, territories(name, state)), state_franchises(full_name, state)")
+    .eq("id", invoice_id)
+    .maybeSingle();
+  const f: any = data?.franchisees;
+  const sf: any = data?.state_franchises;
+  return {
+    franchisee_id: data?.franchisee_id ?? null,
+    state_franchise_id: data?.state_franchise_id ?? null,
+    city_franchisee: f?.full_name ?? null,
+    territory: f?.territories?.name ?? null,
+    territory_state: f?.territories?.state ?? null,
+    state_franchise: sf?.full_name ?? null,
+    state_franchise_state: sf?.state ?? null,
+  };
+}
+
 const ItemSchema = z.object({
   description: z.string().min(1).max(500),
   quantity: z.number().min(0.001),
