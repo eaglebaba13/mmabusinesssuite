@@ -337,7 +337,7 @@ function InvoiceForm({ companies, value, onChange }: {
 
 function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; name: string }[]; onCreated: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", billToGstin: "", placeOfSupply: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()] });
+  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", billToGstin: "", placeOfSupply: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()], franchiseeId: null as string | null, isIntercompany: false, sourceDocumentRef: "", sourceDocumentUrl: "" });
   const create = useServerFn(createInvoice);
   const submit = async (issue: boolean) => {
     try {
@@ -345,7 +345,7 @@ function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; n
         toast.error("Place of Supply is required to issue a B2B tax invoice");
         return;
       }
-      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, issue, is_demo: false } });
+      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId, is_intercompany: form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, issue, is_demo: false } });
       toast.success(issue ? "Invoice issued" : "Draft saved");
       setOpen(false); onCreated();
     } catch (e) { toast.error((e as Error).message); }
