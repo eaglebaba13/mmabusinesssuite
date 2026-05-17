@@ -28,6 +28,20 @@ const STATUSES = ["draft", "issued", "revised", "cancelled"] as const;
 
 type Item = { description: string; quantity: number; unit_price: number; discount_pct: number; gst_pct: number; is_student_product: boolean };
 
+const TAX_DOC_TYPES = new Set<DocType>(["b2b_tax", "credit_note", "debit_note"]);
+
+function computeFormTotals(items: Item[]) {
+  let subtotal = 0, discount_total = 0, gst_total = 0;
+  for (const it of items) {
+    const gross = Number(it.quantity || 0) * Number(it.unit_price || 0);
+    const disc = gross * Number(it.discount_pct || 0) / 100;
+    const net = gross - disc;
+    const gst = net * Number(it.gst_pct || 0) / 100;
+    subtotal += gross; discount_total += disc; gst_total += gst;
+  }
+  return { subtotal, discount_total, gst_total, grand_total: subtotal - discount_total + gst_total };
+}
+
 function InvoicesPage() {
   const qc = useQueryClient();
   const [docFilter, setDocFilter] = React.useState<string>("all");
@@ -182,23 +196,56 @@ function emptyItem(): Item { return { description: "", quantity: 1, unit_price: 
 
 function InvoiceForm({ companies, value, onChange }: {
   companies: { id: string; name: string }[];
-  value: { companyId: string; docType: DocType; billToName: string; invoiceDate: string; notes: string; items: Item[] };
+  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[] };
   onChange: (v: any) => void;
 }) {
   const v = value;
   const set = (patch: any) => onChange({ ...v, ...patch });
+  const isTax = TAX_DOC_TYPES.has(v.docType);
+
+  // From-company state for tax mode preview
+  const fromStateQ = useQuery({
+    queryKey: ["company-state", v.companyId],
+    enabled: !!v.companyId,
+    queryFn: async () => {
+      const { data } = await supabase.from("companies").select("address").eq("id", v.companyId).maybeSingle();
+      const addr = (data?.address ?? null) as any;
+      return addr && typeof addr === "object" ? (addr.state as string | undefined) ?? null : null;
+    },
+  });
+  const fromState = fromStateQ.data ?? null;
+  const pos = (v.placeOfSupply ?? "").trim();
+  const taxMode: "intra" | "inter" | null = !fromState || !pos
+    ? null
+    : fromState.trim().toLowerCase() === pos.toLowerCase() ? "intra" : "inter";
+
+  const totals = React.useMemo(() => computeFormTotals(v.items), [v.items]);
+  const cgst = taxMode === "inter" ? 0 : totals.gst_total / 2;
+  const sgst = taxMode === "inter" ? 0 : totals.gst_total / 2;
+  const igst = taxMode === "inter" ? totals.gst_total : 0;
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div><Label>From Company</Label>
           <Select value={v.companyId} onValueChange={(x) => set({ companyId: x })}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
             <SelectContent>{companies.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-          </Select></div>
+          </Select>
+          {v.companyId && (
+            <p className="mt-1 text-[11px] text-muted-foreground">Seller state: {fromState ?? <span className="text-destructive">not set on company</span>}</p>
+          )}
+        </div>
         <div><Label>Document Type</Label>
           <Select value={v.docType} onValueChange={(x) => set({ docType: x as DocType })}><SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>{DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}</SelectContent>
           </Select></div>
         <div className="col-span-2"><Label>Bill To (name)</Label><Input value={v.billToName} onChange={(e) => set({ billToName: e.target.value })} /></div>
+        {isTax && (
+          <>
+            <div><Label>Bill To GSTIN</Label><Input value={v.billToGstin ?? ""} onChange={(e) => set({ billToGstin: e.target.value })} placeholder="e.g. 27AAAPL1234C1ZV" /></div>
+            <div><Label>Place of Supply (State) <span className="text-destructive">*</span></Label><Input value={v.placeOfSupply ?? ""} onChange={(e) => set({ placeOfSupply: e.target.value })} placeholder="e.g. Maharashtra" /></div>
+          </>
+        )}
         <div><Label>Invoice Date</Label><Input type="date" value={v.invoiceDate} onChange={(e) => set({ invoiceDate: e.target.value })} /></div>
       </div>
       <div className="space-y-2">
@@ -215,6 +262,29 @@ function InvoiceForm({ companies, value, onChange }: {
         ))}
         <Button size="sm" variant="outline" onClick={() => set({ items: [...v.items, emptyItem()] })}>+ Add line</Button>
       </div>
+
+      <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+        <div className="mb-1 flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Totals</span>
+          {isTax && (
+            <span className="text-[11px] text-muted-foreground">
+              Tax mode: <strong>{taxMode === "inter" ? "Inter-state (IGST)" : taxMode === "intra" ? "Intra-state (CGST+SGST)" : "—"}</strong>
+            </span>
+          )}
+        </div>
+        <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-mono">{formatINR(totals.subtotal)}</span></div>
+        {totals.discount_total > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="font-mono">−{formatINR(totals.discount_total)}</span></div>}
+        {taxMode === "inter" ? (
+          <div className="flex justify-between"><span className="text-muted-foreground">IGST</span><span className="font-mono">{formatINR(igst)}</span></div>
+        ) : (
+          <>
+            <div className="flex justify-between"><span className="text-muted-foreground">CGST</span><span className="font-mono">{formatINR(cgst)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">SGST</span><span className="font-mono">{formatINR(sgst)}</span></div>
+          </>
+        )}
+        <div className="mt-1 flex justify-between border-t border-border pt-1 font-semibold"><span>Grand Total</span><span className="font-mono">{formatINR(totals.grand_total)}</span></div>
+      </div>
+
       <div><Label>Notes</Label><Textarea value={v.notes} onChange={(e) => set({ notes: e.target.value })} /></div>
     </div>
   );
@@ -222,11 +292,15 @@ function InvoiceForm({ companies, value, onChange }: {
 
 function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; name: string }[]; onCreated: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()] });
+  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", billToGstin: "", placeOfSupply: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()] });
   const create = useServerFn(createInvoice);
   const submit = async (issue: boolean) => {
     try {
-      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, issue, is_demo: false } });
+      if (issue && TAX_DOC_TYPES.has(form.docType) && !form.placeOfSupply.trim()) {
+        toast.error("Place of Supply is required to issue a B2B tax invoice");
+        return;
+      }
+      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, issue, is_demo: false } });
       toast.success(issue ? "Invoice issued" : "Draft saved");
       setOpen(false); onCreated();
     } catch (e) { toast.error((e as Error).message); }
@@ -263,6 +337,7 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
       if (!inv) return;
       setForm({
         companyId: inv.company_id, docType: inv.doc_type as DocType, billToName: inv.bill_to_name ?? "",
+        billToGstin: inv.bill_to_gstin ?? "", placeOfSupply: (inv as any).place_of_supply ?? "",
         invoiceDate: inv.invoice_date, notes: inv.notes ?? "",
         items: (items ?? []).map((it: any) => ({
           description: it.description, quantity: Number(it.quantity), unit_price: Number(it.unit_price),
@@ -275,7 +350,11 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
   const save = async (alsoIssue: boolean) => {
     if (!form) return;
     try {
-      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, is_demo: false } });
+      if (alsoIssue && TAX_DOC_TYPES.has(form.docType) && !(form.placeOfSupply ?? "").trim()) {
+        toast.error("Place of Supply is required to issue a B2B tax invoice");
+        return;
+      }
+      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, is_demo: false } });
       if (alsoIssue) { const r = await issue({ data: { id: invoiceId } }); toast.success(`Issued as ${r.invoice_number}`); }
       else toast.success("Draft updated");
       setOpen(false); onSaved();

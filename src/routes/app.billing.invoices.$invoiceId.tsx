@@ -127,10 +127,25 @@ function InvoicePrintPage() {
           <div className="w-full max-w-xs space-y-1 text-sm">
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-mono">{formatINR(Number(inv.subtotal))}</span></div>
             {Number(inv.discount_total) > 0 && <div className="flex justify-between"><span className="text-muted-foreground">Discount</span><span className="font-mono">−{formatINR(Number(inv.discount_total))}</span></div>}
-            <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span className="font-mono">{formatINR(Number(inv.gst_total))}</span></div>
+            {inv.tax_mode === "inter" ? (
+              <div className="flex justify-between"><span className="text-muted-foreground">IGST</span><span className="font-mono">{formatINR(Number(inv.igst_total ?? inv.gst_total))}</span></div>
+            ) : inv.tax_mode === "intra" ? (
+              <>
+                <div className="flex justify-between"><span className="text-muted-foreground">CGST</span><span className="font-mono">{formatINR(Number(inv.cgst_total ?? Number(inv.gst_total) / 2))}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">SGST</span><span className="font-mono">{formatINR(Number(inv.sgst_total ?? Number(inv.gst_total) / 2))}</span></div>
+              </>
+            ) : (
+              <div className="flex justify-between"><span className="text-muted-foreground">GST</span><span className="font-mono">{formatINR(Number(inv.gst_total))}</span></div>
+            )}
             <div className="flex justify-between border-t border-border pt-2 font-semibold"><span>Grand Total</span><span className="font-mono">{formatINR(Number(inv.grand_total))}</span></div>
             <div className="flex justify-between text-xs text-muted-foreground"><span>Paid</span><span className="font-mono">{formatINR(Number(inv.amount_paid))}</span></div>
             <div className="flex justify-between text-xs"><span className="text-muted-foreground">Balance</span><span className="font-mono">{formatINR(Number(inv.grand_total) - Number(inv.amount_paid))}</span></div>
+            {(inv.place_of_supply || inv.from_state) && (
+              <div className="mt-2 border-t border-border pt-2 text-[11px] text-muted-foreground">
+                {inv.from_state && <div>From state: {inv.from_state}</div>}
+                {inv.place_of_supply && <div>Place of Supply: {inv.place_of_supply}</div>}
+              </div>
+            )}
           </div>
         </div>
 

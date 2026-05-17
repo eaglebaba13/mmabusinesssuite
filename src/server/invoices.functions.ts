@@ -107,6 +107,7 @@ const CreateInput = z.object({
   bill_to_entity_id: z.string().uuid().optional().nullable(),
   bill_to_name: z.string().max(255).optional().nullable(),
   bill_to_gstin: z.string().max(20).optional().nullable(),
+  place_of_supply: z.string().max(64).optional().nullable(),
   invoice_date: z.string(),
   due_date: z.string().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
@@ -115,13 +116,50 @@ const CreateInput = z.object({
   is_demo: z.boolean().default(false),
 });
 
+const TAX_DOC_TYPES = new Set(["b2b_tax", "credit_note", "debit_note"]);
+
+function normState(s: string | null | undefined): string {
+  return (s ?? "").trim().toLowerCase();
+}
+
+async function resolveSellerState(company_id: string): Promise<string | null> {
+  const { data } = await supabaseAdmin.from("companies").select("address").eq("id", company_id).maybeSingle();
+  const addr = (data?.address ?? null) as any;
+  const s = addr && typeof addr === "object" ? (addr.state ?? null) : null;
+  return s ? String(s) : null;
+}
+
+function deriveTaxMode(fromState: string | null, placeOfSupply: string | null): "intra" | "inter" | null {
+  if (!fromState || !placeOfSupply) return null;
+  return normState(fromState) === normState(placeOfSupply) ? "intra" : "inter";
+}
+
+async function buildTaxFields(company_id: string, doc_type: string, place_of_supply: string | null | undefined, requireForIssue: boolean) {
+  const fromState = await resolveSellerState(company_id);
+  const pos = (place_of_supply ?? "").trim() || null;
+  if (requireForIssue && TAX_DOC_TYPES.has(doc_type)) {
+    if (!fromState) throw new Error("Seller company is missing state in its address. Update company address before issuing a B2B tax invoice.");
+    if (!pos) throw new Error("Place of Supply is required to issue a B2B tax invoice.");
+  }
+  const tax_mode = deriveTaxMode(fromState, pos);
+  return { from_state: fromState, place_of_supply: pos, tax_mode };
+}
+
+function splitGst(tax_mode: "intra" | "inter" | null, gst_total: number) {
+  if (tax_mode === "inter") return { cgst_total: 0, sgst_total: 0, igst_total: gst_total };
+  // intra OR unknown → split equally (matches legacy behavior; trigger keeps in sync)
+  return { cgst_total: gst_total / 2, sgst_total: gst_total / 2, igst_total: 0 };
+}
+
 export const createInvoice = createServerFn({ method: "POST" })
   .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => CreateInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
+    const tax = await buildTaxFields(data.company_id, data.doc_type, data.place_of_supply, data.issue);
     const number = data.issue ? await nextInvoiceNumber(data.company_id, data.doc_type) : null;
     const totals = computeTotals(data.items);
+    const split = splitGst(tax.tax_mode, totals.gst_total);
     const { data: inv, error } = await supabaseAdmin
       .from("invoices")
       .insert({
@@ -132,6 +170,9 @@ export const createInvoice = createServerFn({ method: "POST" })
         bill_to_entity_id: data.bill_to_entity_id ?? null,
         bill_to_name: data.bill_to_name ?? null,
         bill_to_gstin: data.bill_to_gstin ?? null,
+        place_of_supply: tax.place_of_supply,
+        from_state: tax.from_state,
+        tax_mode: tax.tax_mode,
         invoice_date: data.invoice_date,
         due_date: data.due_date ?? null,
         notes: data.notes ?? null,
@@ -143,6 +184,9 @@ export const createInvoice = createServerFn({ method: "POST" })
         subtotal: totals.subtotal,
         discount_total: totals.discount_total,
         gst_total: totals.gst_total,
+        cgst_total: split.cgst_total,
+        sgst_total: split.sgst_total,
+        igst_total: split.igst_total,
         grand_total: totals.grand_total,
       })
       .select("id")
@@ -151,7 +195,7 @@ export const createInvoice = createServerFn({ method: "POST" })
     const items = data.items.map((it, idx) => ({ ...it, invoice_id: inv.id, ...totals.lines[idx] }));
     const { error: ie } = await supabaseAdmin.from("invoice_items").insert(items);
     if (ie) throw new Error(ie.message);
-    await writeAudit(context.userId, data.issue ? "invoice.issue" : "invoice.create", inv.id, { doc_type: data.doc_type, grand_total: totals.grand_total, invoice_number: number });
+    await writeAudit(context.userId, data.issue ? "invoice.issue" : "invoice.create", inv.id, { doc_type: data.doc_type, grand_total: totals.grand_total, invoice_number: number, tax_mode: tax.tax_mode });
     return { id: inv.id, invoice_number: number };
   });
 
@@ -165,13 +209,23 @@ export const updateInvoice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
     const { id, items, ...patch } = data;
-    const fullPatch: Record<string, unknown> = { ...patch };
+    const tax = await buildTaxFields(data.company_id, data.doc_type, data.place_of_supply, false);
+    const fullPatch: Record<string, unknown> = {
+      ...patch,
+      place_of_supply: tax.place_of_supply,
+      from_state: tax.from_state,
+      tax_mode: tax.tax_mode,
+    };
     let totals: ReturnType<typeof computeTotals> | null = null;
     if (items) {
       totals = computeTotals(items);
+      const split = splitGst(tax.tax_mode, totals.gst_total);
       fullPatch.subtotal = totals.subtotal;
       fullPatch.discount_total = totals.discount_total;
       fullPatch.gst_total = totals.gst_total;
+      fullPatch.cgst_total = split.cgst_total;
+      fullPatch.sgst_total = split.sgst_total;
+      fullPatch.igst_total = split.igst_total;
       fullPatch.grand_total = totals.grand_total;
     }
     const { error } = await supabaseAdmin.from("invoices").update(fullPatch as any).eq("id", id).eq("status", "draft");
@@ -180,7 +234,7 @@ export const updateInvoice = createServerFn({ method: "POST" })
       await supabaseAdmin.from("invoice_items").delete().eq("invoice_id", id);
       await supabaseAdmin.from("invoice_items").insert(items.map((it, idx) => ({ ...it, invoice_id: id, ...totals!.lines[idx] })));
     }
-    await writeAudit(context.userId, "invoice.update", id, { items_replaced: !!items });
+    await writeAudit(context.userId, "invoice.update", id, { items_replaced: !!items, tax_mode: tax.tax_mode });
     return { ok: true };
   });
 
@@ -189,9 +243,13 @@ export const issueInvoice = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
-    const { data: inv } = await supabaseAdmin.from("invoices").select("id,company_id,doc_type,status,invoice_number,grand_total").eq("id", data.id).single();
+    const { data: inv } = await supabaseAdmin.from("invoices").select("id,company_id,doc_type,status,invoice_number,grand_total,place_of_supply,from_state").eq("id", data.id).single();
     if (!inv) throw new Error("Not found");
     if (inv.status !== "draft") throw new Error("Already issued");
+    if (TAX_DOC_TYPES.has(inv.doc_type)) {
+      if (!inv.from_state) throw new Error("Seller company is missing state. Update company address before issuing a B2B tax invoice.");
+      if (!inv.place_of_supply) throw new Error("Place of Supply is required to issue a B2B tax invoice.");
+    }
     const number = inv.invoice_number ?? (await nextInvoiceNumber(inv.company_id, inv.doc_type));
     const { error } = await supabaseAdmin.from("invoices").update({
       status: "issued", invoice_number: number, issued_at: new Date().toISOString(), issued_by: context.userId,
@@ -237,6 +295,9 @@ export const reviseInvoice = createServerFn({ method: "POST" })
       bill_to_entity_id: orig.bill_to_entity_id,
       bill_to_name: orig.bill_to_name,
       bill_to_gstin: orig.bill_to_gstin,
+      place_of_supply: orig.place_of_supply,
+      from_state: orig.from_state,
+      tax_mode: orig.tax_mode,
       invoice_date: new Date().toISOString().slice(0, 10),
       due_date: orig.due_date,
       notes: orig.notes,
@@ -247,6 +308,9 @@ export const reviseInvoice = createServerFn({ method: "POST" })
       subtotal: totals.subtotal,
       discount_total: totals.discount_total,
       gst_total: totals.gst_total,
+      cgst_total: orig.tax_mode === "inter" ? 0 : totals.gst_total / 2,
+      sgst_total: orig.tax_mode === "inter" ? 0 : totals.gst_total / 2,
+      igst_total: orig.tax_mode === "inter" ? totals.gst_total : 0,
       grand_total: totals.grand_total,
     }).select("id").single();
     if (error) throw new Error(error.message);
