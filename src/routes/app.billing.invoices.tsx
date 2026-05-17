@@ -196,7 +196,7 @@ function emptyItem(): Item { return { description: "", quantity: 1, unit_price: 
 
 function InvoiceForm({ companies, value, onChange }: {
   companies: { id: string; name: string }[];
-  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[] };
+  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[]; franchiseeId?: string | null; isIntercompany?: boolean; sourceDocumentRef?: string; sourceDocumentUrl?: string };
   onChange: (v: any) => void;
 }) {
   const v = value;
@@ -224,6 +224,16 @@ function InvoiceForm({ companies, value, onChange }: {
   const sgst = taxMode === "inter" ? 0 : totals.gst_total / 2;
   const igst = taxMode === "inter" ? totals.gst_total : 0;
 
+  // City franchisees with territory + state franchise (for attribution selector)
+  const franchiseesQ = useQuery({
+    queryKey: ["franchisees-attr"],
+    queryFn: async () => (await supabase
+      .from("franchisees")
+      .select("id, full_name, territories(name, state, state_franchises(full_name, state))")
+      .order("full_name")).data ?? [],
+  });
+  const selectedFr: any = (franchiseesQ.data ?? []).find((f: any) => f.id === v.franchiseeId);
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -248,6 +258,41 @@ function InvoiceForm({ companies, value, onChange }: {
         )}
         <div><Label>Invoice Date</Label><Input type="date" value={v.invoiceDate} onChange={(e) => set({ invoiceDate: e.target.value })} /></div>
       </div>
+
+      {/* Traceability — territory attribution */}
+      <div className="rounded-md border border-border bg-muted/20 p-3">
+        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution & Traceability</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Label>City Franchisee (Territory)</Label>
+            <Select value={v.franchiseeId ?? "none"} onValueChange={(x) => set({ franchiseeId: x === "none" ? null : x })}>
+              <SelectTrigger><SelectValue placeholder="Unattributed" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Unattributed —</SelectItem>
+                {(franchiseesQ.data ?? []).map((f: any) => {
+                  const terr = f.territories?.name ?? "no territory";
+                  const st = f.territories?.state ?? "";
+                  return <SelectItem key={f.id} value={f.id}>{f.full_name} · {terr}{st ? ` (${st})` : ""}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+            {selectedFr && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Maps to State Franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
+                {selectedFr.territories?.name && <> · Territory: <strong>{selectedFr.territories.name}</strong></>}
+                <br/>State franchise will be derived automatically.
+              </p>
+            )}
+          </div>
+          <div><Label>Source Document Ref</Label><Input value={v.sourceDocumentRef ?? ""} onChange={(e) => set({ sourceDocumentRef: e.target.value })} placeholder="e.g. PI/1021" /></div>
+          <div><Label>Source Document URL</Label><Input value={v.sourceDocumentUrl ?? ""} onChange={(e) => set({ sourceDocumentUrl: e.target.value })} placeholder="https://…/proforma.pdf" /></div>
+          <div className="col-span-2 flex items-center gap-2">
+            <input id="ic" type="checkbox" checked={!!v.isIntercompany} onChange={(e) => set({ isIntercompany: e.target.checked })} />
+            <Label htmlFor="ic" className="cursor-pointer">Inter-company transaction (exclude from external revenue/reports)</Label>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label>Items</Label>
         {v.items.map((it, i) => (
