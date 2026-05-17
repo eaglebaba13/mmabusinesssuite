@@ -28,6 +28,20 @@ const STATUSES = ["draft", "issued", "revised", "cancelled"] as const;
 
 type Item = { description: string; quantity: number; unit_price: number; discount_pct: number; gst_pct: number; is_student_product: boolean };
 
+const TAX_DOC_TYPES = new Set<DocType>(["b2b_tax", "credit_note", "debit_note"]);
+
+function computeFormTotals(items: Item[]) {
+  let subtotal = 0, discount_total = 0, gst_total = 0;
+  for (const it of items) {
+    const gross = Number(it.quantity || 0) * Number(it.unit_price || 0);
+    const disc = gross * Number(it.discount_pct || 0) / 100;
+    const net = gross - disc;
+    const gst = net * Number(it.gst_pct || 0) / 100;
+    subtotal += gross; discount_total += disc; gst_total += gst;
+  }
+  return { subtotal, discount_total, gst_total, grand_total: subtotal - discount_total + gst_total };
+}
+
 function InvoicesPage() {
   const qc = useQueryClient();
   const [docFilter, setDocFilter] = React.useState<string>("all");
