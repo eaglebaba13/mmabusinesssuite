@@ -224,6 +224,11 @@ function InvoicePrintPage() {
         {isQuote && (
           <p className="mt-6 text-[10px] italic text-muted-foreground">This is a {docTitle.toLowerCase()} and not a tax invoice. Goods/services will be billed separately upon confirmation.</p>
         )}
+        {inv.status === "cancelled" && (
+          <div className="mt-6 rounded border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+            CANCELLED{inv.cancellation_reason && <> — {inv.cancellation_reason}</>}
+          </div>
+        )}
       </div>
 
       <AuditHistory invoiceId={invoiceId} />
