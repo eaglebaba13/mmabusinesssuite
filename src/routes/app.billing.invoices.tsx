@@ -460,3 +460,43 @@ function NumberingRulesTable() {
     </Table>
   );
 }
+
+function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUploaded: (url: string, name: string) => void }) {
+  const [uploading, setUploading] = React.useState(false);
+  const [name, setName] = React.useState<string | null>(null);
+
+  const handleFile = async (file: File) => {
+    if (!file) return;
+    const ok = ["application/pdf", "image/png", "image/jpeg"].includes(file.type);
+    if (!ok) { toast.error("Only PDF, JPG, PNG allowed"); return; }
+    if (file.size > 15 * 1024 * 1024) { toast.error("Max 15MB"); return; }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "bin";
+      const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("invoice-sources").upload(path, file, { contentType: file.type, upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from("invoice-sources").getPublicUrl(path);
+      setName(file.name);
+      onUploaded(data.publicUrl, file.name);
+      toast.success("Source document uploaded");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1">
+      <Input type="file" accept="application/pdf,image/png,image/jpeg" disabled={uploading} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+      {uploading && <p className="text-[11px] text-muted-foreground">Uploading…</p>}
+      {(name || currentUrl) && (
+        <p className="text-[11px] text-muted-foreground">
+          {name && <>Uploaded: <strong>{name}</strong> · </>}
+          {currentUrl && <a href={currentUrl} target="_blank" rel="noreferrer" className="text-gold underline-offset-2 hover:underline">Open file</a>}
+        </p>
+      )}
+    </div>
+  );
+}
