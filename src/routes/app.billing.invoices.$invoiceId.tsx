@@ -224,12 +224,50 @@ function InvoicePrintPage() {
         {isQuote && (
           <p className="mt-6 text-[10px] italic text-muted-foreground">This is a {docTitle.toLowerCase()} and not a tax invoice. Goods/services will be billed separately upon confirmation.</p>
         )}
-        {inv.status === "cancelled" && (
-          <div className="mt-6 rounded border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-            CANCELLED{inv.cancellation_reason && <> — {inv.cancellation_reason}</>}
-          </div>
-        )}
       </div>
+
+      <AuditHistory invoiceId={invoiceId} />
+    </div>
+  );
+}
+
+function AuditHistory({ invoiceId }: { invoiceId: string }) {
+  const { data: events = [], isLoading } = useQuery({
+    queryKey: ["invoice-audit", invoiceId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("audit_logs")
+        .select("id, action, metadata, created_at, user_id")
+        .eq("entity", "invoice")
+        .eq("entity_id", invoiceId)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      return data ?? [];
+    },
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4 print:hidden">
+      <p className="text-xs uppercase tracking-wider text-muted-foreground">Audit history</p>
+      {isLoading ? (
+        <p className="mt-2 text-sm text-muted-foreground">Loading…</p>
+      ) : events.length === 0 ? (
+        <p className="mt-2 text-sm text-muted-foreground">No events recorded yet.</p>
+      ) : (
+        <ol className="mt-3 space-y-2 text-xs">
+          {events.map((e: any) => (
+            <li key={e.id} className="rounded border border-border/40 bg-background/40 p-2">
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-semibold">{e.action}</span>
+                <span className="text-muted-foreground">{new Date(e.created_at).toLocaleString()}</span>
+              </div>
+              {e.metadata && Object.keys(e.metadata).length > 0 && (
+                <pre className="mt-1 max-h-32 overflow-auto whitespace-pre-wrap break-all text-[10px] text-muted-foreground">{JSON.stringify(e.metadata, null, 2)}</pre>
+              )}
+            </li>
+          ))}
+        </ol>
+      )}
     </div>
   );
 }
