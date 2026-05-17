@@ -196,7 +196,7 @@ function emptyItem(): Item { return { description: "", quantity: 1, unit_price: 
 
 function InvoiceForm({ companies, value, onChange }: {
   companies: { id: string; name: string }[];
-  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[] };
+  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[]; franchiseeId?: string | null; isIntercompany?: boolean; sourceDocumentRef?: string; sourceDocumentUrl?: string };
   onChange: (v: any) => void;
 }) {
   const v = value;
@@ -224,6 +224,16 @@ function InvoiceForm({ companies, value, onChange }: {
   const sgst = taxMode === "inter" ? 0 : totals.gst_total / 2;
   const igst = taxMode === "inter" ? totals.gst_total : 0;
 
+  // City franchisees with territory + state franchise (for attribution selector)
+  const franchiseesQ = useQuery({
+    queryKey: ["franchisees-attr"],
+    queryFn: async () => (await supabase
+      .from("franchisees")
+      .select("id, full_name, territories(name, state, state_franchises(full_name, state))")
+      .order("full_name")).data ?? [],
+  });
+  const selectedFr: any = (franchiseesQ.data ?? []).find((f: any) => f.id === v.franchiseeId);
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-3">
@@ -248,6 +258,41 @@ function InvoiceForm({ companies, value, onChange }: {
         )}
         <div><Label>Invoice Date</Label><Input type="date" value={v.invoiceDate} onChange={(e) => set({ invoiceDate: e.target.value })} /></div>
       </div>
+
+      {/* Traceability — territory attribution */}
+      <div className="rounded-md border border-border bg-muted/20 p-3">
+        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution & Traceability</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="col-span-2">
+            <Label>City Franchisee (Territory)</Label>
+            <Select value={v.franchiseeId ?? "none"} onValueChange={(x) => set({ franchiseeId: x === "none" ? null : x })}>
+              <SelectTrigger><SelectValue placeholder="Unattributed" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Unattributed —</SelectItem>
+                {(franchiseesQ.data ?? []).map((f: any) => {
+                  const terr = f.territories?.name ?? "no territory";
+                  const st = f.territories?.state ?? "";
+                  return <SelectItem key={f.id} value={f.id}>{f.full_name} · {terr}{st ? ` (${st})` : ""}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+            {selectedFr && (
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Maps to State Franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
+                {selectedFr.territories?.name && <> · Territory: <strong>{selectedFr.territories.name}</strong></>}
+                <br/>State franchise will be derived automatically.
+              </p>
+            )}
+          </div>
+          <div><Label>Source Document Ref</Label><Input value={v.sourceDocumentRef ?? ""} onChange={(e) => set({ sourceDocumentRef: e.target.value })} placeholder="e.g. PI/1021" /></div>
+          <div><Label>Source Document URL</Label><Input value={v.sourceDocumentUrl ?? ""} onChange={(e) => set({ sourceDocumentUrl: e.target.value })} placeholder="https://…/proforma.pdf" /></div>
+          <div className="col-span-2 flex items-center gap-2">
+            <input id="ic" type="checkbox" checked={!!v.isIntercompany} onChange={(e) => set({ isIntercompany: e.target.checked })} />
+            <Label htmlFor="ic" className="cursor-pointer">Inter-company transaction (exclude from external revenue/reports)</Label>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <Label>Items</Label>
         {v.items.map((it, i) => (
@@ -292,7 +337,7 @@ function InvoiceForm({ companies, value, onChange }: {
 
 function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; name: string }[]; onCreated: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", billToGstin: "", placeOfSupply: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()] });
+  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", billToGstin: "", placeOfSupply: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()], franchiseeId: null as string | null, isIntercompany: false, sourceDocumentRef: "", sourceDocumentUrl: "" });
   const create = useServerFn(createInvoice);
   const submit = async (issue: boolean) => {
     try {
@@ -300,7 +345,7 @@ function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; n
         toast.error("Place of Supply is required to issue a B2B tax invoice");
         return;
       }
-      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, issue, is_demo: false } });
+      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId, is_intercompany: form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, issue, is_demo: false } });
       toast.success(issue ? "Invoice issued" : "Draft saved");
       setOpen(false); onCreated();
     } catch (e) { toast.error((e as Error).message); }
@@ -339,6 +384,10 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
         companyId: inv.company_id, docType: inv.doc_type as DocType, billToName: inv.bill_to_name ?? "",
         billToGstin: inv.bill_to_gstin ?? "", placeOfSupply: (inv as any).place_of_supply ?? "",
         invoiceDate: inv.invoice_date, notes: inv.notes ?? "",
+        franchiseeId: (inv as any).franchisee_id ?? null,
+        isIntercompany: !!(inv as any).is_intercompany,
+        sourceDocumentRef: (inv as any).source_document_ref ?? "",
+        sourceDocumentUrl: (inv as any).source_document_url ?? "",
         items: (items ?? []).map((it: any) => ({
           description: it.description, quantity: Number(it.quantity), unit_price: Number(it.unit_price),
           discount_pct: Number(it.discount_pct), gst_pct: Number(it.gst_pct), is_student_product: !!it.is_student_product,
@@ -354,7 +403,7 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
         toast.error("Place of Supply is required to issue a B2B tax invoice");
         return;
       }
-      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, is_demo: false } });
+      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId ?? null, is_intercompany: !!form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, is_demo: false } });
       if (alsoIssue) { const r = await issue({ data: { id: invoiceId } }); toast.success(`Issued as ${r.invoice_number}`); }
       else toast.success("Draft updated");
       setOpen(false); onSaved();
