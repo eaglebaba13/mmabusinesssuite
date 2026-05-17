@@ -204,6 +204,13 @@ export const createInvoice = createServerFn({ method: "POST" })
     const { error: ie } = await supabaseAdmin.from("invoice_items").insert(items);
     if (ie) throw new Error(ie.message);
     await writeAudit(context.userId, data.issue ? "invoice.issue" : "invoice.create", inv.id, { doc_type: data.doc_type, grand_total: totals.grand_total, invoice_number: number, tax_mode: tax.tax_mode });
+    if (data.source_document_ref || data.source_document_url) {
+      await writeAudit(context.userId, "invoice.source_doc.set", inv.id, { source_document_ref: data.source_document_ref ?? null, source_document_url: data.source_document_url ?? null });
+    }
+    if (data.franchisee_id) {
+      const chain = await resolveAttributionChain(inv.id);
+      await writeAudit(context.userId, "invoice.attribution.set", inv.id, { source: "manual", ...chain });
+    }
     return { id: inv.id, invoice_number: number };
   });
 
