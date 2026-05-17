@@ -375,6 +375,8 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
     </Dialog>
   );
 }
+
+function NumberingRulesTable() {
   const { data } = useQuery({
     queryKey: ["numbering-rules"],
     queryFn: async () => (await supabase.from("invoice_numbering_rules").select("*, companies(name)").order("created_at", { ascending: false })).data,
