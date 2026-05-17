@@ -1231,14 +1231,17 @@ export type Database = {
           bill_to_gstin: string | null
           bill_to_name: string | null
           cancellation_reason: string | null
+          cgst_total: number
           company_id: string
           created_at: string
           discount_total: number
           doc_type: Database["public"]["Enums"]["invoice_doc_type"]
           due_date: string | null
+          from_state: string | null
           grand_total: number
           gst_total: number
           id: string
+          igst_total: number
           invoice_date: string
           invoice_number: string | null
           is_demo: boolean
@@ -1247,9 +1250,12 @@ export type Database = {
           notes: string | null
           parent_invoice_id: string | null
           payment_status: Database["public"]["Enums"]["pos_payment_status"]
+          place_of_supply: string | null
           revision_no: number
+          sgst_total: number
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number
+          tax_mode: string | null
           updated_at: string
         }
         Insert: {
@@ -1263,14 +1269,17 @@ export type Database = {
           bill_to_gstin?: string | null
           bill_to_name?: string | null
           cancellation_reason?: string | null
+          cgst_total?: number
           company_id: string
           created_at?: string
           discount_total?: number
           doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
           due_date?: string | null
+          from_state?: string | null
           grand_total?: number
           gst_total?: number
           id?: string
+          igst_total?: number
           invoice_date?: string
           invoice_number?: string | null
           is_demo?: boolean
@@ -1279,9 +1288,12 @@ export type Database = {
           notes?: string | null
           parent_invoice_id?: string | null
           payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          place_of_supply?: string | null
           revision_no?: number
+          sgst_total?: number
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
+          tax_mode?: string | null
           updated_at?: string
         }
         Update: {
@@ -1295,14 +1307,17 @@ export type Database = {
           bill_to_gstin?: string | null
           bill_to_name?: string | null
           cancellation_reason?: string | null
+          cgst_total?: number
           company_id?: string
           created_at?: string
           discount_total?: number
           doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
           due_date?: string | null
+          from_state?: string | null
           grand_total?: number
           gst_total?: number
           id?: string
+          igst_total?: number
           invoice_date?: string
           invoice_number?: string | null
           is_demo?: boolean
@@ -1311,9 +1326,12 @@ export type Database = {
           notes?: string | null
           parent_invoice_id?: string | null
           payment_status?: Database["public"]["Enums"]["pos_payment_status"]
+          place_of_supply?: string | null
           revision_no?: number
+          sgst_total?: number
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
+          tax_mode?: string | null
           updated_at?: string
         }
         Relationships: [
