@@ -107,6 +107,7 @@ const CreateInput = z.object({
   bill_to_entity_id: z.string().uuid().optional().nullable(),
   bill_to_name: z.string().max(255).optional().nullable(),
   bill_to_gstin: z.string().max(20).optional().nullable(),
+  place_of_supply: z.string().max(64).optional().nullable(),
   invoice_date: z.string(),
   due_date: z.string().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
@@ -114,6 +115,24 @@ const CreateInput = z.object({
   issue: z.boolean().default(false),
   is_demo: z.boolean().default(false),
 });
+
+const TAX_DOC_TYPES = new Set(["b2b_tax", "credit_note", "debit_note"]);
+
+function normState(s: string | null | undefined): string {
+  return (s ?? "").trim().toLowerCase();
+}
+
+async function resolveSellerState(company_id: string): Promise<string | null> {
+  const { data } = await supabaseAdmin.from("companies").select("address").eq("id", company_id).maybeSingle();
+  const addr = (data?.address ?? null) as any;
+  const s = addr && typeof addr === "object" ? (addr.state ?? null) : null;
+  return s ? String(s) : null;
+}
+
+function deriveTaxMode(fromState: string | null, placeOfSupply: string | null): "intra" | "inter" | null {
+  if (!fromState || !placeOfSupply) return null;
+  return normState(fromState) === normState(placeOfSupply) ? "intra" : "inter";
+}
 
 export const createInvoice = createServerFn({ method: "POST" })
   .middleware([forwardAuth, requireSupabaseAuth])
