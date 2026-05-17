@@ -243,6 +243,12 @@ export const updateInvoice = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
     const { id, items, ...patch } = data;
+    // Snapshot existing values for diffing audit events
+    const { data: before } = await supabaseAdmin
+      .from("invoices")
+      .select("source_document_ref, source_document_url, franchisee_id, state_franchise_id")
+      .eq("id", id)
+      .maybeSingle();
     const tax = await buildTaxFields(data.company_id, data.doc_type, data.place_of_supply, false);
     const fullPatch: Record<string, unknown> = {
       ...patch,
@@ -269,6 +275,28 @@ export const updateInvoice = createServerFn({ method: "POST" })
       await supabaseAdmin.from("invoice_items").insert(items.map((it, idx) => ({ ...it, invoice_id: id, ...totals!.lines[idx] })));
     }
     await writeAudit(context.userId, "invoice.update", id, { items_replaced: !!items, tax_mode: tax.tax_mode });
+
+    // Diff-based audit for source document + attribution
+    const beforeRef = before?.source_document_ref ?? null;
+    const beforeUrl = before?.source_document_url ?? null;
+    const newRef = data.source_document_ref ?? null;
+    const newUrl = data.source_document_url ?? null;
+    if (beforeRef !== newRef || beforeUrl !== newUrl) {
+      await writeAudit(context.userId, "invoice.source_doc.change", id, {
+        ref: { from: beforeRef, to: newRef },
+        url: { from: beforeUrl, to: newUrl },
+      });
+    }
+    const beforeFr = before?.franchisee_id ?? null;
+    const newFr = data.franchisee_id ?? null;
+    if (beforeFr !== newFr) {
+      const chain = await resolveAttributionChain(id);
+      await writeAudit(context.userId, "invoice.attribution.override", id, {
+        source: "manual",
+        previous_franchisee_id: beforeFr,
+        ...chain,
+      });
+    }
     return { ok: true };
   });
 
