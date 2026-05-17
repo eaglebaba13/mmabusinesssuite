@@ -259,23 +259,6 @@ export const issueInvoice = createServerFn({ method: "POST" })
     return { invoice_number: number };
   });
 
-export const issueInvoice = createServerFn({ method: "POST" })
-  .middleware([forwardAuth, requireSupabaseAuth])
-  .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
-  .handler(async ({ data, context }) => {
-    await assertCanWrite(context.userId);
-    const { data: inv } = await supabaseAdmin.from("invoices").select("id,company_id,doc_type,status,invoice_number,grand_total").eq("id", data.id).single();
-    if (!inv) throw new Error("Not found");
-    if (inv.status !== "draft") throw new Error("Already issued");
-    const number = inv.invoice_number ?? (await nextInvoiceNumber(inv.company_id, inv.doc_type));
-    const { error } = await supabaseAdmin.from("invoices").update({
-      status: "issued", invoice_number: number, issued_at: new Date().toISOString(), issued_by: context.userId,
-    }).eq("id", data.id);
-    if (error) throw new Error(error.message);
-    await writeAudit(context.userId, "invoice.issue", data.id, { invoice_number: number, grand_total: inv.grand_total });
-    return { invoice_number: number };
-  });
-
 export const cancelInvoice = createServerFn({ method: "POST" })
   .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid(), reason: z.string().min(1).max(500) }).parse(i))
