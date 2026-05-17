@@ -1237,6 +1237,7 @@ export type Database = {
           discount_total: number
           doc_type: Database["public"]["Enums"]["invoice_doc_type"]
           due_date: string | null
+          franchisee_id: string | null
           from_state: string | null
           grand_total: number
           gst_total: number
@@ -1245,6 +1246,7 @@ export type Database = {
           invoice_date: string
           invoice_number: string | null
           is_demo: boolean
+          is_intercompany: boolean
           issued_at: string | null
           issued_by: string | null
           notes: string | null
@@ -1253,6 +1255,9 @@ export type Database = {
           place_of_supply: string | null
           revision_no: number
           sgst_total: number
+          source_document_ref: string | null
+          source_document_url: string | null
+          state_franchise_id: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           subtotal: number
           tax_mode: string | null
@@ -1275,6 +1280,7 @@ export type Database = {
           discount_total?: number
           doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
           due_date?: string | null
+          franchisee_id?: string | null
           from_state?: string | null
           grand_total?: number
           gst_total?: number
@@ -1283,6 +1289,7 @@ export type Database = {
           invoice_date?: string
           invoice_number?: string | null
           is_demo?: boolean
+          is_intercompany?: boolean
           issued_at?: string | null
           issued_by?: string | null
           notes?: string | null
@@ -1291,6 +1298,9 @@ export type Database = {
           place_of_supply?: string | null
           revision_no?: number
           sgst_total?: number
+          source_document_ref?: string | null
+          source_document_url?: string | null
+          state_franchise_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           tax_mode?: string | null
@@ -1313,6 +1323,7 @@ export type Database = {
           discount_total?: number
           doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
           due_date?: string | null
+          franchisee_id?: string | null
           from_state?: string | null
           grand_total?: number
           gst_total?: number
@@ -1321,6 +1332,7 @@ export type Database = {
           invoice_date?: string
           invoice_number?: string | null
           is_demo?: boolean
+          is_intercompany?: boolean
           issued_at?: string | null
           issued_by?: string | null
           notes?: string | null
@@ -1329,6 +1341,9 @@ export type Database = {
           place_of_supply?: string | null
           revision_no?: number
           sgst_total?: number
+          source_document_ref?: string | null
+          source_document_url?: string | null
+          state_franchise_id?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           subtotal?: number
           tax_mode?: string | null
@@ -1350,10 +1365,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invoices_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_parent_invoice_id_fkey"
             columns: ["parent_invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_state_franchise_id_fkey"
+            columns: ["state_franchise_id"]
+            isOneToOne: false
+            referencedRelation: "state_franchises"
             referencedColumns: ["id"]
           },
         ]
