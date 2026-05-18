@@ -493,7 +493,8 @@ export function FranchiseeDashboard({
             {lifetimePL >= 0 ? "+" : ""}{formatINRCompact(lifetimePL)}
           </div>
           <div className="mt-4 space-y-1.5 text-sm">
-            <PLRow label="Invoiced revenue" value={formatINRCompact(invoiceRevenue)} positive />
+            <PLRow label={`Franchise earnings accrued (@ ${darkPct}%)`} value={formatINRCompact(totalAccruedIncentive)} positive />
+            <PLRow label="Invoice turnover (ref)" value={formatINRCompact(invoiceRevenue)} />
             <PLRow label="Recurring revenue" value={formatINRCompact(totalRevenue)} positive />
             <PLRow label="POS gross" value={formatINRCompact(grossSales)} positive />
             <PLRow label="− Expenses" value={formatINRCompact(totalExpenses)} />
