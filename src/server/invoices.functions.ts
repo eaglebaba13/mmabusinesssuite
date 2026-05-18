@@ -183,6 +183,9 @@ export const createInvoice = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => CreateInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
+    if (DEPRECATED_DOC_TYPES.has(data.doc_type)) {
+      throw new Error("Proforma invoices are deprecated. Use B2B Tax Invoice or B2C Invoice instead.");
+    }
     const tax = await buildTaxFields(data.company_id, data.doc_type, data.place_of_supply, data.issue);
     const number = data.issue ? await nextInvoiceNumber(data.company_id, data.doc_type) : null;
     const totals = computeTotals(data.items);
