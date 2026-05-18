@@ -479,7 +479,8 @@ export function FranchiseeDashboard({
             {monthPL >= 0 ? "+" : ""}{formatINRCompact(monthPL)}
           </div>
           <div className="mt-4 space-y-1.5 text-sm">
-            <PLRow label="Invoiced revenue" value={formatINRCompact(monthInvoiceRevenue)} positive />
+            <PLRow label={`Franchise earnings accrued (@ ${darkPct}%)`} value={formatINRCompact(monthAccruedIncentive)} positive />
+            <PLRow label="Invoice turnover (ref)" value={formatINRCompact(monthInvoiceRevenue)} />
             <PLRow label="Recurring revenue" value={formatINRCompact(monthRevenue)} positive />
             <PLRow label="POS gross" value={formatINRCompact(monthGross)} positive />
             <PLRow label="− Expenses" value={formatINRCompact(monthExpenses)} />
