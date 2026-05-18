@@ -29,12 +29,14 @@ export const REVENUE_STATUSES = new Set(["issued", "paid", "partial"]);
 
 export function partitionRevenueInvoices<T extends {
   doc_type: string; status: string | null; is_intercompany: boolean | null;
+  archived_at?: string | null;
 }>(rows: T[]): { included: T[]; excluded: Array<T & { exclusion_reason: string }> } {
   const included: T[] = [];
   const excluded: Array<T & { exclusion_reason: string }> = [];
   for (const r of rows) {
     let reason: string | null = null;
-    if (r.is_intercompany === true) reason = "intercompany";
+    if (r.archived_at) reason = "archived";
+    else if (r.is_intercompany === true) reason = "intercompany";
     else if (!REVENUE_DOC_TYPES.has(r.doc_type)) reason = `non_revenue_doc:${r.doc_type}`;
     else if (!r.status || !REVENUE_STATUSES.has(r.status)) reason = `excluded_status:${r.status ?? "null"}`;
     if (reason) excluded.push({ ...r, exclusion_reason: reason });
@@ -260,7 +262,7 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
       const [allInvoices, payments] = await Promise.all([
         supabaseAdmin
           .from("invoices")
-          .select("id,invoice_number,doc_type,grand_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id")
+          .select("id,invoice_number,doc_type,grand_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id,archived_at")
           .or(`and(bill_to_entity_type.eq.${sess.entity_type},bill_to_entity_id.eq.${sess.entity_id}),franchisee_id.eq.${sess.entity_id}`)
           .order("invoice_date", { ascending: false })
           .limit(200),

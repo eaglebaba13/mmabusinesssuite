@@ -22,8 +22,14 @@ export const Route = createFileRoute("/app/billing/invoices")({
   component: InvoicesPage,
 });
 
-const DOC_TYPES = ["b2b_tax", "b2c", "proforma", "quotation", "receipt", "credit_note", "debit_note"] as const;
-type DocType = typeof DOC_TYPES[number];
+// Active billing types — only B2B and B2C are part of the live invoicing flow.
+// Proforma is deprecated (archived only). Quotation / credit-note / debit-note
+// remain available as supporting documents but are not part of New Invoice.
+const ACTIVE_DOC_TYPES = ["b2b_tax", "b2c"] as const;
+const SUPPORT_DOC_TYPES = ["quotation", "credit_note", "debit_note", "receipt"] as const;
+const ALL_DOC_TYPES = [...ACTIVE_DOC_TYPES, ...SUPPORT_DOC_TYPES, "proforma"] as const;
+const DOC_TYPES = ALL_DOC_TYPES;
+type DocType = typeof ALL_DOC_TYPES[number];
 const STATUSES = ["draft", "issued", "revised", "cancelled"] as const;
 
 type Item = { description: string; quantity: number; unit_price: number; discount_pct: number; gst_pct: number; is_student_product: boolean };
@@ -49,11 +55,12 @@ function InvoicesPage() {
   const [companyFilter, setCompanyFilter] = React.useState<string>("all");
   const [from, setFrom] = React.useState("");
   const [to, setTo] = React.useState("");
+  const [showArchived, setShowArchived] = React.useState(false);
 
   const companies = useQuery({ queryKey: ["companies"], queryFn: async () => (await supabase.from("companies").select("id,name").order("name")).data });
 
   const invoicesQ = useQuery({
-    queryKey: ["invoices", docFilter, statusFilter, companyFilter, from, to],
+    queryKey: ["invoices", docFilter, statusFilter, companyFilter, from, to, showArchived],
     queryFn: async () => {
       let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name)").order("invoice_date", { ascending: false }).limit(300);
       if (docFilter !== "all") q = q.eq("doc_type", docFilter as any);
@@ -61,6 +68,7 @@ function InvoicesPage() {
       if (companyFilter !== "all") q = q.eq("company_id", companyFilter);
       if (from) q = q.gte("invoice_date", from);
       if (to) q = q.lte("invoice_date", to);
+      if (!showArchived) q = q.is("archived_at", null);
       const { data, error } = await q;
       if (error) throw error;
       return data;
@@ -122,6 +130,12 @@ function InvoicesPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex items-end">
+            <label className="flex cursor-pointer items-center gap-2 text-xs">
+              <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
+              Show archived (proforma)
+            </label>
+          </div>
         </CardContent>
       </Card>
 
@@ -147,6 +161,7 @@ function InvoicesPage() {
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Badge variant={inv.status === "issued" ? "default" : inv.status === "cancelled" ? "destructive" : "secondary"} className="w-fit text-xs">{inv.status}</Badge>
+                      {inv.archived_at && <Badge variant="outline" className="w-fit text-[10px]">archived</Badge>}
                       {inv.is_demo && <Badge variant="outline" className="w-fit text-[10px]">demo</Badge>}
                     </div>
                   </TableCell>
@@ -247,8 +262,13 @@ function InvoiceForm({ companies, value, onChange }: {
         </div>
         <div><Label>Document Type</Label>
           <Select value={v.docType} onValueChange={(x) => set({ docType: x as DocType })}><SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}</SelectContent>
-          </Select></div>
+            <SelectContent>
+              {ACTIVE_DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")} (active)</SelectItem>)}
+              {SUPPORT_DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <p className="mt-1 text-[11px] text-muted-foreground">Proforma is archived from the active flow — only B2B and B2C count as revenue.</p>
+        </div>
         <div className="col-span-2"><Label>Bill To (name)</Label><Input value={v.billToName} onChange={(e) => set({ billToName: e.target.value })} /></div>
         {isTax && (
           <>

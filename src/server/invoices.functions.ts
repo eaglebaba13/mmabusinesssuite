@@ -12,6 +12,10 @@ const forwardAuth = createMiddleware({ type: "function" }).client(async ({ next 
 
 const ENTITY_TYPES = ["company", "state_franchise", "city_franchise", "academy", "dark_store", "salon_branch", "department"] as const;
 const DOC_TYPES = ["b2b_tax", "b2c", "proforma", "quotation", "receipt", "credit_note", "debit_note"] as const;
+// Proforma is deprecated from the active billing flow. Existing proforma
+// records are archived (soft-deleted) and remain readable for audit, but
+// new proformas can no longer be created or edited through the app.
+const DEPRECATED_DOC_TYPES = new Set(["proforma"]);
 
 async function assertCanWrite(userId: string) {
   const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
@@ -179,6 +183,9 @@ export const createInvoice = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => CreateInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
+    if (DEPRECATED_DOC_TYPES.has(data.doc_type)) {
+      throw new Error("Proforma invoices are deprecated. Use B2B Tax Invoice or B2C Invoice instead.");
+    }
     const tax = await buildTaxFields(data.company_id, data.doc_type, data.place_of_supply, data.issue);
     const number = data.issue ? await nextInvoiceNumber(data.company_id, data.doc_type) : null;
     const totals = computeTotals(data.items);
@@ -242,6 +249,9 @@ export const updateInvoice = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => UpdateInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
+    if (DEPRECATED_DOC_TYPES.has(data.doc_type)) {
+      throw new Error("Proforma invoices are deprecated and cannot be edited. Archived for audit only.");
+    }
     const { id, items, ...patch } = data;
     // Snapshot existing values for diffing audit events
     const { data: before } = await supabaseAdmin
