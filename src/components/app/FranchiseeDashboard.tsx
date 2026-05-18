@@ -175,7 +175,7 @@ export function FranchiseeDashboard({
     queryFn: async () => {
       const { data } = await supabase
         .from("invoices")
-        .select("id,invoice_number,doc_type,status,grand_total,amount_paid,invoice_date,is_intercompany,parent_invoice_id,archived_at")
+        .select("id,invoice_number,doc_type,status,grand_total,gst_total,amount_paid,invoice_date,is_intercompany,parent_invoice_id,archived_at")
         .or(`franchisee_id.eq.${franchiseeId},and(bill_to_entity_type.eq.city_franchise,bill_to_entity_id.eq.${franchiseeId})`)
         .order("invoice_date", { ascending: false })
         .limit(200);
@@ -199,6 +199,10 @@ export function FranchiseeDashboard({
     return { included: inc, excluded: exc };
   }, [allInvoices, REVENUE_DOC_TYPES, REVENUE_STATUSES]);
   const invoiceRevenue = invoicePartition.included.reduce((s, i) => s + Number(i.grand_total), 0);
+  const invoiceGst = invoicePartition.included.reduce((s, i) => s + Number((i as any).gst_total ?? 0), 0);
+  const invoiceTaxable = invoiceRevenue - invoiceGst;
+  const invoicePaid = invoicePartition.included.reduce((s, i) => s + Number(i.amount_paid ?? 0), 0);
+  const invoiceOutstanding = invoiceRevenue - invoicePaid;
 
   // Inventory snapshot — only when franchisee has a linked warehouse
   const warehouseId = franchisee?.warehouse_id ?? null;
@@ -222,7 +226,7 @@ export function FranchiseeDashboard({
   const pendingOrders = orders.filter((o) => o.status !== "completed" && o.status !== "cancelled").length;
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
-  const pendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
+  const scheduledPendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
 
   const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
   const monthEnd = endOfMonth(new Date()).toISOString().slice(0, 10);
@@ -241,13 +245,10 @@ export function FranchiseeDashboard({
     .filter((p) => p.status === "paid" && p.paid_at && p.paid_at.slice(0, 10) >= monthStart && p.paid_at.slice(0, 10) <= monthEnd)
     .reduce((s, p) => s + Number(p.total_amount), 0);
 
-  const monthInvoiceRevenue = invoicePartition.included
-    .filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd)
-    .reduce((s, i) => s + Number(i.grand_total), 0);
-  const monthPL = monthRevenue + monthGross + monthInvoiceRevenue - monthExpenses - monthRoiPaid;
-  const lifetimePL = totalRevenue + grossSales + invoiceRevenue - totalExpenses - lifetimePaid;
-
-  const roiYieldPct = investment > 0 ? (lifetimePaid / investment) * 100 : 0;
+  const monthIncluded = invoicePartition.included.filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd);
+  const monthInvoiceRevenue = monthIncluded.reduce((s, i) => s + Number(i.grand_total), 0);
+  const monthInvoiceGst = monthIncluded.reduce((s, i) => s + Number((i as any).gst_total ?? 0), 0);
+  const monthInvoiceTaxable = monthInvoiceRevenue - monthInvoiceGst;
 
   // ROI structure pulled from franchisee record (with sensible defaults)
   const fee = Number(franchisee?.franchise_fee ?? 500000);
@@ -255,6 +256,30 @@ export function FranchiseeDashboard({
   const emporiumPct = Number(franchisee?.emporium_pct ?? 10);
   const academyPct = Number(franchisee?.academy_pct ?? 3);
   const darkPct = Number(franchisee?.dark_store_pct ?? 3);
+
+  // Incentive accrual on taxable amount.
+  // NOTE: Until invoices carry a source-vertical tag, all mapped franchise
+  // invoices are treated as Dark Store sales (this matches the current
+  // Mall of Salon dark-store franchise model). Emporium / Academy accrual
+  // remains 0 until those streams are wired separately.
+  const accruedDark = invoiceTaxable * (darkPct / 100);
+  const accruedEmporium = 0;
+  const accruedAcademy = 0;
+  const totalAccruedIncentive = accruedDark + accruedEmporium + accruedAcademy;
+  const baseMonthlyRoiAmount = investment * (baseRoiPct / 100);
+
+  // Franchise earnings this month = incentive accrual on this-month taxable
+  const monthAccruedIncentive = monthInvoiceTaxable * (darkPct / 100);
+
+  // Pending payout = scheduled + accrued − already paid (floored at 0)
+  const pendingPayout = Math.max(0, scheduledPendingPayout + totalAccruedIncentive - lifetimePaid);
+
+  const monthPL = monthRevenue + monthGross + monthAccruedIncentive - monthExpenses - monthRoiPaid;
+  const lifetimePL = totalRevenue + grossSales + totalAccruedIncentive - totalExpenses - lifetimePaid;
+
+  // ROI yield: realized = lifetime paid / investment; min guarantee = baseRoiPct (per month)
+  const realizedYieldPct = investment > 0 ? (lifetimePaid / investment) * 100 : 0;
+
 
   // Equipment compliance
   const equipment = [
@@ -326,9 +351,11 @@ export function FranchiseeDashboard({
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">ROI yield</div>
-            <div className="font-display text-3xl text-gradient-gold">{roiYieldPct.toFixed(1)}%</div>
-            <div className="text-[10px] text-muted-foreground">on {formatINRCompact(investment)} invested</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Min monthly ROI</div>
+            <div className="font-display text-3xl text-gradient-gold">{baseRoiPct.toFixed(1)}%</div>
+            <div className="text-[10px] text-muted-foreground">
+              ≈ {formatINRCompact(baseMonthlyRoiAmount)}/mo · realized {realizedYieldPct.toFixed(1)}%
+            </div>
           </div>
         </div>
       </div>
@@ -370,13 +397,79 @@ export function FranchiseeDashboard({
         );
       })()}
 
-      {/* KPIs */}
+      {/* KPIs — franchise earnings view, not raw invoice turnover */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="This month revenue" value={formatINRCompact(monthRevenue + monthGross + monthInvoiceRevenue)} icon={TrendingUp} hint={`${monthOrders.length} orders · ${invoicePartition.included.filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd).length} invoices`} delay={0} />
-        <KpiCard label="Lifetime ROI paid" value={formatINRCompact(lifetimePaid)} icon={Wallet} hint={`${payouts.filter((p) => p.status === "paid").length} payouts`} delay={0.05} />
-        <KpiCard label="Pending payouts" value={formatINRCompact(pendingPayout)} icon={Clock} hint={`${payouts.filter((p) => p.status === "pending").length} pending`} delay={0.1} />
+        <KpiCard
+          label="This month franchise earnings"
+          value={formatINRCompact(monthAccruedIncentive + monthRevenue)}
+          icon={TrendingUp}
+          hint={`Turnover ${formatINRCompact(monthInvoiceRevenue)} · accrual @ ${darkPct}%`}
+          delay={0}
+        />
+        <KpiCard label="Lifetime ROI paid" value={formatINRCompact(lifetimePaid)} icon={Wallet} hint={`${payouts.filter((p) => p.status === "paid").length} payouts · accrued ${formatINRCompact(totalAccruedIncentive)}`} delay={0.05} />
+        <KpiCard label="Pending payouts" value={formatINRCompact(pendingPayout)} icon={Clock} hint={`Scheduled ${formatINRCompact(scheduledPendingPayout)} + accrued ${formatINRCompact(totalAccruedIncentive)}`} delay={0.1} />
         <KpiCard label="Total POS sales" value={formatINRCompact(grossSales)} icon={ShoppingCart} hint={`${completedOrders.length} completed`} delay={0.15} />
       </div>
+
+      {/* A. Sales Summary | B. ROI & Incentive | C. P&L */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* A. Sales Summary */}
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">A · Sales summary</h3>
+          </div>
+          <p className="mb-3 text-[11px] text-muted-foreground">
+            From {invoicePartition.included.length} active invoice{invoicePartition.included.length === 1 ? "" : "s"}
+          </p>
+          <div className="space-y-2 text-sm">
+            <Row label="Total invoice value" value={formatINR(invoiceRevenue)} />
+            <Row label="Taxable amount" value={formatINR(invoiceTaxable)} />
+            <Row label="GST amount" value={formatINR(invoiceGst)} />
+            <Row label="Paid" value={formatINR(invoicePaid)} />
+            <Row label="Outstanding" value={formatINR(invoiceOutstanding)} accent />
+          </div>
+        </div>
+
+        {/* B. ROI & Incentive Summary */}
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">B · ROI & incentive</h3>
+          </div>
+          <p className="mb-3 text-[11px] text-muted-foreground">Accruals on taxable amount</p>
+          <div className="space-y-2 text-sm">
+            <Row label={`Min monthly ROI (${baseRoiPct}%)`} value={formatINR(baseMonthlyRoiAmount)} />
+            <Row label={`Nail Emporium (${emporiumPct}%)`} value={formatINR(accruedEmporium)} />
+            <Row label={`Academy (${academyPct}%)`} value={formatINR(accruedAcademy)} />
+            <Row label={`Dark Store (${darkPct}%)`} value={formatINR(accruedDark)} />
+            <div className="my-1 border-t border-border/40" />
+            <Row label="Total pending payout" value={formatINR(pendingPayout)} accent />
+            <Row label="Lifetime ROI paid" value={formatINR(lifetimePaid)} />
+          </div>
+        </div>
+
+        {/* C. P&L / Earnings */}
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Wallet className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">C · P&amp;L (lifetime)</h3>
+          </div>
+          <p className="mb-3 text-[11px] text-muted-foreground">Franchise earnings, not turnover</p>
+          <div className="space-y-2 text-sm">
+            <Row label="Invoice turnover" value={formatINR(invoiceRevenue)} />
+            <Row label="Franchise earnings accrued" value={formatINR(totalAccruedIncentive)} />
+            <Row label="− Expenses" value={formatINR(totalExpenses)} />
+            <div className="my-1 border-t border-border/40" />
+            <Row
+              label="Net franchise earnings"
+              value={formatINR(totalAccruedIncentive - totalExpenses)}
+              accent
+            />
+          </div>
+        </div>
+      </div>
+
 
       {/* P&L block */}
       <div className="grid gap-4 md:grid-cols-2">
@@ -386,7 +479,8 @@ export function FranchiseeDashboard({
             {monthPL >= 0 ? "+" : ""}{formatINRCompact(monthPL)}
           </div>
           <div className="mt-4 space-y-1.5 text-sm">
-            <PLRow label="Invoiced revenue" value={formatINRCompact(monthInvoiceRevenue)} positive />
+            <PLRow label={`Franchise earnings accrued (@ ${darkPct}%)`} value={formatINRCompact(monthAccruedIncentive)} positive />
+            <PLRow label="Invoice turnover (ref)" value={formatINRCompact(monthInvoiceRevenue)} />
             <PLRow label="Recurring revenue" value={formatINRCompact(monthRevenue)} positive />
             <PLRow label="POS gross" value={formatINRCompact(monthGross)} positive />
             <PLRow label="− Expenses" value={formatINRCompact(monthExpenses)} />
@@ -399,7 +493,8 @@ export function FranchiseeDashboard({
             {lifetimePL >= 0 ? "+" : ""}{formatINRCompact(lifetimePL)}
           </div>
           <div className="mt-4 space-y-1.5 text-sm">
-            <PLRow label="Invoiced revenue" value={formatINRCompact(invoiceRevenue)} positive />
+            <PLRow label={`Franchise earnings accrued (@ ${darkPct}%)`} value={formatINRCompact(totalAccruedIncentive)} positive />
+            <PLRow label="Invoice turnover (ref)" value={formatINRCompact(invoiceRevenue)} />
             <PLRow label="Recurring revenue" value={formatINRCompact(totalRevenue)} positive />
             <PLRow label="POS gross" value={formatINRCompact(grossSales)} positive />
             <PLRow label="− Expenses" value={formatINRCompact(totalExpenses)} />
