@@ -76,6 +76,11 @@ export function FranchiseeDashboard({
         { event: "*", schema: "public", table: "expenses", filter: `franchisee_id=eq.${franchiseeId}` },
         () => qc.invalidateQueries({ queryKey: ["fr-dash-expenses", franchiseeId] }),
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "invoices", filter: `franchisee_id=eq.${franchiseeId}` },
+        () => qc.invalidateQueries({ queryKey: ["fr-dash-invoices", franchiseeId] }),
+      )
       .subscribe();
 
     return () => {
