@@ -253,8 +253,13 @@ function InvoiceForm({ companies, value, onChange }: {
         </div>
         <div><Label>Document Type</Label>
           <Select value={v.docType} onValueChange={(x) => set({ docType: x as DocType })}><SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}</SelectContent>
-          </Select></div>
+            <SelectContent>
+              {ACTIVE_DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")} (active)</SelectItem>)}
+              {SUPPORT_DOC_TYPES.map((d) => <SelectItem key={d} value={d}>{d.replace("_", " ")}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <p className="mt-1 text-[11px] text-muted-foreground">Proforma is archived from the active flow — only B2B and B2C count as revenue.</p>
+        </div>
         <div className="col-span-2"><Label>Bill To (name)</Label><Input value={v.billToName} onChange={(e) => set({ billToName: e.target.value })} /></div>
         {isTax && (
           <>
