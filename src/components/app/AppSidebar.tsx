@@ -84,6 +84,7 @@ const NAV_FRANCHISEE = [
   { title: "My Franchise", url: "/app/my-franchise" as const, icon: Briefcase, search: { tab: "dashboard" as const } },
   { title: "My Leads", url: "/app/my-franchise" as const, icon: Users, search: { tab: "leads" as const } },
   { title: "My Campaigns", url: "/app/my-franchise" as const, icon: Megaphone, search: { tab: "campaigns" as const } },
+  { title: "Timeline", url: "/app/my-franchise" as const, icon: BarChart3, search: { tab: "timeline" as const } },
 ] as const;
 
 const NAV_STATE_FRANCHISEE = [
