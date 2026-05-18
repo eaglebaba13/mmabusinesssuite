@@ -130,6 +130,12 @@ function InvoicesPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="flex items-end">
+            <label className="flex cursor-pointer items-center gap-2 text-xs">
+              <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
+              Show archived (proforma)
+            </label>
+          </div>
         </CardContent>
       </Card>
 
