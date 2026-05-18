@@ -231,22 +231,22 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
       out.targets = targets.data ?? [];
       out.cities = cities.data ?? [];
     } else if (sess.entity_type === "city_franchise" || sess.entity_type === "academy" || sess.entity_type === "dark_store") {
-      // Match invoices either billed TO this entity OR mapped TO this franchisee
-      // via the revenue-attribution franchisee_id. Exclude superseded revisions
-      // and intercompany flows so franchise revenue isn't double-counted.
-      const [invoices, payments] = await Promise.all([
+      // Pull every mapped invoice (billed TO this entity OR attributed via
+      // franchisee_id), then partition into revenue-bearing vs excluded so
+      // both the entity dashboard and the franchisee self-dashboard apply
+      // the SAME rule: only final outward tax invoices count as revenue.
+      const [allInvoices, payments] = await Promise.all([
         supabaseAdmin
           .from("invoices")
-          .select("id,invoice_number,doc_type,grand_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany")
+          .select("id,invoice_number,doc_type,grand_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id")
           .or(`and(bill_to_entity_type.eq.${sess.entity_type},bill_to_entity_id.eq.${sess.entity_id}),franchisee_id.eq.${sess.entity_id}`)
-          .neq("status", "revised")
-          .neq("status", "cancelled")
-          .or("is_intercompany.is.null,is_intercompany.eq.false")
           .order("invoice_date", { ascending: false })
-          .limit(50),
+          .limit(200),
         supabaseAdmin.from("payments").select("*").eq("counterparty_entity_id", sess.entity_id).order("payment_date", { ascending: false }).limit(50),
       ]);
-      out.invoices = invoices.data ?? [];
+      const partitioned = partitionRevenueInvoices(allInvoices.data ?? []);
+      out.invoices = partitioned.included;
+      out.excluded_invoices = partitioned.excluded;
       out.payments = payments.data ?? [];
     } else if (sess.entity_type === "salon_branch") {
       const { data: branch } = await supabaseAdmin.from("salon_branches").select("*").eq("id", sess.entity_id).maybeSingle();
