@@ -46,27 +46,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   React.useEffect(() => {
+    let cancelled = false;
+
     // Auth state listener FIRST
     const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
+        setLoading(true);
         // defer to avoid deadlock
-        setTimeout(() => loadRoles(newSession.user.id), 0);
+        setTimeout(async () => {
+          await loadRoles(newSession.user.id);
+          if (!cancelled) setLoading(false);
+        }, 0);
       } else {
         setRoles([]);
+        setLoading(false);
       }
     });
 
     // THEN initial check
-    supabase.auth.getSession().then(({ data: { session: existing } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: existing } }) => {
       setSession(existing);
       setUser(existing?.user ?? null);
-      if (existing?.user) loadRoles(existing.user.id);
-      setLoading(false);
+      if (existing?.user) {
+        await loadRoles(existing.user.id);
+      }
+      if (!cancelled) setLoading(false);
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, [loadRoles]);
 
   const value: AuthContextValue = {
