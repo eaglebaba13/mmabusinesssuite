@@ -374,6 +374,13 @@ export const reviseInvoice = createServerFn({ method: "POST" })
       sgst_total: orig.tax_mode === "inter" ? 0 : totals.gst_total / 2,
       igst_total: orig.tax_mode === "inter" ? totals.gst_total : 0,
       grand_total: totals.grand_total,
+      // Carry attribution + traceability across revisions so franchise
+      // dashboards keep matching the latest active version.
+      franchisee_id: orig.franchisee_id,
+      state_franchise_id: orig.state_franchise_id,
+      is_intercompany: orig.is_intercompany,
+      source_document_ref: orig.source_document_ref,
+      source_document_url: orig.source_document_url,
     }).select("id").single();
     if (error) throw new Error(error.message);
 
