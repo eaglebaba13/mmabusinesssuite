@@ -55,6 +55,7 @@ function InvoicesPage() {
   const [companyFilter, setCompanyFilter] = React.useState<string>("all");
   const [from, setFrom] = React.useState("");
   const [to, setTo] = React.useState("");
+  const [showArchived, setShowArchived] = React.useState(false);
 
   const companies = useQuery({ queryKey: ["companies"], queryFn: async () => (await supabase.from("companies").select("id,name").order("name")).data });
 
