@@ -300,8 +300,20 @@ export function FranchiseeDashboard({
     return Array.from(map.entries()).map(([source, amount]) => ({ source, amount }));
   }, [revenue]);
 
+  const hasAnyData =
+    revenue.length > 0 || orders.length > 0 || expenses.length > 0 || allInvoices.length > 0 || payouts.length > 0;
+
   return (
     <div className="space-y-6">
+      {!hasAnyData && (
+        <div className="rounded-2xl border border-gold/30 bg-gold/5 p-4 text-sm">
+          <span className="font-medium text-gold">Fresh start.</span>{" "}
+          <span className="text-muted-foreground">
+            No billing, POS, or payout activity recorded yet. Once a B2B or B2C invoice is issued
+            against this franchise, revenue and P&amp;L will populate here automatically.
+          </span>
+        </div>
+      )}
       {/* Hero */}
       <div className="rounded-2xl glass p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
