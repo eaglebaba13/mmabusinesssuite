@@ -249,6 +249,9 @@ export const updateInvoice = createServerFn({ method: "POST" })
   .inputValidator((i: unknown) => UpdateInput.parse(i))
   .handler(async ({ data, context }) => {
     await assertCanWrite(context.userId);
+    if (DEPRECATED_DOC_TYPES.has(data.doc_type)) {
+      throw new Error("Proforma invoices are deprecated and cannot be edited. Archived for audit only.");
+    }
     const { id, items, ...patch } = data;
     // Snapshot existing values for diffing audit events
     const { data: before } = await supabaseAdmin
