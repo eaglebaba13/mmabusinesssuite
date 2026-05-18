@@ -12,6 +12,10 @@ const forwardAuth = createMiddleware({ type: "function" }).client(async ({ next 
 
 const ENTITY_TYPES = ["company", "state_franchise", "city_franchise", "academy", "dark_store", "salon_branch", "department"] as const;
 const DOC_TYPES = ["b2b_tax", "b2c", "proforma", "quotation", "receipt", "credit_note", "debit_note"] as const;
+// Proforma is deprecated from the active billing flow. Existing proforma
+// records are archived (soft-deleted) and remain readable for audit, but
+// new proformas can no longer be created or edited through the app.
+const DEPRECATED_DOC_TYPES = new Set(["proforma"]);
 
 async function assertCanWrite(userId: string) {
   const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
