@@ -137,7 +137,7 @@ export const resolveImpersonation = createServerFn({ method: "POST" })
     await supabaseAdmin.from("impersonation_audit").insert({
       session_id: sess.id,
       action: "resolve",
-      payload: { by: context.userId },
+      payload: { by: sess.acting_admin_id },
     });
 
     return {
