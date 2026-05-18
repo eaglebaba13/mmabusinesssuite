@@ -175,7 +175,7 @@ export function FranchiseeDashboard({
     queryFn: async () => {
       const { data } = await supabase
         .from("invoices")
-        .select("id,invoice_number,doc_type,status,grand_total,amount_paid,invoice_date,is_intercompany,parent_invoice_id")
+        .select("id,invoice_number,doc_type,status,grand_total,amount_paid,invoice_date,is_intercompany,parent_invoice_id,archived_at")
         .or(`franchisee_id.eq.${franchiseeId},and(bill_to_entity_type.eq.city_franchise,bill_to_entity_id.eq.${franchiseeId})`)
         .order("invoice_date", { ascending: false })
         .limit(200);
