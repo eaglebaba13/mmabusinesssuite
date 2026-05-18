@@ -189,7 +189,8 @@ export function FranchiseeDashboard({
     const exc: Array<(typeof allInvoices)[number] & { exclusion_reason: string }> = [];
     for (const r of allInvoices) {
       let reason: string | null = null;
-      if (r.is_intercompany === true) reason = "intercompany";
+      if ((r as any).archived_at) reason = "archived";
+      else if (r.is_intercompany === true) reason = "intercompany";
       else if (!REVENUE_DOC_TYPES.has(r.doc_type)) reason = `non_revenue_doc:${r.doc_type}`;
       else if (!r.status || !REVENUE_STATUSES.has(r.status)) reason = `excluded_status:${r.status ?? "null"}`;
       if (reason) exc.push({ ...r, exclusion_reason: reason });
