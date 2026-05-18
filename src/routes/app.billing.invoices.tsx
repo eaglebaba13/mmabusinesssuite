@@ -60,7 +60,7 @@ function InvoicesPage() {
   const companies = useQuery({ queryKey: ["companies"], queryFn: async () => (await supabase.from("companies").select("id,name").order("name")).data });
 
   const invoicesQ = useQuery({
-    queryKey: ["invoices", docFilter, statusFilter, companyFilter, from, to],
+    queryKey: ["invoices", docFilter, statusFilter, companyFilter, from, to, showArchived],
     queryFn: async () => {
       let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name)").order("invoice_date", { ascending: false }).limit(300);
       if (docFilter !== "all") q = q.eq("doc_type", docFilter as any);
@@ -68,6 +68,7 @@ function InvoicesPage() {
       if (companyFilter !== "all") q = q.eq("company_id", companyFilter);
       if (from) q = q.gte("invoice_date", from);
       if (to) q = q.lte("invoice_date", to);
+      if (!showArchived) q = q.is("archived_at", null);
       const { data, error } = await q;
       if (error) throw error;
       return data;
