@@ -163,6 +163,37 @@ export function FranchiseeDashboard({
     },
   });
 
+  // Invoices mapped to this franchisee — applies the same revenue rule as
+  // the impersonation entity dashboard (final outward tax invoices only).
+  const { data: allInvoices = [] } = useQuery({
+    queryKey: ["fr-dash-invoices", franchiseeId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("invoices")
+        .select("id,invoice_number,doc_type,status,grand_total,amount_paid,invoice_date,is_intercompany,parent_invoice_id")
+        .or(`franchisee_id.eq.${franchiseeId},and(bill_to_entity_type.eq.city_franchise,bill_to_entity_id.eq.${franchiseeId})`)
+        .order("invoice_date", { ascending: false })
+        .limit(200);
+      return data ?? [];
+    },
+  });
+  const REVENUE_DOC_TYPES = React.useMemo(() => new Set(["b2b_tax", "b2c", "debit_note"]), []);
+  const REVENUE_STATUSES = React.useMemo(() => new Set(["issued", "paid", "partial"]), []);
+  const invoicePartition = React.useMemo(() => {
+    const inc: typeof allInvoices = [];
+    const exc: Array<(typeof allInvoices)[number] & { exclusion_reason: string }> = [];
+    for (const r of allInvoices) {
+      let reason: string | null = null;
+      if (r.is_intercompany === true) reason = "intercompany";
+      else if (!REVENUE_DOC_TYPES.has(r.doc_type)) reason = `non_revenue_doc:${r.doc_type}`;
+      else if (!r.status || !REVENUE_STATUSES.has(r.status)) reason = `excluded_status:${r.status ?? "null"}`;
+      if (reason) exc.push({ ...r, exclusion_reason: reason });
+      else inc.push(r);
+    }
+    return { included: inc, excluded: exc };
+  }, [allInvoices, REVENUE_DOC_TYPES, REVENUE_STATUSES]);
+  const invoiceRevenue = invoicePartition.included.reduce((s, i) => s + Number(i.grand_total), 0);
+
   // Inventory snapshot — only when franchisee has a linked warehouse
   const warehouseId = franchisee?.warehouse_id ?? null;
   const { data: stockRows = [] } = useQuery({
