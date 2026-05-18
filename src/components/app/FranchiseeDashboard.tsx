@@ -240,8 +240,11 @@ export function FranchiseeDashboard({
     .filter((p) => p.status === "paid" && p.paid_at && p.paid_at.slice(0, 10) >= monthStart && p.paid_at.slice(0, 10) <= monthEnd)
     .reduce((s, p) => s + Number(p.total_amount), 0);
 
-  const monthPL = monthRevenue + monthGross - monthExpenses - monthRoiPaid;
-  const lifetimePL = totalRevenue + grossSales - totalExpenses - lifetimePaid;
+  const monthInvoiceRevenue = invoicePartition.included
+    .filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd)
+    .reduce((s, i) => s + Number(i.grand_total), 0);
+  const monthPL = monthRevenue + monthGross + monthInvoiceRevenue - monthExpenses - monthRoiPaid;
+  const lifetimePL = totalRevenue + grossSales + invoiceRevenue - totalExpenses - lifetimePaid;
 
   const roiYieldPct = investment > 0 ? (lifetimePaid / investment) * 100 : 0;
 
