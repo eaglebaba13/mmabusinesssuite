@@ -199,6 +199,10 @@ export function FranchiseeDashboard({
     return { included: inc, excluded: exc };
   }, [allInvoices, REVENUE_DOC_TYPES, REVENUE_STATUSES]);
   const invoiceRevenue = invoicePartition.included.reduce((s, i) => s + Number(i.grand_total), 0);
+  const invoiceGst = invoicePartition.included.reduce((s, i) => s + Number((i as any).gst_total ?? 0), 0);
+  const invoiceTaxable = invoiceRevenue - invoiceGst;
+  const invoicePaid = invoicePartition.included.reduce((s, i) => s + Number(i.amount_paid ?? 0), 0);
+  const invoiceOutstanding = invoiceRevenue - invoicePaid;
 
   // Inventory snapshot — only when franchisee has a linked warehouse
   const warehouseId = franchisee?.warehouse_id ?? null;
@@ -222,7 +226,7 @@ export function FranchiseeDashboard({
   const pendingOrders = orders.filter((o) => o.status !== "completed" && o.status !== "cancelled").length;
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
-  const pendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
+  const scheduledPendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
 
   const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
   const monthEnd = endOfMonth(new Date()).toISOString().slice(0, 10);
@@ -241,13 +245,10 @@ export function FranchiseeDashboard({
     .filter((p) => p.status === "paid" && p.paid_at && p.paid_at.slice(0, 10) >= monthStart && p.paid_at.slice(0, 10) <= monthEnd)
     .reduce((s, p) => s + Number(p.total_amount), 0);
 
-  const monthInvoiceRevenue = invoicePartition.included
-    .filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd)
-    .reduce((s, i) => s + Number(i.grand_total), 0);
-  const monthPL = monthRevenue + monthGross + monthInvoiceRevenue - monthExpenses - monthRoiPaid;
-  const lifetimePL = totalRevenue + grossSales + invoiceRevenue - totalExpenses - lifetimePaid;
-
-  const roiYieldPct = investment > 0 ? (lifetimePaid / investment) * 100 : 0;
+  const monthIncluded = invoicePartition.included.filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd);
+  const monthInvoiceRevenue = monthIncluded.reduce((s, i) => s + Number(i.grand_total), 0);
+  const monthInvoiceGst = monthIncluded.reduce((s, i) => s + Number((i as any).gst_total ?? 0), 0);
+  const monthInvoiceTaxable = monthInvoiceRevenue - monthInvoiceGst;
 
   // ROI structure pulled from franchisee record (with sensible defaults)
   const fee = Number(franchisee?.franchise_fee ?? 500000);
@@ -255,6 +256,30 @@ export function FranchiseeDashboard({
   const emporiumPct = Number(franchisee?.emporium_pct ?? 10);
   const academyPct = Number(franchisee?.academy_pct ?? 3);
   const darkPct = Number(franchisee?.dark_store_pct ?? 3);
+
+  // Incentive accrual on taxable amount.
+  // NOTE: Until invoices carry a source-vertical tag, all mapped franchise
+  // invoices are treated as Dark Store sales (this matches the current
+  // Mall of Salon dark-store franchise model). Emporium / Academy accrual
+  // remains 0 until those streams are wired separately.
+  const accruedDark = invoiceTaxable * (darkPct / 100);
+  const accruedEmporium = 0;
+  const accruedAcademy = 0;
+  const totalAccruedIncentive = accruedDark + accruedEmporium + accruedAcademy;
+  const baseMonthlyRoiAmount = investment * (baseRoiPct / 100);
+
+  // Franchise earnings this month = incentive accrual on this-month taxable
+  const monthAccruedIncentive = monthInvoiceTaxable * (darkPct / 100);
+
+  // Pending payout = scheduled + accrued − already paid (floored at 0)
+  const pendingPayout = Math.max(0, scheduledPendingPayout + totalAccruedIncentive - lifetimePaid);
+
+  const monthPL = monthRevenue + monthGross + monthAccruedIncentive - monthExpenses - monthRoiPaid;
+  const lifetimePL = totalRevenue + grossSales + totalAccruedIncentive - totalExpenses - lifetimePaid;
+
+  // ROI yield: realized = lifetime paid / investment; min guarantee = baseRoiPct (per month)
+  const realizedYieldPct = investment > 0 ? (lifetimePaid / investment) * 100 : 0;
+
 
   // Equipment compliance
   const equipment = [
