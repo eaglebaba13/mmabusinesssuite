@@ -359,7 +359,7 @@ export function FranchiseeDashboard({
 
       {/* KPIs */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="This month revenue" value={formatINRCompact(monthRevenue + monthGross)} icon={TrendingUp} hint={`${monthOrders.length} orders`} delay={0} />
+        <KpiCard label="This month revenue" value={formatINRCompact(monthRevenue + monthGross + monthInvoiceRevenue)} icon={TrendingUp} hint={`${monthOrders.length} orders · ${invoicePartition.included.filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd).length} invoices`} delay={0} />
         <KpiCard label="Lifetime ROI paid" value={formatINRCompact(lifetimePaid)} icon={Wallet} hint={`${payouts.filter((p) => p.status === "paid").length} payouts`} delay={0.05} />
         <KpiCard label="Pending payouts" value={formatINRCompact(pendingPayout)} icon={Clock} hint={`${payouts.filter((p) => p.status === "pending").length} pending`} delay={0.1} />
         <KpiCard label="Total POS sales" value={formatINRCompact(grossSales)} icon={ShoppingCart} hint={`${completedOrders.length} completed`} delay={0.15} />
@@ -373,7 +373,9 @@ export function FranchiseeDashboard({
             {monthPL >= 0 ? "+" : ""}{formatINRCompact(monthPL)}
           </div>
           <div className="mt-4 space-y-1.5 text-sm">
-            <PLRow label="Revenue + POS" value={formatINRCompact(monthRevenue + monthGross)} positive />
+            <PLRow label="Invoiced revenue" value={formatINRCompact(monthInvoiceRevenue)} positive />
+            <PLRow label="Recurring revenue" value={formatINRCompact(monthRevenue)} positive />
+            <PLRow label="POS gross" value={formatINRCompact(monthGross)} positive />
             <PLRow label="− Expenses" value={formatINRCompact(monthExpenses)} />
             <PLRow label="− ROI paid out" value={formatINRCompact(monthRoiPaid)} />
           </div>
@@ -384,11 +386,54 @@ export function FranchiseeDashboard({
             {lifetimePL >= 0 ? "+" : ""}{formatINRCompact(lifetimePL)}
           </div>
           <div className="mt-4 space-y-1.5 text-sm">
-            <PLRow label="Revenue + POS" value={formatINRCompact(totalRevenue + grossSales)} positive />
+            <PLRow label="Invoiced revenue" value={formatINRCompact(invoiceRevenue)} positive />
+            <PLRow label="Recurring revenue" value={formatINRCompact(totalRevenue)} positive />
+            <PLRow label="POS gross" value={formatINRCompact(grossSales)} positive />
             <PLRow label="− Expenses" value={formatINRCompact(totalExpenses)} />
             <PLRow label="− ROI paid out" value={formatINRCompact(lifetimePaid)} />
           </div>
         </div>
+      </div>
+
+      {/* Revenue source debug — shows what's counted vs excluded, mirrors the
+          entity-impersonation dashboard rule so the two views reconcile. */}
+      <div className="rounded-2xl glass p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-display text-lg">Invoice revenue attribution</h3>
+          <span className="text-xs text-muted-foreground">
+            Rule: b2b_tax / b2c / debit_note · status issued/paid/partial · non-intercompany
+          </span>
+        </div>
+        {allInvoices.length === 0 ? (
+          <p className="py-3 text-sm text-muted-foreground">No mapped invoices yet.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="mb-2 text-xs uppercase tracking-wider text-emerald-400">Counted ({invoicePartition.included.length})</div>
+              <div className="space-y-1 text-sm">
+                {invoicePartition.included.map((i) => (
+                  <div key={i.id} className="flex justify-between rounded bg-background/40 px-3 py-1.5">
+                    <span className="font-mono text-xs">{i.invoice_number ?? "DRAFT"} · {i.doc_type}</span>
+                    <span className="text-gold">{formatINRCompact(Number(i.grand_total))}</span>
+                  </div>
+                ))}
+                {invoicePartition.included.length === 0 && <p className="text-xs text-muted-foreground">None.</p>}
+              </div>
+            </div>
+            <div>
+              <div className="mb-2 text-xs uppercase tracking-wider text-amber-400">Excluded ({invoicePartition.excluded.length})</div>
+              <div className="space-y-1 text-sm">
+                {invoicePartition.excluded.map((i) => (
+                  <div key={i.id} className="flex justify-between rounded bg-background/40 px-3 py-1.5">
+                    <span className="font-mono text-xs">{i.invoice_number ?? "DRAFT"} · {i.doc_type} · {i.status}</span>
+                    <span className="text-xs text-muted-foreground">{i.exclusion_reason}</span>
+                  </div>
+                ))}
+                {invoicePartition.excluded.length === 0 && <p className="text-xs text-muted-foreground">None.</p>}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Charts */}
