@@ -22,8 +22,14 @@ export const Route = createFileRoute("/app/billing/invoices")({
   component: InvoicesPage,
 });
 
-const DOC_TYPES = ["b2b_tax", "b2c", "proforma", "quotation", "receipt", "credit_note", "debit_note"] as const;
-type DocType = typeof DOC_TYPES[number];
+// Active billing types — only B2B and B2C are part of the live invoicing flow.
+// Proforma is deprecated (archived only). Quotation / credit-note / debit-note
+// remain available as supporting documents but are not part of New Invoice.
+const ACTIVE_DOC_TYPES = ["b2b_tax", "b2c"] as const;
+const SUPPORT_DOC_TYPES = ["quotation", "credit_note", "debit_note", "receipt"] as const;
+const ALL_DOC_TYPES = [...ACTIVE_DOC_TYPES, ...SUPPORT_DOC_TYPES, "proforma"] as const;
+const DOC_TYPES = ALL_DOC_TYPES;
+type DocType = typeof ALL_DOC_TYPES[number];
 const STATUSES = ["draft", "issued", "revised", "cancelled"] as const;
 
 type Item = { description: string; quantity: number; unit_price: number; discount_pct: number; gst_pct: number; is_student_product: boolean };
