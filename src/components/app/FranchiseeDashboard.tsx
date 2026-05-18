@@ -351,9 +351,11 @@ export function FranchiseeDashboard({
             </p>
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">ROI yield</div>
-            <div className="font-display text-3xl text-gradient-gold">{roiYieldPct.toFixed(1)}%</div>
-            <div className="text-[10px] text-muted-foreground">on {formatINRCompact(investment)} invested</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Min monthly ROI</div>
+            <div className="font-display text-3xl text-gradient-gold">{baseRoiPct.toFixed(1)}%</div>
+            <div className="text-[10px] text-muted-foreground">
+              ≈ {formatINRCompact(baseMonthlyRoiAmount)}/mo · realized {realizedYieldPct.toFixed(1)}%
+            </div>
           </div>
         </div>
       </div>
@@ -395,13 +397,79 @@ export function FranchiseeDashboard({
         );
       })()}
 
-      {/* KPIs */}
+      {/* KPIs — franchise earnings view, not raw invoice turnover */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard label="This month revenue" value={formatINRCompact(monthRevenue + monthGross + monthInvoiceRevenue)} icon={TrendingUp} hint={`${monthOrders.length} orders · ${invoicePartition.included.filter((i) => i.invoice_date >= monthStart && i.invoice_date <= monthEnd).length} invoices`} delay={0} />
-        <KpiCard label="Lifetime ROI paid" value={formatINRCompact(lifetimePaid)} icon={Wallet} hint={`${payouts.filter((p) => p.status === "paid").length} payouts`} delay={0.05} />
-        <KpiCard label="Pending payouts" value={formatINRCompact(pendingPayout)} icon={Clock} hint={`${payouts.filter((p) => p.status === "pending").length} pending`} delay={0.1} />
+        <KpiCard
+          label="This month franchise earnings"
+          value={formatINRCompact(monthAccruedIncentive + monthRevenue)}
+          icon={TrendingUp}
+          hint={`Turnover ${formatINRCompact(monthInvoiceRevenue)} · accrual @ ${darkPct}%`}
+          delay={0}
+        />
+        <KpiCard label="Lifetime ROI paid" value={formatINRCompact(lifetimePaid)} icon={Wallet} hint={`${payouts.filter((p) => p.status === "paid").length} payouts · accrued ${formatINRCompact(totalAccruedIncentive)}`} delay={0.05} />
+        <KpiCard label="Pending payouts" value={formatINRCompact(pendingPayout)} icon={Clock} hint={`Scheduled ${formatINRCompact(scheduledPendingPayout)} + accrued ${formatINRCompact(totalAccruedIncentive)}`} delay={0.1} />
         <KpiCard label="Total POS sales" value={formatINRCompact(grossSales)} icon={ShoppingCart} hint={`${completedOrders.length} completed`} delay={0.15} />
       </div>
+
+      {/* A. Sales Summary | B. ROI & Incentive | C. P&L */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        {/* A. Sales Summary */}
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">A · Sales summary</h3>
+          </div>
+          <p className="mb-3 text-[11px] text-muted-foreground">
+            From {invoicePartition.included.length} active invoice{invoicePartition.included.length === 1 ? "" : "s"}
+          </p>
+          <div className="space-y-2 text-sm">
+            <Row label="Total invoice value" value={formatINR(invoiceRevenue)} />
+            <Row label="Taxable amount" value={formatINR(invoiceTaxable)} />
+            <Row label="GST amount" value={formatINR(invoiceGst)} />
+            <Row label="Paid" value={formatINR(invoicePaid)} />
+            <Row label="Outstanding" value={formatINR(invoiceOutstanding)} accent />
+          </div>
+        </div>
+
+        {/* B. ROI & Incentive Summary */}
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">B · ROI & incentive</h3>
+          </div>
+          <p className="mb-3 text-[11px] text-muted-foreground">Accruals on taxable amount</p>
+          <div className="space-y-2 text-sm">
+            <Row label={`Min monthly ROI (${baseRoiPct}%)`} value={formatINR(baseMonthlyRoiAmount)} />
+            <Row label={`Nail Emporium (${emporiumPct}%)`} value={formatINR(accruedEmporium)} />
+            <Row label={`Academy (${academyPct}%)`} value={formatINR(accruedAcademy)} />
+            <Row label={`Dark Store (${darkPct}%)`} value={formatINR(accruedDark)} />
+            <div className="my-1 border-t border-border/40" />
+            <Row label="Total pending payout" value={formatINR(pendingPayout)} accent />
+            <Row label="Lifetime ROI paid" value={formatINR(lifetimePaid)} />
+          </div>
+        </div>
+
+        {/* C. P&L / Earnings */}
+        <div className="rounded-2xl glass p-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Wallet className="h-4 w-4 text-gold" />
+            <h3 className="font-display text-lg">C · P&amp;L (lifetime)</h3>
+          </div>
+          <p className="mb-3 text-[11px] text-muted-foreground">Franchise earnings, not turnover</p>
+          <div className="space-y-2 text-sm">
+            <Row label="Invoice turnover" value={formatINR(invoiceRevenue)} />
+            <Row label="Franchise earnings accrued" value={formatINR(totalAccruedIncentive)} />
+            <Row label="− Expenses" value={formatINR(totalExpenses)} />
+            <div className="my-1 border-t border-border/40" />
+            <Row
+              label="Net franchise earnings"
+              value={formatINR(totalAccruedIncentive - totalExpenses)}
+              accent
+            />
+          </div>
+        </div>
+      </div>
+
 
       {/* P&L block */}
       <div className="grid gap-4 md:grid-cols-2">
