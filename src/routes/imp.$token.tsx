@@ -206,10 +206,11 @@ function StateFranchiseView({ data }: { data: { roi: any[]; incentives: any[]; t
   );
 }
 
-function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; payments: any[] }; extra: any; entityType: string }) {
+function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; excluded_invoices?: any[]; payments: any[] }; extra: any; entityType: string }) {
   const totalBilled = data.invoices.reduce((s, i) => s + Number(i.grand_total), 0);
   const totalPaid = data.invoices.reduce((s, i) => s + Number(i.amount_paid), 0);
   const outstanding = totalBilled - totalPaid;
+  const excluded = data.excluded_invoices ?? [];
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -218,6 +219,9 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; pa
         <Kpi label="Outstanding" value={formatINR(outstanding)} />
         <Kpi label="Investment" value={formatINR(Number(extra?.investment_amount ?? 0))} />
       </div>
+      <p className="text-xs text-muted-foreground">
+        Revenue rule: final outward tax invoices only (b2b_tax / b2c / debit_note, status issued/paid/partial, non-intercompany). Proformas, drafts, revised and intercompany flows are excluded to avoid double-counting.
+      </p>
       {entityType === "city_franchise" && (
         <Card>
           <CardHeader><CardTitle className="text-base">ROI Configuration</CardTitle></CardHeader>
@@ -230,7 +234,7 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; pa
         </Card>
       )}
       <Card>
-        <CardHeader><CardTitle className="text-base">Invoices</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Invoices counted as revenue ({data.invoices.length})</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto p-0">
           <Table>
             <TableHeader><TableRow><TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>Date</TableHead><TableHead>Total</TableHead><TableHead>Paid</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
@@ -245,11 +249,32 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; pa
                   <TableCell><Badge variant={i.payment_status === "paid" ? "default" : "secondary"}>{i.payment_status}</Badge></TableCell>
                 </TableRow>
               ))}
-              {data.invoices.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No invoices</TableCell></TableRow>}
+              {data.invoices.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No revenue-bearing invoices</TableCell></TableRow>}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+      {excluded.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Excluded from revenue ({excluded.length})</CardTitle></CardHeader>
+          <CardContent className="overflow-x-auto p-0">
+            <Table>
+              <TableHeader><TableRow><TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>Status</TableHead><TableHead>Total</TableHead><TableHead>Reason</TableHead></TableRow></TableHeader>
+              <TableBody>
+                {excluded.map((i) => (
+                  <TableRow key={i.id}>
+                    <TableCell className="font-mono text-xs">{i.invoice_number ?? "DRAFT"}</TableCell>
+                    <TableCell><Badge variant="outline" className="text-xs">{i.doc_type}</Badge></TableCell>
+                    <TableCell><Badge variant="secondary" className="text-xs">{i.status}</Badge></TableCell>
+                    <TableCell>{formatINR(i.grand_total)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{i.exclusion_reason}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

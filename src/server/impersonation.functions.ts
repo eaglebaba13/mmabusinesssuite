@@ -21,6 +21,28 @@ const ENTITY_TYPES = [
   "department",
 ] as const;
 
+// Single source of truth for what counts as franchise external revenue.
+// Both the impersonation entity dashboard and the franchisee self-dashboard
+// MUST use this rule, otherwise the two views disagree on the same data.
+export const REVENUE_DOC_TYPES = new Set(["b2b_tax", "b2c", "debit_note"]);
+export const REVENUE_STATUSES = new Set(["issued", "paid", "partial"]);
+
+export function partitionRevenueInvoices<T extends {
+  doc_type: string; status: string | null; is_intercompany: boolean | null;
+}>(rows: T[]): { included: T[]; excluded: Array<T & { exclusion_reason: string }> } {
+  const included: T[] = [];
+  const excluded: Array<T & { exclusion_reason: string }> = [];
+  for (const r of rows) {
+    let reason: string | null = null;
+    if (r.is_intercompany === true) reason = "intercompany";
+    else if (!REVENUE_DOC_TYPES.has(r.doc_type)) reason = `non_revenue_doc:${r.doc_type}`;
+    else if (!r.status || !REVENUE_STATUSES.has(r.status)) reason = `excluded_status:${r.status ?? "null"}`;
+    if (reason) excluded.push({ ...r, exclusion_reason: reason });
+    else included.push(r);
+  }
+  return { included, excluded };
+}
+
 async function assertAdmin(userId: string) {
   const { data } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", userId);
   const ok = (data ?? []).some((r) => r.role === "super_admin" || r.role === "founder");
@@ -231,22 +253,22 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
       out.targets = targets.data ?? [];
       out.cities = cities.data ?? [];
     } else if (sess.entity_type === "city_franchise" || sess.entity_type === "academy" || sess.entity_type === "dark_store") {
-      // Match invoices either billed TO this entity OR mapped TO this franchisee
-      // via the revenue-attribution franchisee_id. Exclude superseded revisions
-      // and intercompany flows so franchise revenue isn't double-counted.
-      const [invoices, payments] = await Promise.all([
+      // Pull every mapped invoice (billed TO this entity OR attributed via
+      // franchisee_id), then partition into revenue-bearing vs excluded so
+      // both the entity dashboard and the franchisee self-dashboard apply
+      // the SAME rule: only final outward tax invoices count as revenue.
+      const [allInvoices, payments] = await Promise.all([
         supabaseAdmin
           .from("invoices")
-          .select("id,invoice_number,doc_type,grand_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany")
+          .select("id,invoice_number,doc_type,grand_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id")
           .or(`and(bill_to_entity_type.eq.${sess.entity_type},bill_to_entity_id.eq.${sess.entity_id}),franchisee_id.eq.${sess.entity_id}`)
-          .neq("status", "revised")
-          .neq("status", "cancelled")
-          .or("is_intercompany.is.null,is_intercompany.eq.false")
           .order("invoice_date", { ascending: false })
-          .limit(50),
+          .limit(200),
         supabaseAdmin.from("payments").select("*").eq("counterparty_entity_id", sess.entity_id).order("payment_date", { ascending: false }).limit(50),
       ]);
-      out.invoices = invoices.data ?? [];
+      const partitioned = partitionRevenueInvoices(allInvoices.data ?? []);
+      out.invoices = partitioned.included;
+      out.excluded_invoices = partitioned.excluded;
       out.payments = payments.data ?? [];
     } else if (sess.entity_type === "salon_branch") {
       const { data: branch } = await supabaseAdmin.from("salon_branches").select("*").eq("id", sess.entity_id).maybeSingle();
