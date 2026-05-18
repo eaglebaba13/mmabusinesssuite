@@ -161,6 +161,7 @@ function InvoicesPage() {
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Badge variant={inv.status === "issued" ? "default" : inv.status === "cancelled" ? "destructive" : "secondary"} className="w-fit text-xs">{inv.status}</Badge>
+                      {inv.archived_at && <Badge variant="outline" className="w-fit text-[10px]">archived</Badge>}
                       {inv.is_demo && <Badge variant="outline" className="w-fit text-[10px]">demo</Badge>}
                     </div>
                   </TableCell>
