@@ -322,11 +322,11 @@ function RevenueModelPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ item, target, totalRevenue, mmaProfit, franchiseeROI, statePartner, grossProfit }) => {
+              {rows.map(({ item, target, totalRevenue, mmaProfit, franchiseeROI, statePartner, grossProfit }, idx) => {
                 const overridden = draft[item.id] !== undefined;
                 return (
                   <tr key={item.id} className="border-t border-border/40 hover:bg-card/30">
-                    <td className="px-3 py-3 text-muted-foreground">{item.sort_order}</td>
+                    <td className="px-3 py-3 text-muted-foreground">{idx + 1}</td>
                     <td className="px-3 py-3">
                       <Badge variant="outline" className="border-gold/30 text-xs">{item.category}</Badge>
                     </td>
