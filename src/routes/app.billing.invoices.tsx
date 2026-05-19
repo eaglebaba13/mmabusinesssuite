@@ -51,6 +51,8 @@ function computeFormTotals(items: Item[]) {
 
 function InvoicesPage() {
   const qc = useQueryClient();
+  const { hasRole } = useAuth();
+  const isSuperAdmin = hasRole("super_admin");
   const [docFilter, setDocFilter] = React.useState<string>("all");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
   const [companyFilter, setCompanyFilter] = React.useState<string>("all");
