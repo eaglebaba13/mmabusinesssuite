@@ -526,3 +526,94 @@ function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUp
     </div>
   );
 }
+
+const DELETE_REASONS = [
+  { value: "duplicate", label: "Duplicate invoice" },
+  { value: "wrong_party", label: "Wrong party billed" },
+  { value: "wrong_amount", label: "Wrong amount" },
+  { value: "test_cleanup", label: "Test data cleanup" },
+  { value: "created_by_mistake", label: "Created by mistake" },
+  { value: "other", label: "Other" },
+] as const;
+
+function DeleteInvoiceDialog({ invoice, onDeleted }: { invoice: any; onDeleted: () => void }) {
+  const [open, setOpen] = React.useState(false);
+  const [reasonCode, setReasonCode] = React.useState<string>("");
+  const [detail, setDetail] = React.useState("");
+  const [busy, setBusy] = React.useState(false);
+  const deleteFn = useServerFn(deleteInvoice);
+
+  const reset = () => { setReasonCode(""); setDetail(""); setBusy(false); };
+  const requiresDetail = reasonCode === "other";
+  const canSubmit = !!reasonCode && detail.trim().length > 0 && (!requiresDetail || detail.trim().length >= 3);
+
+  const submit = async () => {
+    if (!canSubmit) return;
+    setBusy(true);
+    try {
+      await deleteFn({ data: { id: invoice.id, reason_code: reasonCode as any, reason_detail: detail.trim() } });
+      toast.success("Invoice deleted (archived)");
+      setOpen(false);
+      reset();
+      onDeleted();
+    } catch (e) {
+      toast.error((e as Error).message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="ghost" title="Delete (Super Admin)" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-4 w-4" /> Delete Invoice
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 text-sm">
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs">
+            This invoice will be archived and removed from active revenue, receivables, payouts, and reports. Audit history is preserved.
+          </div>
+          <div className="grid grid-cols-2 gap-2 rounded-md border border-border bg-muted/20 p-3 text-xs">
+            <div><span className="text-muted-foreground">Number:</span> <strong className="font-mono">{invoice.invoice_number ?? "DRAFT"}</strong></div>
+            <div><span className="text-muted-foreground">Type:</span> <strong>{invoice.doc_type}</strong></div>
+            <div className="col-span-2"><span className="text-muted-foreground">Bill To:</span> <strong>{invoice.bill_to_name ?? "—"}</strong></div>
+            <div><span className="text-muted-foreground">Amount:</span> <strong>{formatINR(invoice.grand_total)}</strong></div>
+            <div><span className="text-muted-foreground">Status:</span> <strong>{invoice.status}</strong></div>
+          </div>
+          <div>
+            <Label className="text-xs">Reason for deletion <span className="text-destructive">*</span></Label>
+            <Select value={reasonCode} onValueChange={setReasonCode}>
+              <SelectTrigger><SelectValue placeholder="Select a reason" /></SelectTrigger>
+              <SelectContent>
+                {DELETE_REASONS.map((r) => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs">
+              {requiresDetail ? "Explanation" : "Notes"} <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              value={detail}
+              onChange={(e) => setDetail(e.target.value)}
+              placeholder={requiresDetail ? "Please explain the reason in detail…" : "Add a short note for the audit log"}
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>Keep Invoice</Button>
+          <Button variant="destructive" onClick={submit} disabled={!canSubmit || busy}>
+            {busy ? "Deleting…" : "Delete Invoice"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
