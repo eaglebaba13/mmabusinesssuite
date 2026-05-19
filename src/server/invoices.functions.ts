@@ -344,6 +344,63 @@ export const cancelInvoice = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const DeleteReasonCodes = ["duplicate", "wrong_party", "wrong_amount", "test_cleanup", "created_by_mistake", "other"] as const;
+const DeleteInput = z.object({
+  id: z.string().uuid(),
+  reason_code: z.enum(DeleteReasonCodes),
+  reason_detail: z.string().trim().min(1).max(1000),
+});
+
+export const deleteInvoice = createServerFn({ method: "POST" })
+  .middleware([forwardAuth, requireSupabaseAuth])
+  .inputValidator((i: unknown) => DeleteInput.parse(i))
+  .handler(async ({ data, context }) => {
+    // Strict role gate — Super Admin only.
+    const { data: rolesRows } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
+    const roles = (rolesRows ?? []).map((r) => r.role);
+    if (!roles.includes("super_admin")) {
+      throw new Error("Only Super Admin can delete invoices.");
+    }
+    if (data.reason_code === "other" && data.reason_detail.trim().length < 3) {
+      throw new Error("Please provide an explanation when selecting Other.");
+    }
+    const { data: inv } = await supabaseAdmin
+      .from("invoices")
+      .select("id,invoice_number,doc_type,status,grand_total,bill_to_name,company_id,archived_at")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (!inv) throw new Error("Invoice not found");
+    if (inv.archived_at) throw new Error("Invoice is already deleted/archived.");
+
+    const fullReason = `[${data.reason_code}] ${data.reason_detail}`;
+    const { error } = await supabaseAdmin
+      .from("invoices")
+      .update({
+        archived_at: new Date().toISOString(),
+        archived_reason: fullReason,
+        archived_by: context.userId,
+      } as any)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+
+    await writeAudit(context.userId, "invoice.delete", data.id, {
+      soft_delete: true,
+      invoice_number: inv.invoice_number,
+      doc_type: inv.doc_type,
+      previous_status: inv.status,
+      grand_total: inv.grand_total,
+      bill_to_name: inv.bill_to_name,
+      reason_code: data.reason_code,
+      reason_detail: data.reason_detail,
+      role: "super_admin",
+      removed_from: ["revenue", "receivables", "payouts", "active_reports"],
+    });
+    return { ok: true };
+  });
+
 export const reviseInvoice = createServerFn({ method: "POST" })
   .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => z.object({ id: z.string().uuid() }).parse(i))
