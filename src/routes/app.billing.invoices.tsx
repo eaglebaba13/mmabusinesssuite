@@ -192,6 +192,9 @@ function InvoicesPage() {
                           }}><Ban className="h-3.5 w-3.5" /></Button>
                         </>
                       )}
+                      {isSuperAdmin && !inv.archived_at && (
+                        <DeleteInvoiceDialog invoice={inv} onDeleted={() => qc.invalidateQueries({ queryKey: ["invoices"] })} />
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
