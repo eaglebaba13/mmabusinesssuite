@@ -1225,6 +1225,7 @@ export type Database = {
         Row: {
           amount_paid: number
           archived_at: string | null
+          archived_by: string | null
           archived_reason: string | null
           bill_to_address: Json | null
           bill_to_company_id: string | null
@@ -1268,6 +1269,7 @@ export type Database = {
         Insert: {
           amount_paid?: number
           archived_at?: string | null
+          archived_by?: string | null
           archived_reason?: string | null
           bill_to_address?: Json | null
           bill_to_company_id?: string | null
@@ -1313,6 +1315,7 @@ export type Database = {
         Update: {
           amount_paid?: number
           archived_at?: string | null
+          archived_by?: string | null
           archived_reason?: string | null
           bill_to_address?: Json | null
           bill_to_company_id?: string | null
