@@ -12,10 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { issueInvoice, cancelInvoice, reviseInvoice, createInvoice, updateInvoice } from "@/server/invoices.functions";
+import { issueInvoice, cancelInvoice, reviseInvoice, createInvoice, updateInvoice, deleteInvoice } from "@/server/invoices.functions";
 import { formatINR } from "@/lib/format";
 import { toast } from "sonner";
-import { Plus, FileText, Ban, RefreshCw, CheckCircle2, Pencil, X } from "lucide-react";
+import { Plus, FileText, Ban, RefreshCw, CheckCircle2, Pencil, X, Trash2, AlertTriangle } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/app/billing/invoices")({
   head: () => ({ meta: [{ title: "Invoices — MMA Suite" }] }),
