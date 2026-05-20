@@ -232,6 +232,59 @@ function PosTerminal() {
     <div className="grid gap-4 lg:grid-cols-[1fr_440px]">
       {/* Product picker */}
       <div className="space-y-3">
+        {/* Attribution context banner */}
+        <div className="rounded-2xl glass p-4">
+          {noMapping ? (
+            <div className="flex items-start gap-3 rounded-lg border border-rose-400/40 bg-rose-500/5 p-3 text-sm">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+              <div>
+                <p className="font-medium text-rose-300">
+                  No franchisee / outlet mapping found for this user.
+                </p>
+                <p className="mt-0.5 text-xs text-rose-300/80">
+                  Please assign a franchisee + warehouse mapping before billing. Billing is blocked
+                  until attribution context is resolved.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Billing Under
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 font-medium text-gold">
+                  <Store className="h-3.5 w-3.5" />
+                  {activeWarehouse?.franchisees?.full_name ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Outlet
+                </p>
+                <p className="mt-0.5 font-medium">
+                  {activeWarehouse?.name ?? "—"}
+                  {activeWarehouse?.city ? (
+                    <span className="ml-1 text-xs text-muted-foreground">· {activeWarehouse.city}</span>
+                  ) : null}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Billing By
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 font-medium">
+                  <UserIcon className="h-3.5 w-3.5 text-gold" />
+                  {profile.data?.full_name ?? user?.email ?? "—"}
+                  <Badge variant="outline" className="ml-1 border-border/50 text-[10px] capitalize">
+                    {primaryRole.replace(/_/g, " ")}
+                  </Badge>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2 rounded-2xl glass p-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -243,24 +296,21 @@ function PosTerminal() {
               autoFocus
             />
           </div>
-          <Select value={warehouseId} onValueChange={setWarehouseId}>
-            <SelectTrigger className="sm:w-[200px]">
-              <SelectValue placeholder="Warehouse" />
+          <Select value={warehouseId} onValueChange={setWarehouseId} disabled={isFranchisee && !isAdmin && (warehouses.data ?? []).length <= 1}>
+            <SelectTrigger className="sm:w-[220px]">
+              <SelectValue placeholder="Select outlet / warehouse" />
             </SelectTrigger>
             <SelectContent>
-              {(warehouses.data ?? []).map((w) => (
+              {(warehouses.data ?? []).map((w: any) => (
                 <SelectItem key={w.id} value={w.id}>
                   {w.name}
+                  {w.franchisees?.full_name ? ` — ${w.franchisees.full_name}` : ""}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        {activeWarehouse?.franchisees?.full_name && (
-          <div className="text-xs text-muted-foreground">
-            Sales attributed to <span className="font-medium text-gold">{activeWarehouse.franchisees.full_name}</span>
-          </div>
-        )}
+
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
           {products.isLoading ? (
