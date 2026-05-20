@@ -238,18 +238,26 @@ function OrdersPage() {
                 params={{ orderId: o.id }}
                 className="grid grid-cols-12 items-center gap-2 p-3 text-sm transition-colors hover:bg-foreground/5"
               >
-                <div className="col-span-3">
+                <div className="col-span-2">
                   <p className="font-mono font-medium text-gold">{o.invoice_number ?? "Draft"}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(o.created_at).toLocaleString("en-IN")}
                   </p>
                 </div>
-                <div className="col-span-3">
-                  <p className="font-medium">{o.customer_name ?? "Walk-in"}</p>
-                  <p className="text-xs text-muted-foreground">{o.customer_phone ?? "—"}</p>
+                <div className="col-span-2">
+                  <p className="truncate font-medium">{o.warehouses?.franchisees?.full_name ?? "—"}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {o.warehouses?.name ?? "—"}
+                    {o.warehouses?.city ? ` · ${o.warehouses.city}` : ""}
+                  </p>
                 </div>
-                <div className="col-span-2 text-xs text-muted-foreground">
-                  {o.warehouses?.name ?? "—"}
+                <div className="col-span-2">
+                  <p className="truncate font-medium">{o.customer_name ?? "Walk-in"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{o.customer_phone ?? "—"}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="truncate text-xs">{operatorName(o.served_by)}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Created by</p>
                 </div>
                 <div className="col-span-2 text-right font-semibold text-gold">
                   {formatINR(Number(o.grand_total))}
