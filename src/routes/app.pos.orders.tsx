@@ -37,23 +37,63 @@ function OrdersPage() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
   const [payFilter, setPayFilter] = React.useState<string>("all");
+  const [franchiseeFilter, setFranchiseeFilter] = React.useState<string>("all");
+  const [createdByFilter, setCreatedByFilter] = React.useState<string>("all");
 
   const orders = useQuery({
     queryKey: ["pos-orders"],
     queryFn: async () => {
       const { data } = await supabase
         .from("sales_orders")
-        .select("*, warehouses(name)")
+        .select("*, warehouses(name, city, franchisees(id, full_name))")
         .order("created_at", { ascending: false })
         .limit(500);
       return data ?? [];
     },
   });
 
+  // Resolve served_by user ids → display names in one batch
+  const servedByIds = React.useMemo(() => {
+    const ids = new Set<string>();
+    (orders.data ?? []).forEach((o: any) => o.served_by && ids.add(o.served_by));
+    return Array.from(ids);
+  }, [orders.data]);
+
+  const operators = useQuery({
+    queryKey: ["pos-operators", servedByIds.join(",")],
+    enabled: servedByIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", servedByIds);
+      const map = new Map<string, { full_name: string | null; email: string | null }>();
+      (data ?? []).forEach((p: any) => map.set(p.id, { full_name: p.full_name, email: p.email }));
+      return map;
+    },
+  });
+
+  const operatorName = (id: string | null) => {
+    if (!id) return "—";
+    const p = operators.data?.get(id);
+    return p?.full_name ?? p?.email ?? id.slice(0, 8);
+  };
+
+  const franchiseeOptions = React.useMemo(() => {
+    const map = new Map<string, string>();
+    (orders.data ?? []).forEach((o: any) => {
+      const f = o.warehouses?.franchisees;
+      if (f?.id) map.set(f.id, f.full_name ?? "Unnamed");
+    });
+    return Array.from(map.entries());
+  }, [orders.data]);
+
   const filtered = (orders.data ?? []).filter((o: any) => {
     if (!inDateRange(o.created_at, from, to)) return false;
     if (statusFilter !== "all" && o.status !== statusFilter) return false;
     if (payFilter !== "all" && o.payment_status !== payFilter) return false;
+    if (franchiseeFilter !== "all" && o.warehouses?.franchisees?.id !== franchiseeFilter) return false;
+    if (createdByFilter !== "all" && o.served_by !== createdByFilter) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
@@ -117,7 +157,26 @@ function OrdersPage() {
             <SelectItem value="refunded">Refunded</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={franchiseeFilter} onValueChange={setFranchiseeFilter}>
+          <SelectTrigger className="sm:w-[180px]"><SelectValue placeholder="Franchisee" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All franchisees</SelectItem>
+            {franchiseeOptions.map(([id, name]) => (
+              <SelectItem key={id} value={id}>{name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={createdByFilter} onValueChange={setCreatedByFilter}>
+          <SelectTrigger className="sm:w-[180px]"><SelectValue placeholder="Created by" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All operators</SelectItem>
+            {servedByIds.map((id) => (
+              <SelectItem key={id} value={id}>{operatorName(id)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
 
       <ExportBar
         from=""
@@ -130,9 +189,12 @@ function OrdersPage() {
           exportToCSV(`pos-orders-${from}-to-${to}`, filtered, [
             { header: "Invoice", accessor: (r: any) => r.invoice_number ?? "—" },
             { header: "Date", accessor: (r: any) => new Date(r.created_at).toLocaleString("en-IN") },
+            { header: "Franchisee", accessor: (r: any) => r.warehouses?.franchisees?.full_name ?? "" },
+            { header: "Outlet", accessor: (r: any) => r.warehouses?.name ?? "" },
+            { header: "City", accessor: (r: any) => r.warehouses?.city ?? "" },
+            { header: "Created By", accessor: (r: any) => operatorName(r.served_by) },
             { header: "Customer", accessor: (r: any) => r.customer_name ?? "Walk-in" },
             { header: "Phone", accessor: (r: any) => r.customer_phone ?? "" },
-            { header: "Warehouse", accessor: (r: any) => r.warehouses?.name ?? "" },
             { header: "Subtotal", accessor: (r: any) => Number(r.subtotal) },
             { header: "GST", accessor: (r: any) => Number(r.gst_total) },
             { header: "Total", accessor: (r: any) => Number(r.grand_total) },
@@ -176,18 +238,26 @@ function OrdersPage() {
                 params={{ orderId: o.id }}
                 className="grid grid-cols-12 items-center gap-2 p-3 text-sm transition-colors hover:bg-foreground/5"
               >
-                <div className="col-span-3">
+                <div className="col-span-2">
                   <p className="font-mono font-medium text-gold">{o.invoice_number ?? "Draft"}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(o.created_at).toLocaleString("en-IN")}
                   </p>
                 </div>
-                <div className="col-span-3">
-                  <p className="font-medium">{o.customer_name ?? "Walk-in"}</p>
-                  <p className="text-xs text-muted-foreground">{o.customer_phone ?? "—"}</p>
+                <div className="col-span-2">
+                  <p className="truncate font-medium">{o.warehouses?.franchisees?.full_name ?? "—"}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {o.warehouses?.name ?? "—"}
+                    {o.warehouses?.city ? ` · ${o.warehouses.city}` : ""}
+                  </p>
                 </div>
-                <div className="col-span-2 text-xs text-muted-foreground">
-                  {o.warehouses?.name ?? "—"}
+                <div className="col-span-2">
+                  <p className="truncate font-medium">{o.customer_name ?? "Walk-in"}</p>
+                  <p className="truncate text-xs text-muted-foreground">{o.customer_phone ?? "—"}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="truncate text-xs">{operatorName(o.served_by)}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Created by</p>
                 </div>
                 <div className="col-span-2 text-right font-semibold text-gold">
                   {formatINR(Number(o.grand_total))}

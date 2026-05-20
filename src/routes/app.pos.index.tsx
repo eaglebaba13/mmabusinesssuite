@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Search, Plus, Minus, Trash2, Receipt, X } from "lucide-react";
+import { Search, Plus, Minus, Trash2, Receipt, X, Store, User as UserIcon, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { formatINR } from "@/lib/format";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/app/pos/")({
   component: PosTerminal,
@@ -30,6 +31,11 @@ interface CartItem {
 function PosTerminal() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { user, roles, hasAnyRole } = useAuth();
+  const isFranchisee = hasAnyRole(["franchisee", "state_franchisee"]);
+  const isAdmin = hasAnyRole(["super_admin", "founder"]);
+  const primaryRole = roles[0] ?? "user";
+
   const [search, setSearch] = React.useState("");
   const [warehouseId, setWarehouseId] = React.useState<string>("");
   const [cart, setCart] = React.useState<CartItem[]>([]);
@@ -42,19 +48,41 @@ function PosTerminal() {
   const [paymentMethod, setPaymentMethod] = React.useState<string>("cash");
   const [paymentReference, setPaymentReference] = React.useState("");
 
-  const warehouses = useQuery({
-    queryKey: ["pos-warehouses"],
+  // Current operator profile
+  const profile = useQuery({
+    queryKey: ["pos-profile", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  // Warehouses scoped by role. Franchisees only see warehouses mapped to their franchisee record.
+  const warehouses = useQuery({
+    queryKey: ["pos-warehouses", user?.id, isFranchisee],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      let q = supabase
         .from("warehouses")
-        .select("id, name, code, franchisee_id, franchisees(full_name)")
+        .select("id, name, code, city, franchisee_id, franchisees(id, full_name, user_id)")
         .eq("active", true)
         .order("name");
-      return data ?? [];
+      const { data } = await q;
+      const all = data ?? [];
+      if (isFranchisee && !isAdmin) {
+        return all.filter((w: any) => w.franchisees?.user_id === user!.id);
+      }
+      return all;
     },
   });
 
   const activeWarehouse = (warehouses.data ?? []).find((w: any) => w.id === warehouseId) as any;
+  const noMapping = !warehouses.isLoading && (warehouses.data ?? []).length === 0;
 
   React.useEffect(() => {
     if (!warehouseId && warehouses.data && warehouses.data.length > 0) {
@@ -204,6 +232,59 @@ function PosTerminal() {
     <div className="grid gap-4 lg:grid-cols-[1fr_440px]">
       {/* Product picker */}
       <div className="space-y-3">
+        {/* Attribution context banner */}
+        <div className="rounded-2xl glass p-4">
+          {noMapping ? (
+            <div className="flex items-start gap-3 rounded-lg border border-rose-400/40 bg-rose-500/5 p-3 text-sm">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+              <div>
+                <p className="font-medium text-rose-300">
+                  No franchisee / outlet mapping found for this user.
+                </p>
+                <p className="mt-0.5 text-xs text-rose-300/80">
+                  Please assign a franchisee + warehouse mapping before billing. Billing is blocked
+                  until attribution context is resolved.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Billing Under
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 font-medium text-gold">
+                  <Store className="h-3.5 w-3.5" />
+                  {activeWarehouse?.franchisees?.full_name ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Outlet
+                </p>
+                <p className="mt-0.5 font-medium">
+                  {activeWarehouse?.name ?? "—"}
+                  {activeWarehouse?.city ? (
+                    <span className="ml-1 text-xs text-muted-foreground">· {activeWarehouse.city}</span>
+                  ) : null}
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                  Billing By
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 font-medium">
+                  <UserIcon className="h-3.5 w-3.5 text-gold" />
+                  {profile.data?.full_name ?? user?.email ?? "—"}
+                  <Badge variant="outline" className="ml-1 border-border/50 text-[10px] capitalize">
+                    {primaryRole.replace(/_/g, " ")}
+                  </Badge>
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="flex flex-col gap-2 rounded-2xl glass p-3 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -215,24 +296,21 @@ function PosTerminal() {
               autoFocus
             />
           </div>
-          <Select value={warehouseId} onValueChange={setWarehouseId}>
-            <SelectTrigger className="sm:w-[200px]">
-              <SelectValue placeholder="Warehouse" />
+          <Select value={warehouseId} onValueChange={setWarehouseId} disabled={isFranchisee && !isAdmin && (warehouses.data ?? []).length <= 1}>
+            <SelectTrigger className="sm:w-[220px]">
+              <SelectValue placeholder="Select outlet / warehouse" />
             </SelectTrigger>
             <SelectContent>
-              {(warehouses.data ?? []).map((w) => (
+              {(warehouses.data ?? []).map((w: any) => (
                 <SelectItem key={w.id} value={w.id}>
                   {w.name}
+                  {w.franchisees?.full_name ? ` — ${w.franchisees.full_name}` : ""}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-        {activeWarehouse?.franchisees?.full_name && (
-          <div className="text-xs text-muted-foreground">
-            Sales attributed to <span className="font-medium text-gold">{activeWarehouse.franchisees.full_name}</span>
-          </div>
-        )}
+
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
           {products.isLoading ? (
@@ -379,7 +457,7 @@ function PosTerminal() {
 
         <Button
           onClick={() => checkout.mutate()}
-          disabled={cart.length === 0 || checkout.isPending}
+          disabled={cart.length === 0 || checkout.isPending || noMapping || !warehouseId}
           className="mt-3 h-12 w-full bg-gradient-gold text-base text-background"
         >
           <Receipt className="mr-2 h-5 w-5" />
