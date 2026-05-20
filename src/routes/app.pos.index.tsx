@@ -2,7 +2,7 @@ import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Search, Plus, Minus, Trash2, Receipt, X } from "lucide-react";
+import { Search, Plus, Minus, Trash2, Receipt, X, Store, User as UserIcon, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { formatINR } from "@/lib/format";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/app/pos/")({
   component: PosTerminal,
