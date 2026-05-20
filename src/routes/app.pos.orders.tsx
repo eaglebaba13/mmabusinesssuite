@@ -157,7 +157,26 @@ function OrdersPage() {
             <SelectItem value="refunded">Refunded</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={franchiseeFilter} onValueChange={setFranchiseeFilter}>
+          <SelectTrigger className="sm:w-[180px]"><SelectValue placeholder="Franchisee" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All franchisees</SelectItem>
+            {franchiseeOptions.map(([id, name]) => (
+              <SelectItem key={id} value={id}>{name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={createdByFilter} onValueChange={setCreatedByFilter}>
+          <SelectTrigger className="sm:w-[180px]"><SelectValue placeholder="Created by" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All operators</SelectItem>
+            {servedByIds.map((id) => (
+              <SelectItem key={id} value={id}>{operatorName(id)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+
 
       <ExportBar
         from=""
