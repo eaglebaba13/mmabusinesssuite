@@ -31,6 +31,11 @@ interface CartItem {
 function PosTerminal() {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const { user, roles, hasAnyRole } = useAuth();
+  const isFranchisee = hasAnyRole(["franchisee", "state_franchisee"]);
+  const isAdmin = hasAnyRole(["super_admin", "founder"]);
+  const primaryRole = roles[0] ?? "user";
+
   const [search, setSearch] = React.useState("");
   const [warehouseId, setWarehouseId] = React.useState<string>("");
   const [cart, setCart] = React.useState<CartItem[]>([]);
@@ -43,19 +48,41 @@ function PosTerminal() {
   const [paymentMethod, setPaymentMethod] = React.useState<string>("cash");
   const [paymentReference, setPaymentReference] = React.useState("");
 
-  const warehouses = useQuery({
-    queryKey: ["pos-warehouses"],
+  // Current operator profile
+  const profile = useQuery({
+    queryKey: ["pos-profile", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
       const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  // Warehouses scoped by role. Franchisees only see warehouses mapped to their franchisee record.
+  const warehouses = useQuery({
+    queryKey: ["pos-warehouses", user?.id, isFranchisee],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      let q = supabase
         .from("warehouses")
-        .select("id, name, code, franchisee_id, franchisees(full_name)")
+        .select("id, name, code, city, franchisee_id, franchisees(id, full_name, user_id)")
         .eq("active", true)
         .order("name");
-      return data ?? [];
+      const { data } = await q;
+      const all = data ?? [];
+      if (isFranchisee && !isAdmin) {
+        return all.filter((w: any) => w.franchisees?.user_id === user!.id);
+      }
+      return all;
     },
   });
 
   const activeWarehouse = (warehouses.data ?? []).find((w: any) => w.id === warehouseId) as any;
+  const noMapping = !warehouses.isLoading && (warehouses.data ?? []).length === 0;
 
   React.useEffect(() => {
     if (!warehouseId && warehouses.data && warehouses.data.length > 0) {
