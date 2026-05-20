@@ -189,9 +189,12 @@ function OrdersPage() {
           exportToCSV(`pos-orders-${from}-to-${to}`, filtered, [
             { header: "Invoice", accessor: (r: any) => r.invoice_number ?? "—" },
             { header: "Date", accessor: (r: any) => new Date(r.created_at).toLocaleString("en-IN") },
+            { header: "Franchisee", accessor: (r: any) => r.warehouses?.franchisees?.full_name ?? "" },
+            { header: "Outlet", accessor: (r: any) => r.warehouses?.name ?? "" },
+            { header: "City", accessor: (r: any) => r.warehouses?.city ?? "" },
+            { header: "Created By", accessor: (r: any) => operatorName(r.served_by) },
             { header: "Customer", accessor: (r: any) => r.customer_name ?? "Walk-in" },
             { header: "Phone", accessor: (r: any) => r.customer_phone ?? "" },
-            { header: "Warehouse", accessor: (r: any) => r.warehouses?.name ?? "" },
             { header: "Subtotal", accessor: (r: any) => Number(r.subtotal) },
             { header: "GST", accessor: (r: any) => Number(r.gst_total) },
             { header: "Total", accessor: (r: any) => Number(r.grand_total) },
