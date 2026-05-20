@@ -37,23 +37,63 @@ function OrdersPage() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
   const [payFilter, setPayFilter] = React.useState<string>("all");
+  const [franchiseeFilter, setFranchiseeFilter] = React.useState<string>("all");
+  const [createdByFilter, setCreatedByFilter] = React.useState<string>("all");
 
   const orders = useQuery({
     queryKey: ["pos-orders"],
     queryFn: async () => {
       const { data } = await supabase
         .from("sales_orders")
-        .select("*, warehouses(name)")
+        .select("*, warehouses(name, city, franchisees(id, full_name))")
         .order("created_at", { ascending: false })
         .limit(500);
       return data ?? [];
     },
   });
 
+  // Resolve served_by user ids → display names in one batch
+  const servedByIds = React.useMemo(() => {
+    const ids = new Set<string>();
+    (orders.data ?? []).forEach((o: any) => o.served_by && ids.add(o.served_by));
+    return Array.from(ids);
+  }, [orders.data]);
+
+  const operators = useQuery({
+    queryKey: ["pos-operators", servedByIds.join(",")],
+    enabled: servedByIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", servedByIds);
+      const map = new Map<string, { full_name: string | null; email: string | null }>();
+      (data ?? []).forEach((p: any) => map.set(p.id, { full_name: p.full_name, email: p.email }));
+      return map;
+    },
+  });
+
+  const operatorName = (id: string | null) => {
+    if (!id) return "—";
+    const p = operators.data?.get(id);
+    return p?.full_name ?? p?.email ?? id.slice(0, 8);
+  };
+
+  const franchiseeOptions = React.useMemo(() => {
+    const map = new Map<string, string>();
+    (orders.data ?? []).forEach((o: any) => {
+      const f = o.warehouses?.franchisees;
+      if (f?.id) map.set(f.id, f.full_name ?? "Unnamed");
+    });
+    return Array.from(map.entries());
+  }, [orders.data]);
+
   const filtered = (orders.data ?? []).filter((o: any) => {
     if (!inDateRange(o.created_at, from, to)) return false;
     if (statusFilter !== "all" && o.status !== statusFilter) return false;
     if (payFilter !== "all" && o.payment_status !== payFilter) return false;
+    if (franchiseeFilter !== "all" && o.warehouses?.franchisees?.id !== franchiseeFilter) return false;
+    if (createdByFilter !== "all" && o.served_by !== createdByFilter) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
