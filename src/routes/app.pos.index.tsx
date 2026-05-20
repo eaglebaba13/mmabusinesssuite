@@ -457,7 +457,7 @@ function PosTerminal() {
 
         <Button
           onClick={() => checkout.mutate()}
-          disabled={cart.length === 0 || checkout.isPending}
+          disabled={cart.length === 0 || checkout.isPending || noMapping || !warehouseId}
           className="mt-3 h-12 w-full bg-gradient-gold text-base text-background"
         >
           <Receipt className="mr-2 h-5 w-5" />
