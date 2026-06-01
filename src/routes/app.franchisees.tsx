@@ -85,10 +85,14 @@ function FranchiseesPage() {
   const [range, setRange] = React.useState(defaultDateRange());
   const createUserFn = useServerFn(createFranchiseeUser);
 
+  const { isTesting } = useMode();
+
   const { data: franchisees = [] } = useQuery({
-    queryKey: ["franchisees"],
+    queryKey: ["franchisees", isTesting],
     queryFn: async () => {
-      const { data, error } = await supabase.from("franchisees").select("*").order("created_at", { ascending: false });
+      let q = supabase.from("franchisees").select("*").order("created_at", { ascending: false });
+      if (!isTesting) q = q.eq("is_demo", false);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
