@@ -19,6 +19,7 @@ import { FranchiseeActions } from "@/components/app/FranchiseeActions";
 import { ImportButton } from "@/components/app/ImportButton";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 import { useAuth } from "@/lib/auth-context";
+import { useMode } from "@/lib/mode-context";
 
 export const Route = createFileRoute("/app/franchisees")({
   head: () => ({ meta: [{ title: "Franchisees — MMA Suite" }] }),
