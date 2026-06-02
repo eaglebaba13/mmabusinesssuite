@@ -8,6 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
@@ -43,6 +47,8 @@ function FranchiseeDetailPage() {
   const resetFn = useServerFn(resetFranchiseePassword);
   const [editOpen, setEditOpen] = React.useState(false);
   const [resetting, setResetting] = React.useState(false);
+  const [incentiveEdit, setIncentiveEdit] = React.useState<{ mode: "new" } | { mode: "edit"; row: any } | null>(null);
+
 
   const { data: f } = useQuery({
     queryKey: ["franchisee", franchiseeId],
@@ -166,7 +172,14 @@ function FranchiseeDetailPage() {
 
         <TabsContent value="ledger" className="space-y-6">
           <div className="rounded-2xl glass p-6">
-            <h3 className="font-display text-xl">ROI ledger</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl">ROI ledger</h3>
+              {canManage && (
+                <Button size="sm" variant="outline" className="border-gold/40" onClick={() => setIncentiveEdit({ mode: "new" })}>
+                  <Pencil className="mr-1 h-3 w-3" /> Post / replace incentive
+                </Button>
+              )}
+            </div>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
@@ -194,12 +207,15 @@ function FranchiseeDetailPage() {
                         <Badge variant="outline" className={p.status === "paid" ? "border-emerald-500/40 text-emerald-400" : "border-amber-500/40 text-amber-400"}>{p.status}</Badge>
                       </td>
                       {canManage && (
-                        <td className="px-2 py-2 text-right">
+                        <td className="px-2 py-2 text-right space-x-1">
                           {p.status === "pending" && (
                             <Button size="sm" variant="ghost" onClick={() => markPaid.mutate(p.id)}>
                               <CheckCircle2 className="mr-1 h-3 w-3" />Mark paid
                             </Button>
                           )}
+                          <Button size="sm" variant="ghost" onClick={() => setIncentiveEdit({ mode: "edit", row: p })}>
+                            <Pencil className="mr-1 h-3 w-3" /> Edit
+                          </Button>
                         </td>
                       )}
                     </tr>
@@ -213,6 +229,191 @@ function FranchiseeDetailPage() {
           </div>
         </TabsContent>
       </Tabs>
+      {canManage && incentiveEdit && (
+        <IncentiveEditDialog
+          franchiseeId={f.id}
+          franchiseeName={f.full_name}
+          existing={incentiveEdit.mode === "edit" ? incentiveEdit.row : null}
+          onClose={() => setIncentiveEdit(null)}
+          onSaved={() => {
+            setIncentiveEdit(null);
+            qc.invalidateQueries({ queryKey: ["franchisee-payouts", franchiseeId] });
+            qc.invalidateQueries({ queryKey: ["fr-dash-payouts", franchiseeId] });
+          }}
+        />
+      )}
+
     </div>
   );
 }
+
+function IncentiveEditDialog({
+  franchiseeId,
+  franchiseeName,
+  existing,
+  onClose,
+  onSaved,
+}: {
+  franchiseeId: string;
+  franchiseeName: string;
+  existing: any | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEdit = !!existing;
+  const [month, setMonth] = React.useState<string>(
+    existing ? String(existing.payout_month).slice(0, 7) : new Date().toISOString().slice(0, 7),
+  );
+  const [amount, setAmount] = React.useState<string>(
+    existing ? String(Number(existing.dark_store_incentive || 0)) : "",
+  );
+  const [remarks, setRemarks] = React.useState<string>("");
+  const [saving, setSaving] = React.useState(false);
+
+  async function handleSave() {
+    const amt = Number(amount);
+    if (!amt || amt < 0) {
+      toast.error("Enter a valid incentive amount");
+      return;
+    }
+    if (!remarks.trim()) {
+      toast.error("Remarks are mandatory for manual incentive changes");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payoutMonth = `${month}-01`;
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id ?? null;
+
+      if (isEdit) {
+        const previous = {
+          base_roi: Number(existing.base_roi),
+          emporium_incentive: Number(existing.emporium_incentive),
+          academy_incentive: Number(existing.academy_incentive),
+          dark_store_incentive: Number(existing.dark_store_incentive),
+          total_amount: Number(existing.total_amount),
+          status: existing.status,
+        };
+        const newTotal = Number(existing.base_roi) + Number(existing.emporium_incentive) + Number(existing.academy_incentive) + amt;
+        const { error } = await supabase
+          .from("roi_payouts")
+          .update({
+            dark_store_incentive: amt,
+            total_amount: newTotal,
+            status: "paid",
+            paid_at: existing.paid_at ?? new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+        if (error) throw error;
+        await supabase.from("audit_logs").insert({
+          action: "manual_incentive_edit",
+          entity: "roi_payouts",
+          entity_id: existing.id,
+          user_id: userId,
+          metadata: {
+            franchisee_id: franchiseeId,
+            franchisee_name: franchiseeName,
+            month: payoutMonth,
+            category: "monthly_incentive",
+            previous,
+            new_amount: amt,
+            remarks,
+          },
+        });
+        toast.success("Incentive updated");
+      } else {
+        // Duplicate check: same franchisee + same month + existing dark_store_incentive > 0
+        const { data: dup } = await supabase
+          .from("roi_payouts")
+          .select("id, dark_store_incentive")
+          .eq("franchisee_id", franchiseeId)
+          .eq("payout_month", payoutMonth);
+        const dupRow = (dup ?? []).find((r) => Number(r.dark_store_incentive) > 0);
+        if (dupRow) {
+          toast.error("An incentive already exists for this month. Use Edit to replace it.");
+          setSaving(false);
+          return;
+        }
+        const { data: inserted, error } = await supabase
+          .from("roi_payouts")
+          .insert({
+            franchisee_id: franchiseeId,
+            payout_month: payoutMonth,
+            base_roi: 0,
+            emporium_incentive: 0,
+            academy_incentive: 0,
+            dark_store_incentive: amt,
+            total_amount: amt,
+            status: "paid",
+            paid_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        await supabase.from("audit_logs").insert({
+          action: "manual_incentive_post",
+          entity: "roi_payouts",
+          entity_id: inserted!.id,
+          user_id: userId,
+          metadata: {
+            franchisee_id: franchiseeId,
+            franchisee_name: franchiseeName,
+            month: payoutMonth,
+            category: "monthly_incentive",
+            amount: amt,
+            remarks,
+          },
+        });
+        toast.success("Incentive posted");
+      }
+      onSaved();
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to save incentive");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit monthly incentive" : "Post monthly incentive"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Franchisee</Label>
+            <p className="text-sm text-muted-foreground">{franchiseeName}</p>
+          </div>
+          <div>
+            <Label htmlFor="inc-month">Payout month</Label>
+            <Input id="inc-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} disabled={isEdit} />
+          </div>
+          <div>
+            <Label htmlFor="inc-amount">Incentive amount (₹)</Label>
+            <Input id="inc-amount" type="number" min="0" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <p className="mt-1 text-[11px] text-muted-foreground">Separate from base ROI. Saved under Dark Store / monthly incentive bucket.</p>
+          </div>
+          <div>
+            <Label htmlFor="inc-remarks">Remarks (required)</Label>
+            <Textarea
+              id="inc-remarks"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              placeholder={isEdit ? "Reason for replacing this incentive…" : "e.g. Manual May incentive update"}
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Saving…" : isEdit ? "Replace" : "Post"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
