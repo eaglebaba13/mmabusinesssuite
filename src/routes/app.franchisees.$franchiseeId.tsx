@@ -246,3 +246,174 @@ function FranchiseeDetailPage() {
     </div>
   );
 }
+
+function IncentiveEditDialog({
+  franchiseeId,
+  franchiseeName,
+  existing,
+  onClose,
+  onSaved,
+}: {
+  franchiseeId: string;
+  franchiseeName: string;
+  existing: any | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEdit = !!existing;
+  const [month, setMonth] = React.useState<string>(
+    existing ? String(existing.payout_month).slice(0, 7) : new Date().toISOString().slice(0, 7),
+  );
+  const [amount, setAmount] = React.useState<string>(
+    existing ? String(Number(existing.dark_store_incentive || 0)) : "",
+  );
+  const [remarks, setRemarks] = React.useState<string>("");
+  const [saving, setSaving] = React.useState(false);
+
+  async function handleSave() {
+    const amt = Number(amount);
+    if (!amt || amt < 0) {
+      toast.error("Enter a valid incentive amount");
+      return;
+    }
+    if (!remarks.trim()) {
+      toast.error("Remarks are mandatory for manual incentive changes");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payoutMonth = `${month}-01`;
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id ?? null;
+
+      if (isEdit) {
+        const previous = {
+          base_roi: Number(existing.base_roi),
+          emporium_incentive: Number(existing.emporium_incentive),
+          academy_incentive: Number(existing.academy_incentive),
+          dark_store_incentive: Number(existing.dark_store_incentive),
+          total_amount: Number(existing.total_amount),
+          status: existing.status,
+        };
+        const newTotal = Number(existing.base_roi) + Number(existing.emporium_incentive) + Number(existing.academy_incentive) + amt;
+        const { error } = await supabase
+          .from("roi_payouts")
+          .update({
+            dark_store_incentive: amt,
+            total_amount: newTotal,
+            status: "paid",
+            paid_at: existing.paid_at ?? new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+        if (error) throw error;
+        await supabase.from("audit_logs").insert({
+          action: "manual_incentive_edit",
+          entity: "roi_payouts",
+          entity_id: existing.id,
+          user_id: userId,
+          metadata: {
+            franchisee_id: franchiseeId,
+            franchisee_name: franchiseeName,
+            month: payoutMonth,
+            category: "monthly_incentive",
+            previous,
+            new_amount: amt,
+            remarks,
+          },
+        });
+        toast.success("Incentive updated");
+      } else {
+        // Duplicate check: same franchisee + same month + existing dark_store_incentive > 0
+        const { data: dup } = await supabase
+          .from("roi_payouts")
+          .select("id, dark_store_incentive")
+          .eq("franchisee_id", franchiseeId)
+          .eq("payout_month", payoutMonth);
+        const dupRow = (dup ?? []).find((r) => Number(r.dark_store_incentive) > 0);
+        if (dupRow) {
+          toast.error("An incentive already exists for this month. Use Edit to replace it.");
+          setSaving(false);
+          return;
+        }
+        const { data: inserted, error } = await supabase
+          .from("roi_payouts")
+          .insert({
+            franchisee_id: franchiseeId,
+            payout_month: payoutMonth,
+            base_roi: 0,
+            emporium_incentive: 0,
+            academy_incentive: 0,
+            dark_store_incentive: amt,
+            total_amount: amt,
+            status: "paid",
+            paid_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+        if (error) throw error;
+        await supabase.from("audit_logs").insert({
+          action: "manual_incentive_post",
+          entity: "roi_payouts",
+          entity_id: inserted!.id,
+          user_id: userId,
+          metadata: {
+            franchisee_id: franchiseeId,
+            franchisee_name: franchiseeName,
+            month: payoutMonth,
+            category: "monthly_incentive",
+            amount: amt,
+            remarks,
+          },
+        });
+        toast.success("Incentive posted");
+      }
+      onSaved();
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to save incentive");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit monthly incentive" : "Post monthly incentive"}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label>Franchisee</Label>
+            <p className="text-sm text-muted-foreground">{franchiseeName}</p>
+          </div>
+          <div>
+            <Label htmlFor="inc-month">Payout month</Label>
+            <Input id="inc-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} disabled={isEdit} />
+          </div>
+          <div>
+            <Label htmlFor="inc-amount">Incentive amount (₹)</Label>
+            <Input id="inc-amount" type="number" min="0" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <p className="mt-1 text-[11px] text-muted-foreground">Separate from base ROI. Saved under Dark Store / monthly incentive bucket.</p>
+          </div>
+          <div>
+            <Label htmlFor="inc-remarks">Remarks (required)</Label>
+            <Textarea
+              id="inc-remarks"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              placeholder={isEdit ? "Reason for replacing this incentive…" : "e.g. Manual May incentive update"}
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? "Saving…" : isEdit ? "Replace" : "Post"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
