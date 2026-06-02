@@ -170,7 +170,14 @@ function FranchiseeDetailPage() {
 
         <TabsContent value="ledger" className="space-y-6">
           <div className="rounded-2xl glass p-6">
-            <h3 className="font-display text-xl">ROI ledger</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-xl">ROI ledger</h3>
+              {canManage && (
+                <Button size="sm" variant="outline" className="border-gold/40" onClick={() => setIncentiveEdit({ mode: "new" })}>
+                  <Pencil className="mr-1 h-3 w-3" /> Post / replace incentive
+                </Button>
+              )}
+            </div>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
@@ -198,12 +205,15 @@ function FranchiseeDetailPage() {
                         <Badge variant="outline" className={p.status === "paid" ? "border-emerald-500/40 text-emerald-400" : "border-amber-500/40 text-amber-400"}>{p.status}</Badge>
                       </td>
                       {canManage && (
-                        <td className="px-2 py-2 text-right">
+                        <td className="px-2 py-2 text-right space-x-1">
                           {p.status === "pending" && (
                             <Button size="sm" variant="ghost" onClick={() => markPaid.mutate(p.id)}>
                               <CheckCircle2 className="mr-1 h-3 w-3" />Mark paid
                             </Button>
                           )}
+                          <Button size="sm" variant="ghost" onClick={() => setIncentiveEdit({ mode: "edit", row: p })}>
+                            <Pencil className="mr-1 h-3 w-3" /> Edit
+                          </Button>
                         </td>
                       )}
                     </tr>
@@ -217,6 +227,20 @@ function FranchiseeDetailPage() {
           </div>
         </TabsContent>
       </Tabs>
+      {canManage && incentiveEdit && (
+        <IncentiveEditDialog
+          franchiseeId={f.id}
+          franchiseeName={f.full_name}
+          existing={incentiveEdit.mode === "edit" ? incentiveEdit.row : null}
+          onClose={() => setIncentiveEdit(null)}
+          onSaved={() => {
+            setIncentiveEdit(null);
+            qc.invalidateQueries({ queryKey: ["franchisee-payouts", franchiseeId] });
+            qc.invalidateQueries({ queryKey: ["fr-dash-payouts", franchiseeId] });
+          }}
+        />
+      )}
+
     </div>
   );
 }
