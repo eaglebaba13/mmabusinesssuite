@@ -47,6 +47,8 @@ function FranchiseeDetailPage() {
   const resetFn = useServerFn(resetFranchiseePassword);
   const [editOpen, setEditOpen] = React.useState(false);
   const [resetting, setResetting] = React.useState(false);
+  const [incentiveEdit, setIncentiveEdit] = React.useState<{ mode: "new" } | { mode: "edit"; row: any } | null>(null);
+
 
   const { data: f } = useQuery({
     queryKey: ["franchisee", franchiseeId],
