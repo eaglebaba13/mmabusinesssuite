@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { ExportBar } from "@/components/app/ExportBar";
-import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 import { createFranchiseeUser } from "@/server/franchisee-user.functions";
 import { FranchiseeActions } from "@/components/app/FranchiseeActions";
 import { ImportButton } from "@/components/app/ImportButton";
