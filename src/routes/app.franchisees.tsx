@@ -345,12 +345,13 @@ function FranchiseesPage() {
       </div>
 
       <ExportBar
-        from={range.from}
-        to={range.to}
-        onFromChange={(v) => setRange({ ...range, from: v })}
-        onToChange={(v) => setRange({ ...range, to: v })}
+        from=""
+        to=""
+        onFromChange={() => {}}
+        onToChange={() => {}}
         onCSV={onCSV}
         onPDF={onPDF}
+        showDateRange={false}
         count={filtered.length}
       />
 
