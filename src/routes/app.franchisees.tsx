@@ -98,9 +98,8 @@ function FranchiseesPage() {
   });
 
   const filtered = (franchisees ?? []).filter((f) =>
-    (f.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      (f.email ?? "").toLowerCase().includes(search.toLowerCase())) &&
-    inDateRange(f.joined_at ?? f.created_at, range.from, range.to),
+    f.full_name.toLowerCase().includes(search.toLowerCase()) ||
+    (f.email ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
   const exportCols = [
@@ -111,13 +110,12 @@ function FranchiseesPage() {
     { header: "Investment", accessor: (f: any) => Number(f.investment_amount ?? 0) },
     { header: "Joined", accessor: (f: any) => f.joined_at ?? "" },
   ];
-  const fileBase = `franchisees_${range.from}_to_${range.to}`;
+  const fileBase = `franchisees_roster`;
   const onCSV = () => exportToCSV(fileBase, filtered, exportCols);
   const onPDF = () =>
     exportToPDF({
       filename: fileBase,
       title: "Franchisees Roster",
-      subtitle: `${range.from} → ${range.to}`,
       rows: filtered,
       columns: exportCols,
       totals: [
