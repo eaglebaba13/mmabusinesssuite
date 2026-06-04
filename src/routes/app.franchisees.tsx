@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { ExportBar } from "@/components/app/ExportBar";
-import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { exportToCSV, exportToPDF } from "@/lib/export";
 import { createFranchiseeUser } from "@/server/franchisee-user.functions";
 import { FranchiseeActions } from "@/components/app/FranchiseeActions";
 import { ImportButton } from "@/components/app/ImportButton";
@@ -82,7 +82,6 @@ function FranchiseesPage() {
   const [saving, setSaving] = React.useState(false);
   const [createdId, setCreatedId] = React.useState<string | null>(null);
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
-  const [range, setRange] = React.useState(defaultDateRange());
   const createUserFn = useServerFn(createFranchiseeUser);
 
   const { isTesting } = useMode();
@@ -99,9 +98,8 @@ function FranchiseesPage() {
   });
 
   const filtered = (franchisees ?? []).filter((f) =>
-    (f.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      (f.email ?? "").toLowerCase().includes(search.toLowerCase())) &&
-    inDateRange(f.joined_at ?? f.created_at, range.from, range.to),
+    f.full_name.toLowerCase().includes(search.toLowerCase()) ||
+    (f.email ?? "").toLowerCase().includes(search.toLowerCase()),
   );
 
   const exportCols = [
@@ -112,13 +110,12 @@ function FranchiseesPage() {
     { header: "Investment", accessor: (f: any) => Number(f.investment_amount ?? 0) },
     { header: "Joined", accessor: (f: any) => f.joined_at ?? "" },
   ];
-  const fileBase = `franchisees_${range.from}_to_${range.to}`;
+  const fileBase = `franchisees_roster`;
   const onCSV = () => exportToCSV(fileBase, filtered, exportCols);
   const onPDF = () =>
     exportToPDF({
       filename: fileBase,
       title: "Franchisees Roster",
-      subtitle: `${range.from} → ${range.to}`,
       rows: filtered,
       columns: exportCols,
       totals: [
@@ -348,12 +345,13 @@ function FranchiseesPage() {
       </div>
 
       <ExportBar
-        from={range.from}
-        to={range.to}
-        onFromChange={(v) => setRange({ ...range, from: v })}
-        onToChange={(v) => setRange({ ...range, to: v })}
+        from=""
+        to=""
+        onFromChange={() => {}}
+        onToChange={() => {}}
         onCSV={onCSV}
         onPDF={onPDF}
+        showDateRange={false}
         count={filtered.length}
       />
 
