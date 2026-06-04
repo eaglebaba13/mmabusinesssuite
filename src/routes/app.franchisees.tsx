@@ -82,7 +82,6 @@ function FranchiseesPage() {
   const [saving, setSaving] = React.useState(false);
   const [createdId, setCreatedId] = React.useState<string | null>(null);
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
-  const [range, setRange] = React.useState(defaultDateRange());
   const createUserFn = useServerFn(createFranchiseeUser);
 
   const { isTesting } = useMode();
