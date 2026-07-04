@@ -130,9 +130,9 @@ function CityContent({ fr }: { fr: any }) {
       <Card>
         <CardHeader><CardTitle className="text-base">Linked Units</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 md:grid-cols-4 text-sm">
-          <Stat label="Academy Batches" value={`${linkedQ.data?.batches ?? 0}`} sub="active across group" />
-          <Stat label="Dark Store SKUs" value={`${linkedQ.data?.products ?? 0}`} sub="inventory items" />
-          <Stat label="Staff" value={`${linkedQ.data?.employees ?? 0}`} sub="group headcount" />
+          <Stat label="Dark Store SKUs" value={`${linkedQ.data?.skus ?? 0}`} sub="in this franchisee's warehouse" />
+          <Stat label="Emporium Revenue (LTD)" value={formatINR(empRev)} sub={`across ${rev.filter((r) => r.source === "emporium_sale").length} entries`} />
+          <Stat label="Academy Revenue (LTD)" value={formatINR(acaRev)} sub={`across ${rev.filter((r) => r.source === "academy_fee").length} entries`} />
           <Stat label="Months Active" value={`${monthsActive}`} sub={`since ${fr.joined_at}`} />
         </CardContent>
       </Card>
