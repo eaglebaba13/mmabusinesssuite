@@ -118,10 +118,10 @@ export const Route = createFileRoute("/api/public/social-lead-hook")({
             const expected = createHmac("sha256", secret).update(rawBody).digest("hex");
             signatureValid = safeEqualHex(signatureHeader, expected);
           } else if (querySecret) {
-            // Constant-time compare via hex of utf8
-            const a = Buffer.from(querySecret).toString("hex");
-            const b = Buffer.from(secret).toString("hex");
-            signatureValid = a.length > 0 && a === b;
+            // Constant-time compare
+            const a = Buffer.from(querySecret);
+            const b = Buffer.from(secret);
+            signatureValid = a.length === b.length && a.length > 0 && timingSafeEqual(a, b);
           }
         }
 
