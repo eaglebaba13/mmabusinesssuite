@@ -100,6 +100,82 @@ function SettingsIndex() {
           </div>
         </div>
       )}
+
+      {isAdmin && <RoiEngineSettings />}
     </div>
   );
 }
+
+function RoiEngineSettings() {
+  const qc = useQueryClient();
+  const { data } = useQuery({
+    queryKey: ["org-roi-settings"],
+    queryFn: async () => (await supabase.from("org_roi_settings").select("*").maybeSingle()).data,
+  });
+  const [form, setForm] = React.useState<any>(null);
+  React.useEffect(() => { if (data) setForm(data); }, [data]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      if (!form) return;
+      const { error } = await supabase
+        .from("org_roi_settings")
+        .update({
+          default_mg_percent: Number(form.default_mg_percent),
+          default_tns_percent: Number(form.default_tns_percent),
+          default_academy_percent: Number(form.default_academy_percent),
+          default_mall_percent: Number(form.default_mall_percent),
+          default_royalty_percent: Number(form.default_royalty_percent),
+          default_commission: Number(form.default_commission),
+          gst_mode: form.gst_mode,
+          calc_method: form.calc_method,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", form.id);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("ROI engine settings saved"); qc.invalidateQueries({ queryKey: ["org-roi-settings"] }); },
+    onError: (e: any) => toast.error(e.message ?? "Failed to save"),
+  });
+
+  if (!form) return null;
+
+  const setNum = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
+
+  return (
+    <div className="rounded-2xl glass p-6">
+      <h2 className="font-display text-xl">ROI Engine — global defaults</h2>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Applied to new franchisees. Existing franchisees keep their per-agreement overrides.
+      </p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div><Label>Default MG %</Label><Input type="number" step="0.01" value={form.default_mg_percent} onChange={setNum("default_mg_percent")} className="mt-1" /></div>
+        <div><Label>Default TNS %</Label><Input type="number" step="0.01" value={form.default_tns_percent} onChange={setNum("default_tns_percent")} className="mt-1" /></div>
+        <div><Label>Default Academy %</Label><Input type="number" step="0.01" value={form.default_academy_percent} onChange={setNum("default_academy_percent")} className="mt-1" /></div>
+        <div><Label>Default Mall %</Label><Input type="number" step="0.01" value={form.default_mall_percent} onChange={setNum("default_mall_percent")} className="mt-1" /></div>
+        <div><Label>Default Royalty %</Label><Input type="number" step="0.01" value={form.default_royalty_percent} onChange={setNum("default_royalty_percent")} className="mt-1" /></div>
+        <div><Label>Default commission (₹)</Label><Input type="number" value={form.default_commission} onChange={setNum("default_commission")} className="mt-1" /></div>
+        <div>
+          <Label>GST mode</Label>
+          <select className="mt-1 w-full h-10 rounded-md border border-border bg-background px-3 text-sm" value={form.gst_mode} onChange={(e) => setForm({ ...form, gst_mode: e.target.value })}>
+            <option value="exclusive">Exclusive</option>
+            <option value="inclusive">Inclusive</option>
+          </select>
+        </div>
+        <div>
+          <Label>Calculation method</Label>
+          <select className="mt-1 w-full h-10 rounded-md border border-border bg-background px-3 text-sm" value={form.calc_method} onChange={(e) => setForm({ ...form, calc_method: e.target.value })}>
+            <option value="max_of_mg_or_variable">MAX(MG, Variable ROI)</option>
+          </select>
+        </div>
+      </div>
+      <Button className="mt-4 bg-gradient-gold text-background" onClick={() => save.mutate()} disabled={save.isPending}>
+        {save.isPending ? "Saving…" : "Save engine settings"}
+      </Button>
+      <p className="mt-3 text-[11px] text-muted-foreground">
+        Formula: <span className="font-mono">A = TNS × TNS% · B = Academy × Academy% · C = Mall × Mall% · MG = Investment × MG% · Final = MAX(MG, A+B+C)</span>
+      </p>
+    </div>
+  );
+}
+
