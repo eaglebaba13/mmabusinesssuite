@@ -142,11 +142,16 @@ function OrderDetail() {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-1 h-4 w-4" /> Print
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} disabled={!invoiceInput}>
+            <Eye className="mr-1 h-4 w-4" /> Preview
+          </Button>
           <Button size="sm" onClick={downloadInvoice} className="bg-gradient-gold text-background">
             <Download className="mr-1 h-4 w-4" /> PDF
           </Button>
         </div>
       </div>
+
+      <InvoicePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoiceInput} />
 
       <div className="rounded-2xl glass p-8 print:rounded-none print:p-4 print:shadow-none">
         <div className="flex items-start justify-between border-b border-border/40 pb-4">
