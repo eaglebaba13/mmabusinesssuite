@@ -79,7 +79,19 @@ function ImpersonationPage() {
           <Badge variant="outline" className="gap-1 text-xs"><Lock className="h-3 w-3" />{ctx.mode}</Badge>
           <span className="font-mono text-xs">expires in {mm}:{ss}</span>
         </div>
-        <Button size="sm" variant="destructive" onClick={handleExit}><LogOut className="mr-1 h-3.5 w-3.5" /> Exit</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => dataQ.refetch()}
+            disabled={dataQ.isFetching}
+            title="Refresh data"
+          >
+            <RefreshCw className={`mr-1 h-3.5 w-3.5 ${dataQ.isFetching ? "animate-spin" : ""}`} />
+            {dataQ.isFetching ? "Refreshing" : "Refresh"}
+          </Button>
+          <Button size="sm" variant="destructive" onClick={handleExit}><LogOut className="mr-1 h-3.5 w-3.5" /> Exit</Button>
+        </div>
       </div>
 
       <div className="mx-auto max-w-6xl p-6 space-y-6">
