@@ -92,11 +92,10 @@ export const createFranchiseeUser = createServerFn({ method: "POST" })
       .eq("id", data.franchisee_id);
     if (linkErr) throw new Error(linkErr.message);
 
-    // 4. Save credentials (admin-only readable)
+    // 4. Record credential issuance (email only; password is never persisted)
     await supabaseAdmin.from("franchisee_credentials").insert({
       franchisee_id: data.franchisee_id,
       login_email: data.email,
-      temp_password: data.password,
       created_by: userId,
     });
 
@@ -155,7 +154,6 @@ export const resetFranchiseePassword = createServerFn({ method: "POST" })
     await supabaseAdmin.from("franchisee_credentials").insert({
       franchisee_id: data.franchisee_id,
       login_email: franchisee.email ?? "",
-      temp_password: password,
       created_by: userId,
     });
 

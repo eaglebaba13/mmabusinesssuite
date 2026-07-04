@@ -1,14 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { timingSafeEqual } from "node:crypto";
+
+function checkSecret(request: Request): boolean {
+  const expected = process.env.WEBINAR_CRON_SECRET;
+  if (!expected) return false;
+  const provided =
+    request.headers.get("x-webhook-secret") ??
+    new URL(request.url).searchParams.get("secret") ??
+    "";
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 export const Route = createFileRoute("/api/public/webinar-register-hook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        if (!checkSecret(request)) {
+          return new Response("Unauthorized", { status: 401 });
+        }
         const url = process.env.SUPABASE_URL!;
         const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
         if (!url || !key) return new Response("Server not configured", { status: 500 });
+
 
         const body = await request.json().catch(() => null);
         const parsed = z

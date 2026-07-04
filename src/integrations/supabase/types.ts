@@ -846,7 +846,6 @@ export type Database = {
           franchisee_id: string
           id: string
           login_email: string
-          temp_password: string
         }
         Insert: {
           created_at?: string
@@ -856,7 +855,6 @@ export type Database = {
           franchisee_id: string
           id?: string
           login_email: string
-          temp_password: string
         }
         Update: {
           created_at?: string
@@ -866,7 +864,6 @@ export type Database = {
           franchisee_id?: string
           id?: string
           login_email?: string
-          temp_password?: string
         }
         Relationships: [
           {
@@ -2920,7 +2917,6 @@ export type Database = {
           id: string
           login_email: string
           state_franchise_id: string
-          temp_password: string
         }
         Insert: {
           created_at?: string
@@ -2930,7 +2926,6 @@ export type Database = {
           id?: string
           login_email: string
           state_franchise_id: string
-          temp_password: string
         }
         Update: {
           created_at?: string
@@ -2940,7 +2935,6 @@ export type Database = {
           id?: string
           login_email?: string
           state_franchise_id?: string
-          temp_password?: string
         }
         Relationships: [
           {

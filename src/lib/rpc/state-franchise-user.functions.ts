@@ -91,7 +91,6 @@ export const createStateFranchiseUser = createServerFn({ method: "POST" })
     await supabaseAdmin.from("state_franchise_credentials" as never).insert({
       state_franchise_id: data.state_franchise_id,
       login_email: data.email,
-      temp_password: data.password,
       created_by: userId,
     } as never);
 
@@ -144,7 +143,6 @@ export const resetStateFranchisePassword = createServerFn({ method: "POST" })
     await supabaseAdmin.from("state_franchise_credentials" as never).insert({
       state_franchise_id: data.state_franchise_id,
       login_email: sfRow.email ?? "",
-      temp_password: password,
       created_by: userId,
     } as never);
 
