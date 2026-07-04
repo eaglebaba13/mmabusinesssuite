@@ -197,6 +197,7 @@ function PosTerminal() {
   const removeFromCart = (idx: number) => setCart((prev) => prev.filter((_, k) => k !== idx));
   const clearCart = () => {
     setCart([]); setCustomer({ name: "", phone: "", email: "", gstin: "" }); setPaymentReference("");
+    setSaleDate(new Date().toISOString().slice(0, 10));
   };
 
   const totals = React.useMemo(() => {
