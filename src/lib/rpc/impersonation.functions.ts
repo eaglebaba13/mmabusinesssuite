@@ -92,10 +92,8 @@ export const startImpersonation = createServerFn({ method: "POST" })
 const ResolveInput = z.object({ token: z.string().min(20) });
 
 export const resolveImpersonation = createServerFn({ method: "POST" })
-  .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => ResolveInput.parse(i))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+  .handler(async ({ data }) => {
     // Token itself is the auth secret (sha256-hashed, time-limited, audit-logged).
     // No session required — viewer may be opened cross-origin where the admin
     // session isn't available.
@@ -213,10 +211,8 @@ export const revokeImpersonationSession = createServerFn({ method: "POST" })
 
 const EndInput = z.object({ token: z.string().min(20) });
 export const endImpersonation = createServerFn({ method: "POST" })
-  .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => EndInput.parse(i))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+  .handler(async ({ data }) => {
     const hash = hashToken(data.token);
     const { data: sess } = await supabaseAdmin
       .from("impersonation_sessions")
@@ -232,11 +228,9 @@ export const endImpersonation = createServerFn({ method: "POST" })
 // Lightweight data-fetch for impersonation viewer (admin reads via supabaseAdmin scoped to entity)
 const ViewInput = z.object({ token: z.string().min(20) });
 export const fetchImpersonationData = createServerFn({ method: "POST" })
-  .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => ViewInput.parse(i))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    // Token-gated + admin-gated; see resolveImpersonation note.
+  .handler(async ({ data }) => {
+    // Token-gated only; token is a sha256-hashed, time-limited secret.
     const hash = hashToken(data.token);
     const { data: sess } = await supabaseAdmin
       .from("impersonation_sessions")
