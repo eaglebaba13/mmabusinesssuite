@@ -412,6 +412,28 @@ function TeamRolesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {confirmDelete?.full_name || confirmDelete?.email}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the user account, their sign-in access, and all role assignments.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDelete && deleteUser.mutate(confirmDelete.id)}
+              disabled={deleteUser.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUser.isPending ? "Deleting…" : "Delete permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
