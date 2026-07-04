@@ -254,13 +254,13 @@ function PosTerminal() {
 
   const checkout = useMutation({
     mutationFn: async () => {
-      if (!canCheckout) throw new Error("Complete Billing Under, Franchise, Category and Outlet before charging");
+      if (!canCheckout) throw new Error("Complete Billing Under, Franchise and Category before charging");
       const { data: u } = await supabase.auth.getUser();
 
       const { data: order, error: oErr } = await supabase
         .from("sales_orders")
         .insert({
-          warehouse_id: warehouseId,
+          warehouse_id: warehouseId || null,
           franchisee_id: mappingType === "company_direct" ? null : franchiseeId || null,
           franchise_mapping_type: mappingType,
           invoice_category: mappingType === "company_direct" ? "other" : category,
