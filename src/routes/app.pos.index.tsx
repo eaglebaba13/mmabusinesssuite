@@ -83,6 +83,8 @@ function PosTerminal() {
   const [customer, setCustomer] = React.useState({ name: "", phone: "", email: "", gstin: "" });
   const [paymentMethod, setPaymentMethod] = React.useState<string>("cash");
   const [paymentReference, setPaymentReference] = React.useState("");
+  const [saleDate, setSaleDate] = React.useState<string>(() => new Date().toISOString().slice(0, 10));
+  const todayIso = new Date().toISOString().slice(0, 10);
 
   const profile = useQuery({
     queryKey: ["pos-profile", user?.id],
