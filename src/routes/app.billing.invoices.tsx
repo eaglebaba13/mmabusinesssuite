@@ -261,10 +261,18 @@ function InvoiceForm({ companies, value, onChange }: {
     queryKey: ["franchisees-attr"],
     queryFn: async () => (await supabase
       .from("franchisees")
-      .select("id, full_name, territories(name, state, state_franchises(full_name, state))")
+      .select("id, full_name, franchise_type, territories(name, state, state_franchises(full_name, state))")
       .order("full_name")).data ?? [],
   });
+  const stateFranchisesQ = useQuery({
+    queryKey: ["state-franchises-attr"],
+    queryFn: async () => (await supabase.from("state_franchises").select("id, full_name, state").order("full_name")).data ?? [],
+  });
   const selectedFr: any = (franchiseesQ.data ?? []).find((f: any) => f.id === v.franchiseeId);
+  const mappingType = v.franchiseMappingType ?? "company_direct";
+  const category = v.invoiceCategory ?? "other";
+  const mastersList = (franchiseesQ.data ?? []).filter((f: any) => f.franchise_type === "master");
+  const cityList = (franchiseesQ.data ?? []).filter((f: any) => (f.franchise_type ?? "city") === "city");
 
   return (
     <div className="space-y-3">
