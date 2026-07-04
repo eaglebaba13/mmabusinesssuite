@@ -215,7 +215,8 @@ const EndInput = z.object({ token: z.string().min(20) });
 export const endImpersonation = createServerFn({ method: "POST" })
   .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => EndInput.parse(i))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
     const hash = hashToken(data.token);
     const { data: sess } = await supabaseAdmin
       .from("impersonation_sessions")
