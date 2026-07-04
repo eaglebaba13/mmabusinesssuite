@@ -522,3 +522,12 @@ function CredRow({ label, value, onCopy, mono }: { label: string; value: string;
     </div>
   );
 }
+
+function SumTile({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className={`rounded-2xl glass p-4 ${highlight ? "border border-gold/40" : ""}`}>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`mt-1 font-display text-xl ${highlight ? "text-gradient-gold" : ""}`}>{value}</div>
+    </div>
+  );
+}
