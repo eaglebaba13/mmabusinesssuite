@@ -1,11 +1,12 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Receipt as ReceiptIcon, Download } from "lucide-react";
+import { Receipt as ReceiptIcon, Download, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { downloadGstInvoicePdf } from "@/lib/invoice-pdf";
+import { downloadGstInvoicePdf, type InvoicePdfInput } from "@/lib/invoice-pdf";
+import { InvoicePreviewDialog } from "@/components/app/InvoicePreviewDialog";
 import { formatINR } from "@/lib/format";
 
 export const Route = createFileRoute("/invoice/$token")({
@@ -70,56 +71,58 @@ function PublicInvoicePage() {
   const payments = order.data?.payments ?? [];
   if (!o) return <div className="p-12 text-center text-muted-foreground">Loading…</div>;
 
-  const downloadPdf = () => {
-    downloadGstInvoicePdf({
-      invoiceNumber: o.invoice_number ?? `DRAFT-${o.id.slice(0, 8)}`,
-      invoiceDate: o.created_at,
-      status: o.status,
-      paymentStatus: o.payment_status,
-      seller: {
-        name: o.warehouses?.name ?? "MMA Business Suite",
-        address: o.warehouses?.address ?? null,
-        city: o.warehouses?.city ?? null,
-        state: o.warehouses?.state ?? null,
-        gstin: null,
-      },
-      buyer: {
-        name: o.customer_name ?? "Walk-in customer",
-        phone: o.customer_phone,
-        email: o.customer_email,
-        address: o.customer_address,
-        gstin: o.customer_gstin,
-      },
-      items: items.map((it: any) => ({
-        product_name: it.product_name,
-        sku: it.sku,
-        hsn_code: it.hsn_code,
-        quantity: Number(it.quantity),
-        unit_price: Number(it.unit_price),
-        discount_pct: Number(it.discount_pct),
-        gst_pct: Number(it.gst_pct),
-        line_subtotal: Number(it.line_subtotal),
-        line_gst: Number(it.line_gst),
-        line_total: Number(it.line_total),
-      })),
-      totals: {
-        subtotal: Number(o.subtotal),
-        discount: Number(o.discount_amount),
-        cgst: Number(o.cgst_amount),
-        sgst: Number(o.sgst_amount),
-        igst: Number(o.igst_amount ?? 0),
-        grandTotal: Number(o.grand_total),
-        amountPaid: Number(o.amount_paid),
-      },
-      payments: payments.map((p: any) => ({
-        method: p.method,
-        amount: Number(p.amount),
-        reference: p.reference,
-        paid_at: p.paid_at,
-      })),
-      notes: o.notes,
-    });
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+
+  const invoiceInput: InvoicePdfInput = {
+    invoiceNumber: o.invoice_number ?? `DRAFT-${o.id.slice(0, 8)}`,
+    invoiceDate: o.created_at,
+    status: o.status,
+    paymentStatus: o.payment_status,
+    seller: {
+      name: o.warehouses?.name ?? "MMA Business Suite",
+      address: o.warehouses?.address ?? null,
+      city: o.warehouses?.city ?? null,
+      state: o.warehouses?.state ?? null,
+      gstin: null,
+    },
+    buyer: {
+      name: o.customer_name ?? "Walk-in customer",
+      phone: o.customer_phone,
+      email: o.customer_email,
+      address: o.customer_address,
+      gstin: o.customer_gstin,
+    },
+    items: items.map((it: any) => ({
+      product_name: it.product_name,
+      sku: it.sku,
+      hsn_code: it.hsn_code,
+      quantity: Number(it.quantity),
+      unit_price: Number(it.unit_price),
+      discount_pct: Number(it.discount_pct),
+      gst_pct: Number(it.gst_pct),
+      line_subtotal: Number(it.line_subtotal),
+      line_gst: Number(it.line_gst),
+      line_total: Number(it.line_total),
+    })),
+    totals: {
+      subtotal: Number(o.subtotal),
+      discount: Number(o.discount_amount),
+      cgst: Number(o.cgst_amount),
+      sgst: Number(o.sgst_amount),
+      igst: Number(o.igst_amount ?? 0),
+      grandTotal: Number(o.grand_total),
+      amountPaid: Number(o.amount_paid),
+    },
+    payments: payments.map((p: any) => ({
+      method: p.method,
+      amount: Number(p.amount),
+      reference: p.reference,
+      paid_at: p.paid_at,
+    })),
+    notes: o.notes,
   };
+
+  const downloadPdf = () => downloadGstInvoicePdf(invoiceInput);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-4 md:p-8">
@@ -128,10 +131,17 @@ function PublicInvoicePage() {
           <ReceiptIcon className="h-5 w-5 text-gold" />
           <h1 className="font-display text-2xl text-gradient-gold">Tax Invoice</h1>
         </div>
-        <Button onClick={downloadPdf} className="bg-gradient-gold text-background">
-          <Download className="mr-1 h-4 w-4" /> Download PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setPreviewOpen(true)}>
+            <Eye className="mr-1 h-4 w-4" /> Preview
+          </Button>
+          <Button onClick={downloadPdf} className="bg-gradient-gold text-background">
+            <Download className="mr-1 h-4 w-4" /> Download PDF
+          </Button>
+        </div>
       </div>
+
+      <InvoicePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoiceInput} />
 
       <div className="rounded-2xl glass p-8">
         <div className="flex items-start justify-between border-b border-border/40 pb-4">

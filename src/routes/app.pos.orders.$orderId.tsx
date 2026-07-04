@@ -1,13 +1,14 @@
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Printer, Download, Receipt as ReceiptIcon, Share2, MessageCircle, Mail } from "lucide-react";
+import { ArrowLeft, Printer, Download, Eye, Receipt as ReceiptIcon, Share2, MessageCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { downloadGstInvoicePdf } from "@/lib/invoice-pdf";
+import { downloadGstInvoicePdf, type InvoicePdfInput } from "@/lib/invoice-pdf";
+import { InvoicePreviewDialog } from "@/components/app/InvoicePreviewDialog";
 import { formatINR } from "@/lib/format";
 
 
@@ -55,10 +56,11 @@ function OrderDetail() {
   });
 
   const o = order.data;
+  const [previewOpen, setPreviewOpen] = React.useState(false);
 
-  const downloadInvoice = () => {
-    if (!o) return;
-    downloadGstInvoicePdf({
+  const invoiceInput: InvoicePdfInput | null = React.useMemo(() => {
+    if (!o) return null;
+    return {
       invoiceNumber: o.invoice_number ?? `DRAFT-${o.id.slice(0, 8)}`,
       invoiceDate: o.created_at,
       status: o.status,
@@ -105,7 +107,11 @@ function OrderDetail() {
         paid_at: p.paid_at,
       })),
       notes: o.notes,
-    });
+    };
+  }, [o, items.data, payments.data]);
+
+  const downloadInvoice = () => {
+    if (invoiceInput) downloadGstInvoicePdf(invoiceInput);
   };
 
   if (order.isLoading) {
@@ -136,11 +142,16 @@ function OrderDetail() {
           <Button variant="outline" size="sm" onClick={() => window.print()}>
             <Printer className="mr-1 h-4 w-4" /> Print
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} disabled={!invoiceInput}>
+            <Eye className="mr-1 h-4 w-4" /> Preview
+          </Button>
           <Button size="sm" onClick={downloadInvoice} className="bg-gradient-gold text-background">
             <Download className="mr-1 h-4 w-4" /> PDF
           </Button>
         </div>
       </div>
+
+      <InvoicePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoiceInput} />
 
       <div className="rounded-2xl glass p-8 print:rounded-none print:p-4 print:shadow-none">
         <div className="flex items-start justify-between border-b border-border/40 pb-4">

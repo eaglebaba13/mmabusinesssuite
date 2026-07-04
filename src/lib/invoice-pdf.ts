@@ -147,7 +147,7 @@ function numberToWordsIN(num: number): string {
     : `${words} Rupees Only`;
 }
 
-export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
+export async function buildGstInvoicePdf(inv: InvoicePdfInput): Promise<jsPDF> {
   await preloadLetterhead();
   const preloaded = await requirePreloaded();
 
@@ -498,5 +498,17 @@ export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
     { align: "center" },
   );
 
+  return doc;
+}
+
+export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
+  const doc = await buildGstInvoicePdf(inv);
   doc.save(`invoice-${inv.invoiceNumber}.pdf`);
+}
+
+/** Build the invoice PDF and return an object URL suitable for an <iframe src=...>. */
+export async function getGstInvoicePdfBlobUrl(inv: InvoicePdfInput): Promise<string> {
+  const doc = await buildGstInvoicePdf(inv);
+  const blob = doc.output("blob");
+  return URL.createObjectURL(blob);
 }
