@@ -12,12 +12,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatINRCompact } from "@/lib/format";
+import { formatINR, formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { FranchiseeDashboard } from "@/components/app/FranchiseeDashboard";
 import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
+import { MonthlyRoiPanel } from "@/components/app/MonthlyRoiPanel";
+import { AgreementAuditPanel } from "@/components/app/AgreementAuditPanel";
 
 export const Route = createFileRoute("/app/franchisees/$franchiseeId")({
   head: () => ({ meta: [{ title: "Franchisee — MMA Suite" }] }),
@@ -123,8 +125,10 @@ function FranchiseeDetailPage() {
       <Tabs defaultValue="dashboard" className="space-y-6">
         <TabsList className="bg-card/40">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+          <TabsTrigger value="roi">Monthly ROI</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="ledger">ROI Ledger</TabsTrigger>
+          <TabsTrigger value="agreement">Agreement</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
@@ -138,29 +142,60 @@ function FranchiseeDetailPage() {
           />
         </TabsContent>
 
+        <TabsContent value="roi" className="space-y-6">
+          <MonthlyRoiPanel franchiseeId={f.id} />
+        </TabsContent>
+
         <TabsContent value="profile" className="space-y-6">
           <div className="rounded-2xl glass p-6">
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="font-display text-3xl">{f.full_name}</h1>
                 <p className="mt-1 text-sm text-muted-foreground">{f.email ?? "—"} · {f.phone ?? "—"}</p>
-                <Badge variant="outline" className="mt-3 border-gold/40 text-gold capitalize">{f.status}</Badge>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className="border-gold/40 text-gold capitalize">{f.status}</Badge>
+                  {(f as any).franchise_type && (
+                    <Badge variant="outline" className="border-border capitalize">{(f as any).franchise_type} franchise</Badge>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+
+            {/* Agreement tile row — replaces single Investment card */}
+            <div className="mt-6 grid gap-3 sm:grid-cols-4">
               <div className="rounded-xl bg-background/40 p-4">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Investment</div>
-                <div className="mt-1 font-display text-2xl text-gradient-gold">{formatINRCompact(Number(f.investment_amount))}</div>
+                <div className="mt-1 font-display text-xl text-gradient-gold">{formatINRCompact(Number(f.investment_amount))}</div>
               </div>
               <div className="rounded-xl bg-background/40 p-4">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Agreement</div>
+                <div className="mt-1 text-sm">{(f as any).agreement_version ?? "—"}</div>
+                <div className="text-[11px] text-muted-foreground">{(f as any).agreement_date ?? "—"}</div>
+              </div>
+              <div className="rounded-xl bg-background/40 p-4">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Territory</div>
+                <div className="mt-1 text-sm">{f.territory_id ? f.territory_id.slice(0, 8) : "—"}</div>
+              </div>
+              <div className="rounded-xl bg-background/40 p-4">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Agreement status</div>
+                <div className="mt-1 text-sm capitalize">
+                  {agreementStatus(f)}
+                </div>
+                <div className="text-[11px] text-muted-foreground">exp {(f as any).agreement_expiry ?? "—"}</div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-background/40 p-4">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Lifetime ROI paid</div>
-                <div className="mt-1 font-display text-2xl text-gradient-gold">{formatINRCompact(lifetimePaid)}</div>
+                <div className="mt-1 font-display text-xl text-gradient-gold">{formatINRCompact(lifetimePaid)}</div>
               </div>
               <div className="rounded-xl bg-background/40 p-4">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Pending payouts</div>
-                <div className="mt-1 font-display text-2xl text-gradient-gold">{formatINRCompact(pending)}</div>
+                <div className="mt-1 font-display text-xl text-gradient-gold">{formatINRCompact(pending)}</div>
               </div>
             </div>
+
             {f.notes && (
               <div className="mt-6 rounded-xl bg-background/40 p-4">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Notes</div>
@@ -169,6 +204,11 @@ function FranchiseeDetailPage() {
             )}
           </div>
         </TabsContent>
+
+        <TabsContent value="agreement" className="space-y-6">
+          <AgreementAuditPanel franchiseeId={f.id} />
+        </TabsContent>
+
 
         <TabsContent value="ledger" className="space-y-6">
           <div className="rounded-2xl glass p-6">
@@ -417,3 +457,12 @@ function IncentiveEditDialog({
   );
 }
 
+
+function agreementStatus(f: any): string {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!f.agreement_expiry) return "missing";
+  if (f.agreement_expiry < today) return "expired";
+  const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+  if (f.agreement_expiry <= in30.toISOString().slice(0, 10)) return "expiring";
+  return "active";
+}

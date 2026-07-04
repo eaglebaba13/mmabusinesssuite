@@ -76,6 +76,8 @@ function genPassword(length = 12) {
 function FranchiseesPage() {
   const qc = useQueryClient();
   const [search, setSearch] = React.useState("");
+  const [typeFilter, setTypeFilter] = React.useState<string>("all");
+  const [agreementFilter, setAgreementFilter] = React.useState<string>("all");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
   const [form, setForm] = React.useState<OnboardForm>(emptyForm);
@@ -97,10 +99,48 @@ function FranchiseesPage() {
     },
   });
 
-  const filtered = (franchisees ?? []).filter((f) =>
-    f.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    (f.email ?? "").toLowerCase().includes(search.toLowerCase()),
-  );
+  const today = new Date().toISOString().slice(0, 10);
+  const agreementStatusOf = (f: any): "active" | "expired" | "expiring" | "missing" => {
+    if (!f.agreement_expiry) return "missing";
+    if (f.agreement_expiry < today) return "expired";
+    const inThirty = new Date(); inThirty.setDate(inThirty.getDate() + 30);
+    if (f.agreement_expiry <= inThirty.toISOString().slice(0, 10)) return "expiring";
+    return "active";
+  };
+
+  const filtered = (franchisees ?? []).filter((f: any) => {
+    const matchSearch =
+      f.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      (f.email ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchType = typeFilter === "all" || (f.franchise_type ?? "city") === typeFilter;
+    const matchAgr = agreementFilter === "all" || agreementStatusOf(f) === agreementFilter;
+    return matchSearch && matchType && matchAgr;
+  });
+
+  // Current month ROI summary
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  const monthKey = monthStart.toISOString().slice(0, 10);
+  const { data: currentPayouts = [] } = useQuery({
+    queryKey: ["current-month-payouts", monthKey],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("roi_payouts")
+        .select("franchisee_id, mg_amount, variable_roi, final_payable, status")
+        .eq("payout_month", monthKey);
+      return data ?? [];
+    },
+  });
+  const totals = React.useMemo(() => {
+    const totalInv = filtered.reduce((s: number, f: any) => s + Number(f.investment_amount ?? 0), 0);
+    const scoped = currentPayouts.filter((p: any) => filtered.some((f: any) => f.id === p.franchisee_id));
+    const mg = scoped.reduce((s: number, p: any) => s + Number(p.mg_amount ?? 0), 0);
+    const vr = scoped.reduce((s: number, p: any) => s + Number(p.variable_roi ?? 0), 0);
+    const payable = scoped.reduce((s: number, p: any) => s + Number(p.final_payable ?? 0), 0);
+    const pending = scoped.filter((p: any) => p.status === "pending").reduce((s: number, p: any) => s + Number(p.final_payable ?? 0), 0);
+    return { totalInv, mg, vr, payable, pending };
+  }, [filtered, currentPayouts]);
+
 
   const exportCols = [
     { header: "Name", accessor: (f: any) => f.full_name },
@@ -219,6 +259,27 @@ function FranchiseesPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 w-[260px] bg-card/40 pl-9" />
           </div>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="h-9 rounded-md border border-border bg-card/40 px-2 text-sm"
+          >
+            <option value="all">All types</option>
+            <option value="master">Master</option>
+            <option value="state">State</option>
+            <option value="city">City</option>
+          </select>
+          <select
+            value={agreementFilter}
+            onChange={(e) => setAgreementFilter(e.target.value)}
+            className="h-9 rounded-md border border-border bg-card/40 px-2 text-sm"
+          >
+            <option value="all">All agreements</option>
+            <option value="active">Active</option>
+            <option value="expiring">Expiring soon</option>
+            <option value="expired">Expired</option>
+            <option value="missing">Missing</option>
+          </select>
           <div className="flex items-center gap-2">
             <ImportButton configKey="franchisees" />
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setTimeout(resetWizard, 300); }}>
@@ -344,6 +405,14 @@ function FranchiseesPage() {
         </div>
       </div>
 
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
+        <SumTile label="Total investment" value={formatINRCompact(totals.totalInv)} />
+        <SumTile label="MG liability (this month)" value={formatINRCompact(totals.mg)} />
+        <SumTile label="Variable ROI (this month)" value={formatINRCompact(totals.vr)} />
+        <SumTile label="Payable (this month)" value={formatINRCompact(totals.payable)} highlight />
+        <SumTile label="Pending payouts" value={formatINRCompact(totals.pending)} />
+      </div>
+
       <ExportBar
         from=""
         to=""
@@ -450,6 +519,15 @@ function CredRow({ label, value, onCopy, mono }: { label: string; value: string;
       <Button size="sm" variant="ghost" onClick={onCopy}>
         <Copy className="h-3.5 w-3.5" />
       </Button>
+    </div>
+  );
+}
+
+function SumTile({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className={`rounded-2xl glass p-4 ${highlight ? "border border-gold/40" : ""}`}>
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`mt-1 font-display text-xl ${highlight ? "text-gradient-gold" : ""}`}>{value}</div>
     </div>
   );
 }

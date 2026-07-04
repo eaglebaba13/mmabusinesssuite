@@ -76,6 +76,47 @@ export type Database = {
           },
         ]
       }
+      agreement_audit_log: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          field: string
+          franchisee_id: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          reason: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          field: string
+          franchisee_id: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          field?: string
+          franchisee_id?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agreement_audit_log_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           attendance_date: string
@@ -891,7 +932,11 @@ export type Database = {
       franchisees: {
         Row: {
           academy_pct: number
+          academy_percent: number
+          agreement_date: string | null
+          agreement_expiry: string | null
           agreement_url: string | null
+          agreement_version: string | null
           area_sqft: number | null
           base_roi_pct: number
           cctv_count: number
@@ -903,25 +948,35 @@ export type Database = {
           emporium_pct: number
           equipment_verified: boolean
           equipment_verified_at: string | null
+          franchise_commission_amount: number
           franchise_fee: number
+          franchise_type: string
           full_name: string
           id: string
           investment_amount: number
           is_demo: boolean
           joined_at: string
+          mall_percent: number
+          mg_percent: number
           notes: string | null
           phone: string | null
           printer_count: number
+          royalty_percent: number
           status: Database["public"]["Enums"]["franchisee_status"]
           tables_count: number
           territory_id: string | null
+          tns_percent: number
           updated_at: string
           user_id: string | null
           warehouse_id: string | null
         }
         Insert: {
           academy_pct?: number
+          academy_percent?: number
+          agreement_date?: string | null
+          agreement_expiry?: string | null
           agreement_url?: string | null
+          agreement_version?: string | null
           area_sqft?: number | null
           base_roi_pct?: number
           cctv_count?: number
@@ -933,25 +988,35 @@ export type Database = {
           emporium_pct?: number
           equipment_verified?: boolean
           equipment_verified_at?: string | null
+          franchise_commission_amount?: number
           franchise_fee?: number
+          franchise_type?: string
           full_name: string
           id?: string
           investment_amount?: number
           is_demo?: boolean
           joined_at?: string
+          mall_percent?: number
+          mg_percent?: number
           notes?: string | null
           phone?: string | null
           printer_count?: number
+          royalty_percent?: number
           status?: Database["public"]["Enums"]["franchisee_status"]
           tables_count?: number
           territory_id?: string | null
+          tns_percent?: number
           updated_at?: string
           user_id?: string | null
           warehouse_id?: string | null
         }
         Update: {
           academy_pct?: number
+          academy_percent?: number
+          agreement_date?: string | null
+          agreement_expiry?: string | null
           agreement_url?: string | null
+          agreement_version?: string | null
           area_sqft?: number | null
           base_roi_pct?: number
           cctv_count?: number
@@ -963,18 +1028,24 @@ export type Database = {
           emporium_pct?: number
           equipment_verified?: boolean
           equipment_verified_at?: string | null
+          franchise_commission_amount?: number
           franchise_fee?: number
+          franchise_type?: string
           full_name?: string
           id?: string
           investment_amount?: number
           is_demo?: boolean
           joined_at?: string
+          mall_percent?: number
+          mg_percent?: number
           notes?: string | null
           phone?: string | null
           printer_count?: number
+          royalty_percent?: number
           status?: Database["public"]["Enums"]["franchisee_status"]
           tables_count?: number
           territory_id?: string | null
+          tns_percent?: number
           updated_at?: string
           user_id?: string | null
           warehouse_id?: string | null
@@ -1240,12 +1311,14 @@ export type Database = {
           discount_total: number
           doc_type: Database["public"]["Enums"]["invoice_doc_type"]
           due_date: string | null
+          franchise_mapping_type: Database["public"]["Enums"]["franchise_mapping_type"]
           franchisee_id: string | null
           from_state: string | null
           grand_total: number
           gst_total: number
           id: string
           igst_total: number
+          invoice_category: Database["public"]["Enums"]["invoice_category"]
           invoice_date: string
           invoice_number: string | null
           is_demo: boolean
@@ -1286,12 +1359,14 @@ export type Database = {
           discount_total?: number
           doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
           due_date?: string | null
+          franchise_mapping_type?: Database["public"]["Enums"]["franchise_mapping_type"]
           franchisee_id?: string | null
           from_state?: string | null
           grand_total?: number
           gst_total?: number
           id?: string
           igst_total?: number
+          invoice_category?: Database["public"]["Enums"]["invoice_category"]
           invoice_date?: string
           invoice_number?: string | null
           is_demo?: boolean
@@ -1332,12 +1407,14 @@ export type Database = {
           discount_total?: number
           doc_type?: Database["public"]["Enums"]["invoice_doc_type"]
           due_date?: string | null
+          franchise_mapping_type?: Database["public"]["Enums"]["franchise_mapping_type"]
           franchisee_id?: string | null
           from_state?: string | null
           grand_total?: number
           gst_total?: number
           id?: string
           igst_total?: number
+          invoice_category?: Database["public"]["Enums"]["invoice_category"]
           invoice_date?: string
           invoice_number?: string | null
           is_demo?: boolean
@@ -1660,6 +1737,51 @@ export type Database = {
           read?: boolean
           title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      org_roi_settings: {
+        Row: {
+          calc_method: string
+          created_at: string
+          default_academy_percent: number
+          default_commission: number
+          default_mall_percent: number
+          default_mg_percent: number
+          default_royalty_percent: number
+          default_tns_percent: number
+          gst_mode: string
+          id: string
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          calc_method?: string
+          created_at?: string
+          default_academy_percent?: number
+          default_commission?: number
+          default_mall_percent?: number
+          default_mg_percent?: number
+          default_royalty_percent?: number
+          default_tns_percent?: number
+          gst_mode?: string
+          id?: string
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          calc_method?: string
+          created_at?: string
+          default_academy_percent?: number
+          default_commission?: number
+          default_mall_percent?: number
+          default_mg_percent?: number
+          default_royalty_percent?: number
+          default_tns_percent?: number
+          gst_mode?: string
+          id?: string
+          singleton?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2265,43 +2387,67 @@ export type Database = {
       }
       roi_payouts: {
         Row: {
+          academy_amount: number
           academy_incentive: number
+          auto_computed: boolean
           base_roi: number
           created_at: string
           dark_store_incentive: number
           emporium_incentive: number
+          final_payable: number
           franchisee_id: string
           id: string
+          mall_amount: number
+          mg_amount: number
           paid_at: string | null
+          payable_reason: string | null
           payout_month: string
           status: Database["public"]["Enums"]["payout_status"]
+          tns_amount: number
           total_amount: number
+          variable_roi: number
         }
         Insert: {
+          academy_amount?: number
           academy_incentive?: number
+          auto_computed?: boolean
           base_roi?: number
           created_at?: string
           dark_store_incentive?: number
           emporium_incentive?: number
+          final_payable?: number
           franchisee_id: string
           id?: string
+          mall_amount?: number
+          mg_amount?: number
           paid_at?: string | null
+          payable_reason?: string | null
           payout_month: string
           status?: Database["public"]["Enums"]["payout_status"]
+          tns_amount?: number
           total_amount?: number
+          variable_roi?: number
         }
         Update: {
+          academy_amount?: number
           academy_incentive?: number
+          auto_computed?: boolean
           base_roi?: number
           created_at?: string
           dark_store_incentive?: number
           emporium_incentive?: number
+          final_payable?: number
           franchisee_id?: string
           id?: string
+          mall_amount?: number
+          mg_amount?: number
           paid_at?: string | null
+          payable_reason?: string | null
           payout_month?: string
           status?: Database["public"]["Enums"]["payout_status"]
+          tns_amount?: number
           total_amount?: number
+          variable_roi?: number
         }
         Relationships: [
           {
@@ -3583,6 +3729,21 @@ export type Database = {
         }
         Returns: undefined
       }
+      compute_franchisee_monthly_roi: {
+        Args: { _franchisee_id: string; _month: string }
+        Returns: {
+          a: number
+          academy_total: number
+          b: number
+          c: number
+          final_payable: number
+          mall_total: number
+          mg: number
+          reason: string
+          tns_total: number
+          variable_roi: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3593,6 +3754,10 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       recalc_invoice_payment_state: {
         Args: { _invoice_id: string }
+        Returns: undefined
+      }
+      recompute_roi_payout: {
+        Args: { _franchisee_id: string; _month: string }
         Returns: undefined
       }
       state_franchise_owns_franchisee: {
@@ -3669,8 +3834,18 @@ export type Database = {
         | "department"
       expense_status: "pending" | "paid" | "cancelled"
       fee_status: "pending" | "paid" | "partial" | "overdue" | "waived"
+      franchise_mapping_type: "company_direct" | "master" | "state" | "city"
       franchisee_status: "active" | "onboarding" | "suspended" | "closed"
       impersonation_mode: "read_only" | "read_write"
+      invoice_category:
+        | "tns_turnover"
+        | "academy_sales"
+        | "mall_of_salon_sales"
+        | "franchise_fee"
+        | "royalty"
+        | "product_sales"
+        | "service_sales"
+        | "other"
       invoice_doc_type:
         | "b2b_tax"
         | "b2c"
@@ -3930,8 +4105,19 @@ export const Constants = {
       ],
       expense_status: ["pending", "paid", "cancelled"],
       fee_status: ["pending", "paid", "partial", "overdue", "waived"],
+      franchise_mapping_type: ["company_direct", "master", "state", "city"],
       franchisee_status: ["active", "onboarding", "suspended", "closed"],
       impersonation_mode: ["read_only", "read_write"],
+      invoice_category: [
+        "tns_turnover",
+        "academy_sales",
+        "mall_of_salon_sales",
+        "franchise_fee",
+        "royalty",
+        "product_sales",
+        "service_sales",
+        "other",
+      ],
       invoice_doc_type: [
         "b2b_tax",
         "b2c",

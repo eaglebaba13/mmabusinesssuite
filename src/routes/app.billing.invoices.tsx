@@ -215,9 +215,20 @@ function InvoicesPage() {
 
 function emptyItem(): Item { return { description: "", quantity: 1, unit_price: 0, discount_pct: 0, gst_pct: 18, is_student_product: false }; }
 
+const INVOICE_CATEGORIES: { value: string; label: string }[] = [
+  { value: "tns_turnover", label: "TNS Turnover" },
+  { value: "academy_sales", label: "Academy Sales" },
+  { value: "mall_of_salon_sales", label: "Mall of Salon Sales" },
+  { value: "franchise_fee", label: "Franchise Fee" },
+  { value: "royalty", label: "Royalty" },
+  { value: "product_sales", label: "Product Sales" },
+  { value: "service_sales", label: "Service Sales" },
+  { value: "other", label: "Other" },
+];
+
 function InvoiceForm({ companies, value, onChange }: {
   companies: { id: string; name: string }[];
-  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[]; franchiseeId?: string | null; isIntercompany?: boolean; sourceDocumentRef?: string; sourceDocumentUrl?: string };
+  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[]; franchiseeId?: string | null; stateFranchiseId?: string | null; franchiseMappingType?: string; invoiceCategory?: string; isIntercompany?: boolean; sourceDocumentRef?: string; sourceDocumentUrl?: string };
   onChange: (v: any) => void;
 }) {
   const v = value;
@@ -250,10 +261,18 @@ function InvoiceForm({ companies, value, onChange }: {
     queryKey: ["franchisees-attr"],
     queryFn: async () => (await supabase
       .from("franchisees")
-      .select("id, full_name, territories(name, state, state_franchises(full_name, state))")
+      .select("id, full_name, franchise_type, territories(name, state, state_franchises(full_name, state))")
       .order("full_name")).data ?? [],
   });
+  const stateFranchisesQ = useQuery({
+    queryKey: ["state-franchises-attr"],
+    queryFn: async () => (await supabase.from("state_franchises").select("id, full_name, state").order("full_name")).data ?? [],
+  });
   const selectedFr: any = (franchiseesQ.data ?? []).find((f: any) => f.id === v.franchiseeId);
+  const mappingType = v.franchiseMappingType ?? "company_direct";
+  const category = v.invoiceCategory ?? "other";
+  const mastersList = (franchiseesQ.data ?? []).filter((f: any) => f.franchise_type === "master");
+  const cityList = (franchiseesQ.data ?? []).filter((f: any) => (f.franchise_type ?? "city") === "city");
 
   return (
     <div className="space-y-3">
@@ -285,35 +304,89 @@ function InvoiceForm({ companies, value, onChange }: {
         <div><Label>Invoice Date</Label><Input type="date" value={v.invoiceDate} onChange={(e) => set({ invoiceDate: e.target.value })} /></div>
       </div>
 
-      {/* Traceability — territory attribution */}
-      <div className="rounded-md border border-border bg-muted/20 p-3">
-        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution & Traceability</p>
+      {/* Franchise Mapping & Invoice Category (mandatory) */}
+      <div className="rounded-md border border-gold/30 bg-gold/5 p-3">
+        <p className="mb-2 text-[10px] uppercase tracking-wider text-gold">Franchise Mapping & Invoice Category *</p>
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <Label>City Franchisee (Territory)</Label>
-            <Select value={v.franchiseeId ?? "none"} onValueChange={(x) => set({ franchiseeId: x === "none" ? null : x })}>
-              <SelectTrigger><SelectValue placeholder="Unattributed" /></SelectTrigger>
+          <div>
+            <Label>Franchise Mapping <span className="text-destructive">*</span></Label>
+            <Select
+              value={mappingType}
+              onValueChange={(x) => set({ franchiseMappingType: x, franchiseeId: null, stateFranchiseId: null })}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">— Unattributed —</SelectItem>
-                {(franchiseesQ.data ?? []).map((f: any) => {
-                  const terr = f.territories?.name ?? "no territory";
-                  const st = f.territories?.state ?? "";
-                  return <SelectItem key={f.id} value={f.id}>{f.full_name} · {terr}{st ? ` (${st})` : ""}</SelectItem>;
-                })}
+                <SelectItem value="company_direct">Company Direct</SelectItem>
+                <SelectItem value="master">Master Franchise</SelectItem>
+                <SelectItem value="state">State Franchise</SelectItem>
+                <SelectItem value="city">City Franchise</SelectItem>
               </SelectContent>
             </Select>
-            {selectedFr ? (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Maps to State Franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
-                {selectedFr.territories?.name && <> · Territory: <strong>{selectedFr.territories.name}</strong></>}
-                <br/>State franchise will be derived automatically.
-              </p>
-            ) : (
-              <p className="mt-1 rounded border border-dashed border-border/60 bg-background/40 p-2 text-[11px] text-muted-foreground">
-                <strong>State Franchisee:</strong> Not Assigned · <strong>Parent Company:</strong> MOS · <strong>State Commission:</strong> N/A
-              </p>
-            )}
           </div>
+          <div>
+            <Label>Invoice Category <span className="text-destructive">*</span></Label>
+            <Select value={category} onValueChange={(x) => set({ invoiceCategory: x })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {INVOICE_CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {mappingType === "master" && (
+            <div className="col-span-2">
+              <Label>Select Master Franchise</Label>
+              <Select value={v.franchiseeId ?? ""} onValueChange={(x) => set({ franchiseeId: x })}>
+                <SelectTrigger><SelectValue placeholder="Choose master franchise" /></SelectTrigger>
+                <SelectContent>
+                  {mastersList.map((f: any) => <SelectItem key={f.id} value={f.id}>{f.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {mappingType === "state" && (
+            <div className="col-span-2">
+              <Label>Select State Franchise</Label>
+              <Select value={v.stateFranchiseId ?? ""} onValueChange={(x) => set({ stateFranchiseId: x })}>
+                <SelectTrigger><SelectValue placeholder="Choose state franchise" /></SelectTrigger>
+                <SelectContent>
+                  {(stateFranchisesQ.data ?? []).map((f: any) => (
+                    <SelectItem key={f.id} value={f.id}>{f.full_name}{f.state ? ` · ${f.state}` : ""}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {mappingType === "city" && (
+            <div className="col-span-2">
+              <Label>Select City Franchise</Label>
+              <Select value={v.franchiseeId ?? ""} onValueChange={(x) => set({ franchiseeId: x })}>
+                <SelectTrigger><SelectValue placeholder="Choose city franchise" /></SelectTrigger>
+                <SelectContent>
+                  {cityList.map((f: any) => {
+                    const terr = f.territories?.name ?? "no territory";
+                    const st = f.territories?.state ?? "";
+                    return <SelectItem key={f.id} value={f.id}>{f.full_name} · {terr}{st ? ` (${st})` : ""}</SelectItem>;
+                  })}
+                </SelectContent>
+              </Select>
+              {selectedFr && (
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Auto-derived state franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Categories <em>TNS Turnover</em>, <em>Academy Sales</em> and <em>Mall of Salon Sales</em> feed the automatic ROI engine for the mapped franchisee.
+        </p>
+      </div>
+
+      {/* Traceability — source document */}
+      <div className="rounded-md border border-border bg-muted/20 p-3">
+        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Source Document</p>
+        <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <Label>Source Document Upload (PDF/JPG/PNG)</Label>
             <SourceDocUpload
@@ -375,7 +448,7 @@ function InvoiceForm({ companies, value, onChange }: {
 
 function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; name: string }[]; onCreated: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", billToGstin: "", placeOfSupply: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()], franchiseeId: null as string | null, isIntercompany: false, sourceDocumentRef: "", sourceDocumentUrl: "" });
+  const [form, setForm] = React.useState({ companyId: "", docType: "b2b_tax" as DocType, billToName: "", billToGstin: "", placeOfSupply: "", invoiceDate: new Date().toISOString().slice(0, 10), notes: "", items: [emptyItem()], franchiseeId: null as string | null, stateFranchiseId: null as string | null, franchiseMappingType: "company_direct", invoiceCategory: "other", isIntercompany: false, sourceDocumentRef: "", sourceDocumentUrl: "" });
   const create = useServerFn(createInvoice);
   const submit = async (issue: boolean) => {
     try {
@@ -383,7 +456,10 @@ function NewInvoiceDialog({ companies, onCreated }: { companies: { id: string; n
         toast.error("Place of Supply is required to issue a B2B tax invoice");
         return;
       }
-      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId, is_intercompany: form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, issue, is_demo: false } });
+      if (form.franchiseMappingType === "master" && !form.franchiseeId) { toast.error("Select the Master Franchise"); return; }
+      if (form.franchiseMappingType === "state" && !form.stateFranchiseId) { toast.error("Select the State Franchise"); return; }
+      if (form.franchiseMappingType === "city" && !form.franchiseeId) { toast.error("Select the City Franchise"); return; }
+      await create({ data: { company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId, state_franchise_id: form.stateFranchiseId, franchise_mapping_type: form.franchiseMappingType as any, invoice_category: form.invoiceCategory as any, is_intercompany: form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, issue, is_demo: false } });
       toast.success(issue ? "Invoice issued" : "Draft saved");
       setOpen(false); onCreated();
     } catch (e) { toast.error((e as Error).message); }
@@ -423,6 +499,9 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
         billToGstin: inv.bill_to_gstin ?? "", placeOfSupply: (inv as any).place_of_supply ?? "",
         invoiceDate: inv.invoice_date, notes: inv.notes ?? "",
         franchiseeId: (inv as any).franchisee_id ?? null,
+        stateFranchiseId: (inv as any).state_franchise_id ?? null,
+        franchiseMappingType: (inv as any).franchise_mapping_type ?? "company_direct",
+        invoiceCategory: (inv as any).invoice_category ?? "other",
         isIntercompany: !!(inv as any).is_intercompany,
         sourceDocumentRef: (inv as any).source_document_ref ?? "",
         sourceDocumentUrl: (inv as any).source_document_url ?? "",
@@ -441,7 +520,7 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
         toast.error("Place of Supply is required to issue a B2B tax invoice");
         return;
       }
-      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId ?? null, is_intercompany: !!form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, is_demo: false } });
+      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId ?? null, state_franchise_id: form.stateFranchiseId ?? null, franchise_mapping_type: form.franchiseMappingType, invoice_category: form.invoiceCategory, is_intercompany: !!form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, is_demo: false } });
       if (alsoIssue) { const r = await issue({ data: { id: invoiceId } }); toast.success(`Issued as ${r.invoice_number}`); }
       else toast.success("Draft updated");
       setOpen(false); onSaved();

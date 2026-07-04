@@ -122,6 +122,18 @@ const ItemSchema = z.object({
   is_student_product: z.boolean().default(false),
 });
 
+const INVOICE_CATEGORIES = [
+  "tns_turnover",
+  "academy_sales",
+  "mall_of_salon_sales",
+  "franchise_fee",
+  "royalty",
+  "product_sales",
+  "service_sales",
+  "other",
+] as const;
+const FRANCHISE_MAPPING_TYPES = ["company_direct", "master", "state", "city"] as const;
+
 const CreateInput = z.object({
   company_id: z.string().uuid(),
   doc_type: z.enum(DOC_TYPES),
@@ -135,6 +147,9 @@ const CreateInput = z.object({
   due_date: z.string().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
   franchisee_id: z.string().uuid().optional().nullable(),
+  state_franchise_id: z.string().uuid().optional().nullable(),
+  franchise_mapping_type: z.enum(FRANCHISE_MAPPING_TYPES).default("company_direct"),
+  invoice_category: z.enum(INVOICE_CATEGORIES).default("other"),
   is_intercompany: z.boolean().optional().default(false),
   source_document_ref: z.string().max(120).optional().nullable(),
   source_document_url: z.string().max(2000).optional().nullable(),
@@ -207,6 +222,9 @@ export const createInvoice = createServerFn({ method: "POST" })
         due_date: data.due_date ?? null,
         notes: data.notes ?? null,
         franchisee_id: data.franchisee_id ?? null,
+        state_franchise_id: data.state_franchise_id ?? null,
+        franchise_mapping_type: data.franchise_mapping_type ?? "company_direct",
+        invoice_category: data.invoice_category ?? "other",
         is_intercompany: data.is_intercompany ?? false,
         source_document_ref: data.source_document_ref ?? null,
         source_document_url: data.source_document_url ?? null,
