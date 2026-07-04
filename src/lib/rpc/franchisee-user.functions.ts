@@ -154,7 +154,6 @@ export const resetFranchiseePassword = createServerFn({ method: "POST" })
     await supabaseAdmin.from("franchisee_credentials").insert({
       franchisee_id: data.franchisee_id,
       login_email: franchisee.email ?? "",
-      temp_password: password,
       created_by: userId,
     });
 
