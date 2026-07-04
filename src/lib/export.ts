@@ -37,7 +37,7 @@ export function exportToCSV<T>(filename: string, rows: T[], columns: ExportColum
   downloadBlob(new Blob([csv], { type: "text/csv;charset=utf-8;" }), `${filename}.csv`);
 }
 
-export function exportToPDF<T>(opts: {
+export async function exportToPDF<T>(opts: {
   filename: string;
   title: string;
   subtitle?: string;
@@ -45,26 +45,35 @@ export function exportToPDF<T>(opts: {
   columns: ExportColumn<T>[];
   totals?: { label: string; value: string }[];
 }) {
+  await preloadLetterhead();
+  const { header, footer } = await requirePreloaded();
+
   const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+  drawLandscapeLetterheadSync(doc, header, footer);
+
+  // Title sits inside safe zone (below letterhead header strip)
+  const titleY = LANDSCAPE_CONTENT_TOP;
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(40, 40, 40);
-  doc.text(opts.title, 40, 40);
+  doc.setFontSize(15);
+  doc.setTextColor(30, 30, 30);
+  doc.text(opts.title, 40, titleY);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setTextColor(120, 120, 120);
   const generated = `Generated ${new Date().toLocaleString("en-IN")}`;
-  doc.text(opts.subtitle ? `${opts.subtitle}  ·  ${generated}` : generated, 40, 58);
+  doc.text(opts.subtitle ? `${opts.subtitle}  ·  ${generated}` : generated, 40, titleY + 14);
 
+  const pageH = doc.internal.pageSize.getHeight();
   autoTable(doc, {
-    startY: 78,
+    startY: titleY + 30,
     head: [opts.columns.map((c) => c.header)],
     body: opts.rows.map((r) => opts.columns.map((c) => String(c.accessor(r) ?? ""))),
     styles: { fontSize: 9, cellPadding: 6, textColor: [40, 40, 40] },
     headStyles: { fillColor: [201, 168, 76], textColor: [20, 20, 20], fontStyle: "bold" },
     alternateRowStyles: { fillColor: [248, 246, 240] },
-    margin: { left: 40, right: 40 },
+    margin: { left: 40, right: 40, top: LANDSCAPE_CONTENT_TOP, bottom: pageH - LANDSCAPE_CONTENT_BOTTOM + 10 },
+    didDrawPage: () => drawLandscapeLetterheadSync(doc, header, footer),
   });
 
   if (opts.totals?.length) {
