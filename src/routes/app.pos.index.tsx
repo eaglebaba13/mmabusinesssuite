@@ -284,8 +284,11 @@ function PosTerminal() {
       const { error: iErr } = await supabase.from("sales_order_items").insert(items);
       if (iErr) throw iErr;
 
+      // Set completed_at from the user-selected sale date so invoice_date matches.
+      // We anchor to noon UTC to avoid any timezone slippage to prev/next day.
+      const completedAtIso = new Date(`${saleDate}T12:00:00Z`).toISOString();
       const { data: completed, error: cErr } = await supabase
-        .from("sales_orders").update({ status: "completed" }).eq("id", order.id)
+        .from("sales_orders").update({ status: "completed", completed_at: completedAtIso } as any).eq("id", order.id)
         .select("id, grand_total, invoice_number").single();
       if (cErr) throw cErr;
 
