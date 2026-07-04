@@ -250,18 +250,17 @@ function PosTerminal() {
     cart.length > 0 &&
     !!mappingType &&
     (mappingType === "company_direct" || (!!franchiseeId && !!category)) &&
-    !!warehouseId &&
     saleDateValid;
 
   const checkout = useMutation({
     mutationFn: async () => {
-      if (!canCheckout) throw new Error("Complete Billing Under, Franchise, Category and Outlet before charging");
+      if (!canCheckout) throw new Error("Complete Billing Under, Franchise and Category before charging");
       const { data: u } = await supabase.auth.getUser();
 
       const { data: order, error: oErr } = await supabase
         .from("sales_orders")
         .insert({
-          warehouse_id: warehouseId,
+          warehouse_id: warehouseId || null,
           franchisee_id: mappingType === "company_direct" ? null : franchiseeId || null,
           franchise_mapping_type: mappingType,
           invoice_category: mappingType === "company_direct" ? "other" : category,
@@ -404,6 +403,11 @@ function PosTerminal() {
             </SelectContent>
           </Select>
         </div>
+        {noOutlet && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-xs text-amber-400">
+            No outlet linked to this franchise — you can still charge, but stock will not be deducted. Link a warehouse under Inventory → Warehouses to enable stock tracking.
+          </div>
+        )}
 
         {activeWarehouse && (
           <div className="rounded-xl bg-background/40 px-4 py-2 text-xs text-muted-foreground flex flex-wrap items-center gap-4">
