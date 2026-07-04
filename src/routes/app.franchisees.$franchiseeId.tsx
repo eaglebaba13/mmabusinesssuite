@@ -12,12 +12,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatINRCompact } from "@/lib/format";
+import { formatINR, formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { FranchiseeDashboard } from "@/components/app/FranchiseeDashboard";
 import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
+import { MonthlyRoiPanel } from "@/components/app/MonthlyRoiPanel";
+import { AgreementAuditPanel } from "@/components/app/AgreementAuditPanel";
 
 export const Route = createFileRoute("/app/franchisees/$franchiseeId")({
   head: () => ({ meta: [{ title: "Franchisee — MMA Suite" }] }),
