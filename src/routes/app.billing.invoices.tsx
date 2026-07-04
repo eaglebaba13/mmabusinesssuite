@@ -215,9 +215,20 @@ function InvoicesPage() {
 
 function emptyItem(): Item { return { description: "", quantity: 1, unit_price: 0, discount_pct: 0, gst_pct: 18, is_student_product: false }; }
 
+const INVOICE_CATEGORIES: { value: string; label: string }[] = [
+  { value: "tns_turnover", label: "TNS Turnover" },
+  { value: "academy_sales", label: "Academy Sales" },
+  { value: "mall_of_salon_sales", label: "Mall of Salon Sales" },
+  { value: "franchise_fee", label: "Franchise Fee" },
+  { value: "royalty", label: "Royalty" },
+  { value: "product_sales", label: "Product Sales" },
+  { value: "service_sales", label: "Service Sales" },
+  { value: "other", label: "Other" },
+];
+
 function InvoiceForm({ companies, value, onChange }: {
   companies: { id: string; name: string }[];
-  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[]; franchiseeId?: string | null; isIntercompany?: boolean; sourceDocumentRef?: string; sourceDocumentUrl?: string };
+  value: { companyId: string; docType: DocType; billToName: string; billToGstin?: string; placeOfSupply?: string; invoiceDate: string; notes: string; items: Item[]; franchiseeId?: string | null; stateFranchiseId?: string | null; franchiseMappingType?: string; invoiceCategory?: string; isIntercompany?: boolean; sourceDocumentRef?: string; sourceDocumentUrl?: string };
   onChange: (v: any) => void;
 }) {
   const v = value;
