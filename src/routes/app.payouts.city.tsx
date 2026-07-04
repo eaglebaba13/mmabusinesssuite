@@ -68,14 +68,25 @@ function CityContent({ fr }: { fr: any }) {
       (await supabase.from("revenue_entries").select("source,amount,received_on").eq("franchisee_id", fr.id)).data,
   });
   const linkedQ = useQuery({
-    queryKey: ["franchisee-linked", fr.id, fr.territory_id],
+    queryKey: ["franchisee-linked", fr.id],
     queryFn: async () => {
-      const [batches, products, employees] = await Promise.all([
-        supabase.from("batches").select("id", { count: "exact", head: true }),
-        supabase.from("products").select("id", { count: "exact", head: true }),
-        supabase.from("employees").select("id", { count: "exact", head: true }),
-      ]);
-      return { batches: batches.count ?? 0, products: products.count ?? 0, employees: employees.count ?? 0 };
+      // Only Dark Store SKUs are directly attributable via the franchisee's warehouse.
+      // Batches and staff are org-wide with no franchisee link → don't misrepresent them here.
+      const { data: whs } = await supabase
+        .from("warehouses")
+        .select("id")
+        .eq("franchisee_id", fr.id);
+      const whIds = (whs ?? []).map((w) => w.id);
+      let skus = 0;
+      if (whIds.length) {
+        const { data: stock } = await supabase
+          .from("stock_levels")
+          .select("product_id, quantity")
+          .in("warehouse_id", whIds)
+          .gt("quantity", 0);
+        skus = new Set((stock ?? []).map((s) => s.product_id)).size;
+      }
+      return { skus };
     },
   });
 
@@ -85,26 +96,36 @@ function CityContent({ fr }: { fr: any }) {
   const totalROI = payouts.reduce((s, p) => s + Number(p.total_amount), 0);
   const paidROI = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
   const dueROI = totalROI - paidROI;
+  const hasPayouts = payouts.length > 0;
 
   const empRev = sumBy("emporium_sale");
   const acaRev = sumBy("academy_fee");
   const dsRev = sumBy("dark_store");
 
-  // Expected lifetime accrual based on months since join
+  // Rate-card projection — informational only. Do NOT surface as "variance"
+  // unless real payout rows exist, otherwise an empty ledger shows as debt owed.
   const monthsActive = Math.max(1, Math.floor((Date.now() - new Date(fr.joined_at).getTime()) / (30 * 86400000)));
   const expectedBaseROI = (Number(fr.investment_amount) * Number(fr.base_roi_pct) / 100 / 12) * monthsActive;
   const expectedIncentives = empRev * Number(fr.emporium_pct) / 100 + acaRev * Number(fr.academy_pct) / 100 + dsRev * Number(fr.dark_store_pct) / 100;
   const expectedTotal = expectedBaseROI + expectedIncentives;
+  const variance = hasPayouts ? expectedTotal - totalROI : 0;
 
   return (
     <>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Kpi label="Investment" value={formatINR(Number(fr.investment_amount))} />
-        <Kpi label="Expected (LTD)" value={formatINR(expectedTotal)} />
-        <Kpi label="ROI Due" value={formatINR(dueROI)} />
-        <Kpi label="ROI Paid (LTD)" value={formatINR(paidROI)} />
-        <Kpi label="Variance" value={formatINR(expectedTotal - totalROI)} />
+        <Kpi label="Projected (rate-card)" value={formatINR(expectedTotal)} />
+        <Kpi label="ROI Due" value={hasPayouts ? formatINR(dueROI) : "—"} />
+        <Kpi label="ROI Paid (LTD)" value={hasPayouts ? formatINR(paidROI) : "—"} />
+        <Kpi label="Variance" value={hasPayouts ? formatINR(variance) : "—"} />
       </div>
+      {!hasPayouts && (
+        <p className="-mt-2 text-xs text-muted-foreground">
+          No payout runs yet. "Projected" is a rate-card estimate; ROI Due / Paid / Variance
+          will populate once invoices are billed and the monthly payout is generated.
+        </p>
+      )}
+
 
       <Card>
         <CardHeader><CardTitle className="text-base">Linked Units</CardTitle></CardHeader>
