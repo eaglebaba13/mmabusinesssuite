@@ -449,7 +449,8 @@ export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
       styles: { fontSize: 8, cellPadding: 4 },
       headStyles: { fillColor: [240, 235, 220], textColor: [60, 50, 20], fontStyle: "bold" },
       columnStyles: { 3: { halign: "right", fontStyle: "bold" } },
-      margin: { left: margin, right: margin },
+      margin: { left: margin, right: margin, top: PORTRAIT_CONTENT_TOP, bottom: 842 - PORTRAIT_CONTENT_BOTTOM + 10 },
+      didDrawPage: () => drawPortraitLetterheadSync(doc, preloaded.full),
     });
     y = (doc as any).lastAutoTable.finalY + 14;
   }
