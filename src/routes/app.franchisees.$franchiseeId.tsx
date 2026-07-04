@@ -457,3 +457,12 @@ function IncentiveEditDialog({
   );
 }
 
+
+function agreementStatus(f: any): string {
+  const today = new Date().toISOString().slice(0, 10);
+  if (!f.agreement_expiry) return "missing";
+  if (f.agreement_expiry < today) return "expired";
+  const in30 = new Date(); in30.setDate(in30.getDate() + 30);
+  if (f.agreement_expiry <= in30.toISOString().slice(0, 10)) return "expiring";
+  return "active";
+}
