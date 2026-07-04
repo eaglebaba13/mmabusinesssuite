@@ -499,6 +499,9 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
         billToGstin: inv.bill_to_gstin ?? "", placeOfSupply: (inv as any).place_of_supply ?? "",
         invoiceDate: inv.invoice_date, notes: inv.notes ?? "",
         franchiseeId: (inv as any).franchisee_id ?? null,
+        stateFranchiseId: (inv as any).state_franchise_id ?? null,
+        franchiseMappingType: (inv as any).franchise_mapping_type ?? "company_direct",
+        invoiceCategory: (inv as any).invoice_category ?? "other",
         isIntercompany: !!(inv as any).is_intercompany,
         sourceDocumentRef: (inv as any).source_document_ref ?? "",
         sourceDocumentUrl: (inv as any).source_document_url ?? "",
@@ -517,7 +520,7 @@ function EditDraftDialog({ invoiceId, onSaved }: { invoiceId: string; onSaved: (
         toast.error("Place of Supply is required to issue a B2B tax invoice");
         return;
       }
-      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId ?? null, is_intercompany: !!form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, is_demo: false } });
+      await update({ data: { id: invoiceId, company_id: form.companyId, doc_type: form.docType, bill_to_name: form.billToName, bill_to_gstin: form.billToGstin || null, place_of_supply: form.placeOfSupply || null, invoice_date: form.invoiceDate, notes: form.notes, items: form.items, franchisee_id: form.franchiseeId ?? null, state_franchise_id: form.stateFranchiseId ?? null, franchise_mapping_type: form.franchiseMappingType, invoice_category: form.invoiceCategory, is_intercompany: !!form.isIntercompany, source_document_ref: form.sourceDocumentRef || null, source_document_url: form.sourceDocumentUrl || null, is_demo: false } });
       if (alsoIssue) { const r = await issue({ data: { id: invoiceId } }); toast.success(`Issued as ${r.invoice_number}`); }
       else toast.success("Draft updated");
       setOpen(false); onSaved();
