@@ -1,5 +1,12 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  preloadLetterhead,
+  requirePreloaded,
+  drawPortraitLetterheadSync,
+  PORTRAIT_CONTENT_TOP,
+  PORTRAIT_CONTENT_BOTTOM,
+} from "./letterhead";
 
 type Party = {
   name: string;
@@ -140,40 +147,30 @@ function numberToWordsIN(num: number): string {
     : `${words} Rupees Only`;
 }
 
-export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
+export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
+  await preloadLetterhead();
+  const preloaded = await requirePreloaded();
+
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 36;
-  let y = margin;
+  const margin = 40;
 
-  // ── Header band ────────────────────────────────────────────────────────────
-  doc.setFillColor(13, 13, 13);
-  doc.rect(0, 0, pageWidth, 70, "F");
-  doc.setTextColor(201, 168, 76);
+  // Stamp branded letterhead as page background
+  drawPortraitLetterheadSync(doc, preloaded.full);
+
+  // Content starts inside the safe zone (below letterhead header band)
+  let y = PORTRAIT_CONTENT_TOP;
+
+  // ── Document title band (sits inside safe zone, no bg overlay) ─────────────
+  doc.setTextColor(20, 20, 20);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text("TAX INVOICE", margin, 38);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(220, 220, 220);
-  doc.text("Original for Recipient", margin, 56);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(255, 255, 255);
-  doc.text(inv.seller.name, pageWidth - margin, 38, { align: "right" });
+  doc.setFontSize(18);
+  doc.text("TAX INVOICE", margin, y);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(220, 220, 220);
-  const sellerAddr = [
-    inv.seller.address,
-    [inv.seller.city, inv.seller.state].filter(Boolean).join(", "),
-    inv.seller.gstin ? `GSTIN: ${inv.seller.gstin}` : null,
-  ]
-    .filter(Boolean)
-    .join("  ·  ");
-  if (sellerAddr) doc.text(sellerAddr, pageWidth - margin, 54, { align: "right" });
-
-  y = 90;
+  doc.setTextColor(120, 120, 120);
+  doc.text("Original for Recipient", margin, y + 12);
+  y += 26;
 
   // ── Invoice meta ───────────────────────────────────────────────────────────
   doc.setTextColor(40, 40, 40);
@@ -368,13 +365,17 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
       10: { halign: "right", fontStyle: "bold" },
     },
     alternateRowStyles: { fillColor: [250, 248, 244] },
-    margin: { left: margin, right: margin },
+    margin: { left: margin, right: margin, top: PORTRAIT_CONTENT_TOP, bottom: 842 - PORTRAIT_CONTENT_BOTTOM + 10 },
     didParseCell: (data: any) => {
       if (data.section === "body" && data.column.index === 2 && v.missingHsnRows.includes(data.row.index + 1)) {
         data.cell.styles.textColor = [180, 30, 30];
         data.cell.styles.fontStyle = "bold";
         data.cell.styles.fillColor = [255, 235, 235];
       }
+    },
+    didDrawPage: () => {
+      // Re-stamp the letterhead on every new page created by autoTable
+      drawPortraitLetterheadSync(doc, preloaded.full);
     },
   });
 
@@ -448,7 +449,8 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
       styles: { fontSize: 8, cellPadding: 4 },
       headStyles: { fillColor: [240, 235, 220], textColor: [60, 50, 20], fontStyle: "bold" },
       columnStyles: { 3: { halign: "right", fontStyle: "bold" } },
-      margin: { left: margin, right: margin },
+      margin: { left: margin, right: margin, top: PORTRAIT_CONTENT_TOP, bottom: 842 - PORTRAIT_CONTENT_BOTTOM + 10 },
+      didDrawPage: () => drawPortraitLetterheadSync(doc, preloaded.full),
     });
     y = (doc as any).lastAutoTable.finalY + 14;
   }
@@ -465,8 +467,8 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
     y += 24;
   }
 
-  // Declaration & signature
-  const footerY = doc.internal.pageSize.getHeight() - 90;
+  // Declaration & signature — sits inside the safe zone, above letterhead footer
+  const footerY = PORTRAIT_CONTENT_BOTTOM - 80;
   doc.setDrawColor(220, 220, 220);
   doc.line(margin, footerY, pageWidth - margin, footerY);
   doc.setFont("helvetica", "italic");
@@ -485,14 +487,14 @@ export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(110, 110, 110);
-  doc.text("Authorised Signatory", pageWidth - margin, footerY + 60, { align: "right" });
+  doc.text("Authorised Signatory", pageWidth - margin, footerY + 55, { align: "right" });
 
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
   doc.text(
     "This is a computer-generated tax invoice and does not require a physical signature.",
     pageWidth / 2,
-    doc.internal.pageSize.getHeight() - 18,
+    PORTRAIT_CONTENT_BOTTOM - 4,
     { align: "center" },
   );
 
