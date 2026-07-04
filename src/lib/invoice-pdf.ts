@@ -1,5 +1,12 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  preloadLetterhead,
+  requirePreloaded,
+  drawPortraitLetterheadSync,
+  PORTRAIT_CONTENT_TOP,
+  PORTRAIT_CONTENT_BOTTOM,
+} from "./letterhead";
 
 type Party = {
   name: string;
