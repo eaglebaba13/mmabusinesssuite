@@ -105,7 +105,7 @@ function CityContent({ fr }: { fr: any }) {
   // Rate-card projection — informational only. Do NOT surface as "variance"
   // unless real payout rows exist, otherwise an empty ledger shows as debt owed.
   const monthsActive = Math.max(1, Math.floor((Date.now() - new Date(fr.joined_at).getTime()) / (30 * 86400000)));
-  const expectedBaseROI = (Number(fr.investment_amount) * Number(fr.base_roi_pct) / 100 / 12) * monthsActive;
+  const expectedBaseROI = (Number(fr.investment_amount) * Number(fr.base_roi_pct) / 100) * monthsActive;
   const expectedIncentives = empRev * Number(fr.emporium_pct) / 100 + acaRev * Number(fr.academy_pct) / 100 + dsRev * Number(fr.dark_store_pct) / 100;
   const expectedTotal = expectedBaseROI + expectedIncentives;
   const variance = hasPayouts ? expectedTotal - totalROI : 0;
