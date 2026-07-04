@@ -245,11 +245,13 @@ function PosTerminal() {
   }, [selectedFranchisee, category, mappingType, totals.grand, monthlyRoi.data]);
 
   const noOutlet = !warehouses.isLoading && (warehouses.data ?? []).length === 0;
+  const saleDateValid = !!saleDate && saleDate <= todayIso;
   const canCheckout =
     cart.length > 0 &&
     !!mappingType &&
     (mappingType === "company_direct" || (!!franchiseeId && !!category)) &&
-    !!warehouseId;
+    !!warehouseId &&
+    saleDateValid;
 
   const checkout = useMutation({
     mutationFn: async () => {
