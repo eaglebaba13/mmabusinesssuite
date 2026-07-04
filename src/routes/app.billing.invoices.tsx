@@ -304,35 +304,89 @@ function InvoiceForm({ companies, value, onChange }: {
         <div><Label>Invoice Date</Label><Input type="date" value={v.invoiceDate} onChange={(e) => set({ invoiceDate: e.target.value })} /></div>
       </div>
 
-      {/* Traceability — territory attribution */}
-      <div className="rounded-md border border-border bg-muted/20 p-3">
-        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution & Traceability</p>
+      {/* Franchise Mapping & Invoice Category (mandatory) */}
+      <div className="rounded-md border border-gold/30 bg-gold/5 p-3">
+        <p className="mb-2 text-[10px] uppercase tracking-wider text-gold">Franchise Mapping & Invoice Category *</p>
         <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2">
-            <Label>City Franchisee (Territory)</Label>
-            <Select value={v.franchiseeId ?? "none"} onValueChange={(x) => set({ franchiseeId: x === "none" ? null : x })}>
-              <SelectTrigger><SelectValue placeholder="Unattributed" /></SelectTrigger>
+          <div>
+            <Label>Franchise Mapping <span className="text-destructive">*</span></Label>
+            <Select
+              value={mappingType}
+              onValueChange={(x) => set({ franchiseMappingType: x, franchiseeId: null, stateFranchiseId: null })}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">— Unattributed —</SelectItem>
-                {(franchiseesQ.data ?? []).map((f: any) => {
-                  const terr = f.territories?.name ?? "no territory";
-                  const st = f.territories?.state ?? "";
-                  return <SelectItem key={f.id} value={f.id}>{f.full_name} · {terr}{st ? ` (${st})` : ""}</SelectItem>;
-                })}
+                <SelectItem value="company_direct">Company Direct</SelectItem>
+                <SelectItem value="master">Master Franchise</SelectItem>
+                <SelectItem value="state">State Franchise</SelectItem>
+                <SelectItem value="city">City Franchise</SelectItem>
               </SelectContent>
             </Select>
-            {selectedFr ? (
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Maps to State Franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
-                {selectedFr.territories?.name && <> · Territory: <strong>{selectedFr.territories.name}</strong></>}
-                <br/>State franchise will be derived automatically.
-              </p>
-            ) : (
-              <p className="mt-1 rounded border border-dashed border-border/60 bg-background/40 p-2 text-[11px] text-muted-foreground">
-                <strong>State Franchisee:</strong> Not Assigned · <strong>Parent Company:</strong> MOS · <strong>State Commission:</strong> N/A
-              </p>
-            )}
           </div>
+          <div>
+            <Label>Invoice Category <span className="text-destructive">*</span></Label>
+            <Select value={category} onValueChange={(x) => set({ invoiceCategory: x })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {INVOICE_CATEGORIES.map((c) => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {mappingType === "master" && (
+            <div className="col-span-2">
+              <Label>Select Master Franchise</Label>
+              <Select value={v.franchiseeId ?? ""} onValueChange={(x) => set({ franchiseeId: x })}>
+                <SelectTrigger><SelectValue placeholder="Choose master franchise" /></SelectTrigger>
+                <SelectContent>
+                  {mastersList.map((f: any) => <SelectItem key={f.id} value={f.id}>{f.full_name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {mappingType === "state" && (
+            <div className="col-span-2">
+              <Label>Select State Franchise</Label>
+              <Select value={v.stateFranchiseId ?? ""} onValueChange={(x) => set({ stateFranchiseId: x })}>
+                <SelectTrigger><SelectValue placeholder="Choose state franchise" /></SelectTrigger>
+                <SelectContent>
+                  {(stateFranchisesQ.data ?? []).map((f: any) => (
+                    <SelectItem key={f.id} value={f.id}>{f.full_name}{f.state ? ` · ${f.state}` : ""}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {mappingType === "city" && (
+            <div className="col-span-2">
+              <Label>Select City Franchise</Label>
+              <Select value={v.franchiseeId ?? ""} onValueChange={(x) => set({ franchiseeId: x })}>
+                <SelectTrigger><SelectValue placeholder="Choose city franchise" /></SelectTrigger>
+                <SelectContent>
+                  {cityList.map((f: any) => {
+                    const terr = f.territories?.name ?? "no territory";
+                    const st = f.territories?.state ?? "";
+                    return <SelectItem key={f.id} value={f.id}>{f.full_name} · {terr}{st ? ` (${st})` : ""}</SelectItem>;
+                  })}
+                </SelectContent>
+              </Select>
+              {selectedFr && (
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Auto-derived state franchise: <strong>{selectedFr.territories?.state_franchises?.full_name ?? "—"}</strong>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Categories <em>TNS Turnover</em>, <em>Academy Sales</em> and <em>Mall of Salon Sales</em> feed the automatic ROI engine for the mapped franchisee.
+        </p>
+      </div>
+
+      {/* Traceability — source document */}
+      <div className="rounded-md border border-border bg-muted/20 p-3">
+        <p className="mb-2 text-[10px] uppercase tracking-wider text-muted-foreground">Source Document</p>
+        <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
             <Label>Source Document Upload (PDF/JPG/PNG)</Label>
             <SourceDocUpload
