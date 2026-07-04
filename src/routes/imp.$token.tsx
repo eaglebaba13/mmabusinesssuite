@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { resolveImpersonation, fetchImpersonationData, endImpersonation } from "@/lib/rpc/impersonation.functions";
 import { formatINR } from "@/lib/format";
-import { Eye, LogOut, Lock } from "lucide-react";
+import { Eye, LogOut, Lock, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/imp/$token")({
   head: () => ({ meta: [{ title: "Impersonation — MMA Suite" }] }),
@@ -27,6 +27,10 @@ function ImpersonationPage() {
     queryKey: ["imp-data", token],
     queryFn: () => fetchData({ data: { token } }),
     enabled: !!ctxQ.data,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 20000,
+    staleTime: 0,
   });
 
   const [now, setNow] = React.useState(Date.now());
@@ -75,7 +79,19 @@ function ImpersonationPage() {
           <Badge variant="outline" className="gap-1 text-xs"><Lock className="h-3 w-3" />{ctx.mode}</Badge>
           <span className="font-mono text-xs">expires in {mm}:{ss}</span>
         </div>
-        <Button size="sm" variant="destructive" onClick={handleExit}><LogOut className="mr-1 h-3.5 w-3.5" /> Exit</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => dataQ.refetch()}
+            disabled={dataQ.isFetching}
+            title="Refresh data"
+          >
+            <RefreshCw className={`mr-1 h-3.5 w-3.5 ${dataQ.isFetching ? "animate-spin" : ""}`} />
+            {dataQ.isFetching ? "Refreshing" : "Refresh"}
+          </Button>
+          <Button size="sm" variant="destructive" onClick={handleExit}><LogOut className="mr-1 h-3.5 w-3.5" /> Exit</Button>
+        </div>
       </div>
 
       <div className="mx-auto max-w-6xl p-6 space-y-6">
