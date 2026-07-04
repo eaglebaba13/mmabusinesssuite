@@ -3797,6 +3797,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      verify_certificate: {
+        Args: { _code: string }
+        Returns: {
+          batch_code: string
+          certificate_code: string
+          course_title: string
+          duration_weeks: number
+          grade: string
+          issued_on: string
+          student_full_name: string
+        }[]
+      }
       webinar_seats_taken: { Args: { _webinar_id: string }; Returns: number }
     }
     Enums: {
