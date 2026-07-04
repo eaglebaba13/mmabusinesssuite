@@ -83,6 +83,8 @@ function PosTerminal() {
   const [customer, setCustomer] = React.useState({ name: "", phone: "", email: "", gstin: "" });
   const [paymentMethod, setPaymentMethod] = React.useState<string>("cash");
   const [paymentReference, setPaymentReference] = React.useState("");
+  const [saleDate, setSaleDate] = React.useState<string>(() => new Date().toISOString().slice(0, 10));
+  const todayIso = new Date().toISOString().slice(0, 10);
 
   const profile = useQuery({
     queryKey: ["pos-profile", user?.id],
@@ -195,6 +197,7 @@ function PosTerminal() {
   const removeFromCart = (idx: number) => setCart((prev) => prev.filter((_, k) => k !== idx));
   const clearCart = () => {
     setCart([]); setCustomer({ name: "", phone: "", email: "", gstin: "" }); setPaymentReference("");
+    setSaleDate(new Date().toISOString().slice(0, 10));
   };
 
   const totals = React.useMemo(() => {
@@ -242,11 +245,13 @@ function PosTerminal() {
   }, [selectedFranchisee, category, mappingType, totals.grand, monthlyRoi.data]);
 
   const noOutlet = !warehouses.isLoading && (warehouses.data ?? []).length === 0;
+  const saleDateValid = !!saleDate && saleDate <= todayIso;
   const canCheckout =
     cart.length > 0 &&
     !!mappingType &&
     (mappingType === "company_direct" || (!!franchiseeId && !!category)) &&
-    !!warehouseId;
+    !!warehouseId &&
+    saleDateValid;
 
   const checkout = useMutation({
     mutationFn: async () => {
@@ -279,8 +284,11 @@ function PosTerminal() {
       const { error: iErr } = await supabase.from("sales_order_items").insert(items);
       if (iErr) throw iErr;
 
+      // Set completed_at from the user-selected sale date so invoice_date matches.
+      // We anchor to noon UTC to avoid any timezone slippage to prev/next day.
+      const completedAtIso = new Date(`${saleDate}T12:00:00Z`).toISOString();
       const { data: completed, error: cErr } = await supabase
-        .from("sales_orders").update({ status: "completed" }).eq("id", order.id)
+        .from("sales_orders").update({ status: "completed", completed_at: completedAtIso } as any).eq("id", order.id)
         .select("id, grand_total, invoice_number").single();
       if (cErr) throw cErr;
 
@@ -507,19 +515,37 @@ function PosTerminal() {
           </div>
         )}
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="upi">UPI</SelectItem>
-              <SelectItem value="card">Card</SelectItem>
-              <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-              <SelectItem value="wallet">Wallet</SelectItem>
-              <SelectItem value="credit">Credit (unpaid)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input placeholder="Reference (txn/UTR)" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} className="h-9" />
+        <div className="mt-3 space-y-2">
+          <div>
+            <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+              Sale Date <span className="text-destructive">*</span>
+            </label>
+            <Input
+              type="date"
+              value={saleDate}
+              max={todayIso}
+              onChange={(e) => setSaleDate(e.target.value)}
+              className="h-9"
+              required
+            />
+            {!saleDateValid && (
+              <p className="mt-1 text-[10px] text-destructive">Pick a sale date (today or earlier).</p>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="upi">UPI</SelectItem>
+                <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                <SelectItem value="wallet">Wallet</SelectItem>
+                <SelectItem value="credit">Credit (unpaid)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input placeholder="Reference (txn/UTR)" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} className="h-9" />
+          </div>
         </div>
 
         <Button
