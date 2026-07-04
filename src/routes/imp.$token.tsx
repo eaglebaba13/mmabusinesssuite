@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { resolveImpersonation, fetchImpersonationData, endImpersonation } from "@/lib/rpc/impersonation.functions";
 import { formatINR } from "@/lib/format";
-import { Eye, LogOut, Lock } from "lucide-react";
+import { Eye, LogOut, Lock, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/imp/$token")({
   head: () => ({ meta: [{ title: "Impersonation — MMA Suite" }] }),
