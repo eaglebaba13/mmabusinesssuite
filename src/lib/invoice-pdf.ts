@@ -467,8 +467,8 @@ export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
     y += 24;
   }
 
-  // Declaration & signature
-  const footerY = doc.internal.pageSize.getHeight() - 90;
+  // Declaration & signature — sits inside the safe zone, above letterhead footer
+  const footerY = PORTRAIT_CONTENT_BOTTOM - 80;
   doc.setDrawColor(220, 220, 220);
   doc.line(margin, footerY, pageWidth - margin, footerY);
   doc.setFont("helvetica", "italic");
@@ -487,14 +487,14 @@ export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
   doc.setTextColor(110, 110, 110);
-  doc.text("Authorised Signatory", pageWidth - margin, footerY + 60, { align: "right" });
+  doc.text("Authorised Signatory", pageWidth - margin, footerY + 55, { align: "right" });
 
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
   doc.text(
     "This is a computer-generated tax invoice and does not require a physical signature.",
     pageWidth / 2,
-    doc.internal.pageSize.getHeight() - 18,
+    PORTRAIT_CONTENT_BOTTOM - 4,
     { align: "center" },
   );
 
