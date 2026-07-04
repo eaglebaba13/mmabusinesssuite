@@ -147,40 +147,30 @@ function numberToWordsIN(num: number): string {
     : `${words} Rupees Only`;
 }
 
-export function downloadGstInvoicePdf(inv: InvoicePdfInput) {
+export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
+  await preloadLetterhead();
+  const preloaded = await requirePreloaded();
+
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 36;
-  let y = margin;
+  const margin = 40;
 
-  // ── Header band ────────────────────────────────────────────────────────────
-  doc.setFillColor(13, 13, 13);
-  doc.rect(0, 0, pageWidth, 70, "F");
-  doc.setTextColor(201, 168, 76);
+  // Stamp branded letterhead as page background
+  drawPortraitLetterheadSync(doc, preloaded.full);
+
+  // Content starts inside the safe zone (below letterhead header band)
+  let y = PORTRAIT_CONTENT_TOP;
+
+  // ── Document title band (sits inside safe zone, no bg overlay) ─────────────
+  doc.setTextColor(20, 20, 20);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.text("TAX INVOICE", margin, 38);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(220, 220, 220);
-  doc.text("Original for Recipient", margin, 56);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(255, 255, 255);
-  doc.text(inv.seller.name, pageWidth - margin, 38, { align: "right" });
+  doc.setFontSize(18);
+  doc.text("TAX INVOICE", margin, y);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(220, 220, 220);
-  const sellerAddr = [
-    inv.seller.address,
-    [inv.seller.city, inv.seller.state].filter(Boolean).join(", "),
-    inv.seller.gstin ? `GSTIN: ${inv.seller.gstin}` : null,
-  ]
-    .filter(Boolean)
-    .join("  ·  ");
-  if (sellerAddr) doc.text(sellerAddr, pageWidth - margin, 54, { align: "right" });
-
-  y = 90;
+  doc.setTextColor(120, 120, 120);
+  doc.text("Original for Recipient", margin, y + 12);
+  y += 26;
 
   // ── Invoice meta ───────────────────────────────────────────────────────────
   doc.setTextColor(40, 40, 40);
