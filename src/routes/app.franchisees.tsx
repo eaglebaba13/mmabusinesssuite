@@ -14,7 +14,7 @@ import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { ExportBar } from "@/components/app/ExportBar";
 import { exportToCSV, exportToPDF } from "@/lib/export";
-import { createFranchiseeUser } from "@/server/franchisee-user.functions";
+import { createFranchiseeUser } from "@/lib/rpc/franchisee-user.functions";
 import { FranchiseeActions } from "@/components/app/FranchiseeActions";
 import { ImportButton } from "@/components/app/ImportButton";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";

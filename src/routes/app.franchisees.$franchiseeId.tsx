@@ -17,7 +17,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { FranchiseeDashboard } from "@/components/app/FranchiseeDashboard";
 import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
-import { resetFranchiseePassword } from "@/server/franchisee-user.functions";
+import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 
 export const Route = createFileRoute("/app/franchisees/$franchiseeId")({
   head: () => ({ meta: [{ title: "Franchisee — MMA Suite" }] }),

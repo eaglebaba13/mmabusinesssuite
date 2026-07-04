@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { KpiCard } from "@/components/app/KpiCard";
 import { formatINR, formatINRCompact } from "@/lib/format";
-import { resetStateFranchisePassword } from "@/server/state-franchise-user.functions";
+import { resetStateFranchisePassword } from "@/lib/rpc/state-franchise-user.functions";
 
 export const Route = createFileRoute("/app/state-franchises/$stateFranchiseId")({
   head: () => ({ meta: [{ title: "State Franchise — MMA Suite" }] }),
