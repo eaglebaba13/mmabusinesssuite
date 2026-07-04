@@ -2147,6 +2147,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           phone: string | null
           updated_at: string
         }
@@ -2156,6 +2157,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -2165,6 +2167,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           phone?: string | null
           updated_at?: string
         }
@@ -3716,6 +3719,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_user: { Args: { _user_id: string }; Returns: undefined }
       admin_grant_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3730,6 +3734,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          is_active: boolean
           phone: string
           roles: Database["public"]["Enums"]["app_role"][]
         }[]
@@ -3739,6 +3744,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: undefined
+      }
+      admin_set_user_active: {
+        Args: { _active: boolean; _user_id: string }
         Returns: undefined
       }
       compute_franchisee_monthly_roi: {

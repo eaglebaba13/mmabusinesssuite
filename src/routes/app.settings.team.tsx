@@ -20,7 +20,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Shield, ShieldAlert } from "lucide-react";
+import { Search, Shield, ShieldAlert, MoreVertical, Power, PowerOff, Trash2 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/app/settings/team")({
   component: TeamRolesPage,
@@ -60,6 +63,7 @@ interface ManagedUser {
   full_name: string | null;
   phone: string | null;
   created_at: string;
+  is_active: boolean;
   roles: AppRole[];
 }
 
@@ -100,6 +104,34 @@ function TeamRolesPage() {
       if (error) throw error;
     },
   });
+
+  const setActive = useMutation({
+    mutationFn: async ({ userId, active }: { userId: string; active: boolean }) => {
+      const { error } = await supabase.rpc("admin_set_user_active" as any, { _user_id: userId, _active: active });
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      toast.success(v.active ? "User activated" : "User deactivated");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to update status"),
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.rpc("admin_delete_user" as any, { _user_id: userId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("User deleted");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      setSelected(null);
+      setConfirmDelete(null);
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to delete user"),
+  });
+
+  const [confirmDelete, setConfirmDelete] = React.useState<ManagedUser | null>(null);
 
   const filtered = React.useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -213,51 +245,91 @@ function TeamRolesPage() {
               const initials = (u.full_name || u.email || "?")
                 .split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
               const isPrivileged = u.roles.some((r) => PRIVILEGED.includes(r));
+              const isSelfRow = u.id === user?.id;
               return (
-                <button
+                <div
                   key={u.id}
-                  onClick={() => openSheet(u)}
-                  className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-foreground/5"
+                  className="flex w-full items-center gap-4 p-4 transition-colors hover:bg-foreground/5"
                 >
-                  <Avatar className="h-10 w-10 border border-gold/30">
-                    <AvatarFallback className="bg-background text-xs text-gold">{initials}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-medium">{u.full_name || "Unnamed"}</p>
-                      {u.id === user?.id && (
-                        <Badge variant="outline" className="h-5 border-gold/40 px-1.5 text-[10px] text-gold">You</Badge>
-                      )}
-                      {isPrivileged && <Shield className="h-3.5 w-3.5 text-gold" />}
+                  <button
+                    onClick={() => openSheet(u)}
+                    className="flex flex-1 items-center gap-4 text-left min-w-0"
+                  >
+                    <Avatar className="h-10 w-10 border border-gold/30">
+                      <AvatarFallback className="bg-background text-xs text-gold">{initials}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className={`truncate font-medium ${u.is_active ? "" : "text-muted-foreground line-through"}`}>
+                          {u.full_name || "Unnamed"}
+                        </p>
+                        {isSelfRow && (
+                          <Badge variant="outline" className="h-5 border-gold/40 px-1.5 text-[10px] text-gold">You</Badge>
+                        )}
+                        {!u.is_active && (
+                          <Badge variant="outline" className="h-5 border-destructive/50 px-1.5 text-[10px] text-destructive">Inactive</Badge>
+                        )}
+                        {isPrivileged && <Shield className="h-3.5 w-3.5 text-gold" />}
+                      </div>
+                      <p className="truncate text-xs text-muted-foreground">{u.email}</p>
                     </div>
-                    <p className="truncate text-xs text-muted-foreground">{u.email}</p>
-                  </div>
-                  <div className="hidden flex-wrap items-center justify-end gap-1 sm:flex sm:max-w-[40%]">
-                    {(() => {
-                      const visible = u.roles.filter((r) => r !== "super_admin");
-                      const hasHidden = u.roles.length > visible.length;
-                      if (visible.length === 0) {
-                        return (
-                          <Badge variant="outline" className="text-muted-foreground">
-                            {hasHidden ? "Admin (system)" : "No roles"}
+                    <div className="hidden flex-wrap items-center justify-end gap-1 sm:flex sm:max-w-[40%]">
+                      {(() => {
+                        const visible = u.roles.filter((r) => r !== "super_admin");
+                        const hasHidden = u.roles.length > visible.length;
+                        if (visible.length === 0) {
+                          return (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              {hasHidden ? "Admin (system)" : "No roles"}
+                            </Badge>
+                          );
+                        }
+                        return visible.map((r) => (
+                          <Badge
+                            key={r}
+                            variant={PRIVILEGED.includes(r) ? "default" : "secondary"}
+                            className={PRIVILEGED.includes(r) ? "bg-gradient-gold text-background" : ""}
+                          >
+                            {ROLE_LABELS[r]}
                           </Badge>
-                        );
-                      }
-                      return visible.map((r) => (
-                        <Badge
-                          key={r}
-                          variant={PRIVILEGED.includes(r) ? "default" : "secondary"}
-                          className={PRIVILEGED.includes(r) ? "bg-gradient-gold text-background" : ""}
+                        ));
+                      })()}
+                    </div>
+                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openSheet(u)}>Manage roles</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      {u.is_active ? (
+                        <DropdownMenuItem
+                          disabled={isSelfRow || setActive.isPending}
+                          onClick={() => setActive.mutate({ userId: u.id, active: false })}
                         >
-                          {ROLE_LABELS[r]}
-                        </Badge>
-                      ));
-                    })()}
-                  </div>
-                  <div className="hidden text-xs text-muted-foreground md:block">
-                    {new Date(u.created_at).toLocaleDateString()}
-                  </div>
-                </button>
+                          <PowerOff className="mr-2 h-4 w-4" /> Deactivate
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          disabled={setActive.isPending}
+                          onClick={() => setActive.mutate({ userId: u.id, active: true })}
+                        >
+                          <Power className="mr-2 h-4 w-4" /> Activate
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        disabled={isSelfRow}
+                        onClick={() => setConfirmDelete(u)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" /> Delete user
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               );
             })}
           </div>
@@ -336,6 +408,28 @@ function TeamRolesPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmGrantPrivileged} className="bg-gradient-gold text-background">
               Yes, grant it
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {confirmDelete?.full_name || confirmDelete?.email}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the user account, their sign-in access, and all role assignments.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => confirmDelete && deleteUser.mutate(confirmDelete.id)}
+              disabled={deleteUser.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUser.isPending ? "Deleting…" : "Delete permanently"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
