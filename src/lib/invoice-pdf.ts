@@ -365,13 +365,17 @@ export async function downloadGstInvoicePdf(inv: InvoicePdfInput) {
       10: { halign: "right", fontStyle: "bold" },
     },
     alternateRowStyles: { fillColor: [250, 248, 244] },
-    margin: { left: margin, right: margin },
+    margin: { left: margin, right: margin, top: PORTRAIT_CONTENT_TOP, bottom: 842 - PORTRAIT_CONTENT_BOTTOM + 10 },
     didParseCell: (data: any) => {
       if (data.section === "body" && data.column.index === 2 && v.missingHsnRows.includes(data.row.index + 1)) {
         data.cell.styles.textColor = [180, 30, 30];
         data.cell.styles.fontStyle = "bold";
         data.cell.styles.fillColor = [255, 235, 235];
       }
+    },
+    didDrawPage: () => {
+      // Re-stamp the letterhead on every new page created by autoTable
+      drawPortraitLetterheadSync(doc, preloaded.full);
     },
   });
 
