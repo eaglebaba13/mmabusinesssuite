@@ -76,6 +76,8 @@ function genPassword(length = 12) {
 function FranchiseesPage() {
   const qc = useQueryClient();
   const [search, setSearch] = React.useState("");
+  const [typeFilter, setTypeFilter] = React.useState<string>("all");
+  const [agreementFilter, setAgreementFilter] = React.useState<string>("all");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
   const [form, setForm] = React.useState<OnboardForm>(emptyForm);
@@ -97,10 +99,48 @@ function FranchiseesPage() {
     },
   });
 
-  const filtered = (franchisees ?? []).filter((f) =>
-    f.full_name.toLowerCase().includes(search.toLowerCase()) ||
-    (f.email ?? "").toLowerCase().includes(search.toLowerCase()),
-  );
+  const today = new Date().toISOString().slice(0, 10);
+  const agreementStatusOf = (f: any): "active" | "expired" | "expiring" | "missing" => {
+    if (!f.agreement_expiry) return "missing";
+    if (f.agreement_expiry < today) return "expired";
+    const inThirty = new Date(); inThirty.setDate(inThirty.getDate() + 30);
+    if (f.agreement_expiry <= inThirty.toISOString().slice(0, 10)) return "expiring";
+    return "active";
+  };
+
+  const filtered = (franchisees ?? []).filter((f: any) => {
+    const matchSearch =
+      f.full_name.toLowerCase().includes(search.toLowerCase()) ||
+      (f.email ?? "").toLowerCase().includes(search.toLowerCase());
+    const matchType = typeFilter === "all" || (f.franchise_type ?? "city") === typeFilter;
+    const matchAgr = agreementFilter === "all" || agreementStatusOf(f) === agreementFilter;
+    return matchSearch && matchType && matchAgr;
+  });
+
+  // Current month ROI summary
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  const monthKey = monthStart.toISOString().slice(0, 10);
+  const { data: currentPayouts = [] } = useQuery({
+    queryKey: ["current-month-payouts", monthKey],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("roi_payouts")
+        .select("franchisee_id, mg_amount, variable_roi, final_payable, status")
+        .eq("payout_month", monthKey);
+      return data ?? [];
+    },
+  });
+  const totals = React.useMemo(() => {
+    const totalInv = filtered.reduce((s: number, f: any) => s + Number(f.investment_amount ?? 0), 0);
+    const scoped = currentPayouts.filter((p: any) => filtered.some((f: any) => f.id === p.franchisee_id));
+    const mg = scoped.reduce((s: number, p: any) => s + Number(p.mg_amount ?? 0), 0);
+    const vr = scoped.reduce((s: number, p: any) => s + Number(p.variable_roi ?? 0), 0);
+    const payable = scoped.reduce((s: number, p: any) => s + Number(p.final_payable ?? 0), 0);
+    const pending = scoped.filter((p: any) => p.status === "pending").reduce((s: number, p: any) => s + Number(p.final_payable ?? 0), 0);
+    return { totalInv, mg, vr, payable, pending };
+  }, [filtered, currentPayouts]);
+
 
   const exportCols = [
     { header: "Name", accessor: (f: any) => f.full_name },
