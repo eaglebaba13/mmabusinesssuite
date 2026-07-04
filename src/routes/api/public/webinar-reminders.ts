@@ -1,16 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { timingSafeEqual } from "node:crypto";
+
+function checkSecret(request: Request): boolean {
+  const expected = process.env.WEBINAR_CRON_SECRET;
+  if (!expected) return false;
+  const provided =
+    request.headers.get("x-webhook-secret") ??
+    new URL(request.url).searchParams.get("secret") ??
+    "";
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
 
 export const Route = createFileRoute("/api/public/webinar-reminders")({
   server: {
     handlers: {
-      GET: () => handle(),
-      POST: () => handle(),
+      GET: ({ request }) => handle(request),
+      POST: ({ request }) => handle(request),
     },
   },
 });
 
-async function handle() {
+async function handle(request: Request) {
+  if (!checkSecret(request)) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
   const url = process.env.SUPABASE_URL!;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   if (!url || !key) {
