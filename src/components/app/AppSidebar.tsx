@@ -100,8 +100,9 @@ const NAV_FOOTER = [
 export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
-  const { hidden } = useSidebarHidden();
-  const show = (key: SidebarSectionKey) => !hidden.has(key);
+  const { isSectionVisible, isItemVisible } = useSidebarHidden();
+  const show = (key: SidebarSectionKey) => isSectionVisible(key);
+  const itemOn = (id: string) => isItemVisible(id);
   const isFranchisee = hasRole("franchisee");
   const isStateFranchisee = hasRole("state_franchisee");
   const isFranchiseeOnly = (isFranchisee || isStateFranchisee) && !isAdmin;
