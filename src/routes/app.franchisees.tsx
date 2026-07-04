@@ -259,6 +259,27 @@ function FranchiseesPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} className="h-9 w-[260px] bg-card/40 pl-9" />
           </div>
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="h-9 rounded-md border border-border bg-card/40 px-2 text-sm"
+          >
+            <option value="all">All types</option>
+            <option value="master">Master</option>
+            <option value="state">State</option>
+            <option value="city">City</option>
+          </select>
+          <select
+            value={agreementFilter}
+            onChange={(e) => setAgreementFilter(e.target.value)}
+            className="h-9 rounded-md border border-border bg-card/40 px-2 text-sm"
+          >
+            <option value="all">All agreements</option>
+            <option value="active">Active</option>
+            <option value="expiring">Expiring soon</option>
+            <option value="expired">Expired</option>
+            <option value="missing">Missing</option>
+          </select>
           <div className="flex items-center gap-2">
             <ImportButton configKey="franchisees" />
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setTimeout(resetWizard, 300); }}>
