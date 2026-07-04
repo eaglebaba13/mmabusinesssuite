@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/brand/Logo";
 import { useAuth } from "@/lib/auth-context";
+import { useSidebarHidden, type SidebarSectionKey } from "@/lib/sidebar-visibility";
 
 const NAV_MAIN = [
   { title: "Dashboard", url: "/app/dashboard" as const, icon: LayoutDashboard },
@@ -99,6 +100,8 @@ const NAV_FOOTER = [
 export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
+  const { hidden } = useSidebarHidden();
+  const show = (key: SidebarSectionKey) => !hidden.has(key);
   const isFranchisee = hasRole("franchisee");
   const isStateFranchisee = hasRole("state_franchisee");
   const isFranchiseeOnly = (isFranchisee || isStateFranchisee) && !isAdmin;
@@ -123,7 +126,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        {showOps && (
+        {showOps && show("operations") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Operations
@@ -150,7 +153,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isAcademyStaff && (
+        {isAcademyStaff && show("academy") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Academy
@@ -177,7 +180,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isInventoryStaff && (
+        {isInventoryStaff && show("inventory") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Inventory
@@ -204,7 +207,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isPosStaff && (
+        {isPosStaff && show("pos") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Sales / POS
@@ -231,7 +234,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isFinanceStaff && (
+        {isFinanceStaff && show("finance") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Finance
@@ -258,7 +261,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {(isAdmin || hasRole("accounts") || hasRole("founder")) && !isFranchiseeOnly && (
+        {(isAdmin || hasRole("accounts") || hasRole("founder")) && !isFranchiseeOnly && show("insights") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Insights</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -278,7 +281,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isWebinarStaff && (
+        {isWebinarStaff && show("marketing") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Marketing
@@ -305,7 +308,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isTrainer && (
+        {isTrainer && show("trainer") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Trainer
@@ -332,7 +335,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isFranchisee && (
+        {isFranchisee && show("franchisee") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Franchisee
@@ -363,7 +366,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isStateFranchisee && (
+        {isStateFranchisee && show("state_franchise") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               State Franchise
@@ -390,7 +393,7 @@ export function AppSidebar() {
           </SidebarGroup>
         )}
 
-        {isAdmin && (
+        {isAdmin && show("admin") && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               Admin

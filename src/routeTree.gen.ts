@@ -51,6 +51,7 @@ import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.
 import { Route as AppStateFranchisesStateFranchiseIdRouteImport } from './routes/app.state-franchises.$stateFranchiseId'
 import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
 import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.social'
+import { Route as AppSettingsSidebarRouteImport } from './routes/app.settings.sidebar'
 import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.settings.lead-routing'
 import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
 import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
@@ -301,6 +302,11 @@ const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
 const AppSettingsSocialRoute = AppSettingsSocialRouteImport.update({
   id: '/social',
   path: '/social',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsSidebarRoute = AppSettingsSidebarRouteImport.update({
+  id: '/sidebar',
+  path: '/sidebar',
   getParentRoute: () => AppSettingsRoute,
 } as any)
 const AppSettingsLeadRoutingRoute = AppSettingsLeadRoutingRouteImport.update({
@@ -572,6 +578,7 @@ export interface FileRoutesByFullPath {
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
+  '/app/settings/sidebar': typeof AppSettingsSidebarRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
@@ -647,6 +654,7 @@ export interface FileRoutesByTo {
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
+  '/app/settings/sidebar': typeof AppSettingsSidebarRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
@@ -731,6 +739,7 @@ export interface FileRoutesById {
   '/app/pos/analytics': typeof AppPosAnalyticsRoute
   '/app/pos/orders': typeof AppPosOrdersRouteWithChildren
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
+  '/app/settings/sidebar': typeof AppSettingsSidebarRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
@@ -816,6 +825,7 @@ export interface FileRouteTypes {
     | '/app/pos/analytics'
     | '/app/pos/orders'
     | '/app/settings/lead-routing'
+    | '/app/settings/sidebar'
     | '/app/settings/social'
     | '/app/settings/team'
     | '/app/state-franchises/$stateFranchiseId'
@@ -891,6 +901,7 @@ export interface FileRouteTypes {
     | '/app/pos/analytics'
     | '/app/pos/orders'
     | '/app/settings/lead-routing'
+    | '/app/settings/sidebar'
     | '/app/settings/social'
     | '/app/settings/team'
     | '/app/state-franchises/$stateFranchiseId'
@@ -974,6 +985,7 @@ export interface FileRouteTypes {
     | '/app/pos/analytics'
     | '/app/pos/orders'
     | '/app/settings/lead-routing'
+    | '/app/settings/sidebar'
     | '/app/settings/social'
     | '/app/settings/team'
     | '/app/state-franchises/$stateFranchiseId'
@@ -1300,6 +1312,13 @@ declare module '@tanstack/react-router' {
       path: '/social'
       fullPath: '/app/settings/social'
       preLoaderRoute: typeof AppSettingsSocialRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/sidebar': {
+      id: '/app/settings/sidebar'
+      path: '/sidebar'
+      fullPath: '/app/settings/sidebar'
+      preLoaderRoute: typeof AppSettingsSidebarRouteImport
       parentRoute: typeof AppSettingsRoute
     }
     '/app/settings/lead-routing': {
@@ -1748,6 +1767,7 @@ const AppPosRouteWithChildren =
 
 interface AppSettingsRouteChildren {
   AppSettingsLeadRoutingRoute: typeof AppSettingsLeadRoutingRoute
+  AppSettingsSidebarRoute: typeof AppSettingsSidebarRoute
   AppSettingsSocialRoute: typeof AppSettingsSocialRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
@@ -1755,6 +1775,7 @@ interface AppSettingsRouteChildren {
 
 const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsLeadRoutingRoute: AppSettingsLeadRoutingRoute,
+  AppSettingsSidebarRoute: AppSettingsSidebarRoute,
   AppSettingsSocialRoute: AppSettingsSocialRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,

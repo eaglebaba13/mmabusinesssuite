@@ -14,6 +14,7 @@ function SettingsLayout() {
 
   const tabs = [
     { to: "/app/settings", label: "Profile & Workspace", match: (p: string) => p === "/app/settings" },
+    { to: "/app/settings/sidebar", label: "Sidebar Sections", match: (p: string) => p === "/app/settings/sidebar" },
     ...(isAdmin
       ? [
           { to: "/app/settings/team", label: "Team & Roles", match: (p: string) => p === "/app/settings/team" },
