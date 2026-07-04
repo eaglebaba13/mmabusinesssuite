@@ -100,8 +100,9 @@ const NAV_FOOTER = [
 export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
-  const { hidden } = useSidebarHidden();
-  const show = (key: SidebarSectionKey) => !hidden.has(key);
+  const { isSectionVisible, isItemVisible } = useSidebarHidden();
+  const show = (key: SidebarSectionKey) => isSectionVisible(key);
+  const itemOn = (id: string) => isItemVisible(id);
   const isFranchisee = hasRole("franchisee");
   const isStateFranchisee = hasRole("state_franchisee");
   const isFranchiseeOnly = (isFranchisee || isStateFranchisee) && !isAdmin;
@@ -133,7 +134,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {navMainFiltered.map((item) => (
+                {navMainFiltered.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -160,7 +161,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_ACADEMY.map((item) => (
+                {NAV_ACADEMY.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -187,7 +188,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_INVENTORY.map((item) => (
+                {NAV_INVENTORY.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -214,7 +215,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_POS.map((item) => (
+                {NAV_POS.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -241,7 +242,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_FINANCE.map((item) => (
+                {NAV_FINANCE.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -266,7 +267,7 @@ export function AppSidebar() {
             <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Insights</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_INSIGHTS.map((item) => (
+                {NAV_INSIGHTS.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={isActive(item.url) || (item.url.startsWith("/app/dashboards") && location.pathname.startsWith("/app/dashboards"))} tooltip={item.title} className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background">
                       <Link to={item.url}>
@@ -288,7 +289,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_WEBINARS.map((item) => (
+                {NAV_WEBINARS.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -315,7 +316,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_TRAINER.map((item) => (
+                {NAV_TRAINER.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -342,7 +343,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_FRANCHISEE.map((item) => {
+                {NAV_FRANCHISEE.filter((item) => itemOn(`${item.url}?tab=${item.search.tab}`)).map((item) => {
                   const currentTab = (location.search as { tab?: string }).tab ?? "dashboard";
                   const active = location.pathname === item.url && currentTab === item.search.tab;
                   return (
@@ -373,7 +374,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_STATE_FRANCHISEE.map((item) => (
+                {NAV_STATE_FRANCHISEE.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -400,7 +401,7 @@ export function AppSidebar() {
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {NAV_ADMIN.map((item) => (
+                {NAV_ADMIN.filter((item) => itemOn(item.url)).map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton
                       asChild
@@ -423,7 +424,7 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
-          {NAV_FOOTER.map((item) => (
+          {NAV_FOOTER.filter((item) => itemOn(item.url)).map((item) => (
             <SidebarMenuItem key={item.url}>
               <SidebarMenuButton
                 asChild
