@@ -153,7 +153,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
   if (!form) return null;
 
   const monthlyMG =
-    (Number(form.investment_amount ?? form.franchise_fee) * Number(form.mg_percent ?? 3)) / 100 / 12;
+    (Number(form.investment_amount ?? form.franchise_fee) * Number(form.mg_percent ?? 3)) / 100;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
