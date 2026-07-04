@@ -1,5 +1,12 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  preloadLetterhead,
+  requirePreloaded,
+  drawLandscapeLetterheadSync,
+  LANDSCAPE_CONTENT_TOP,
+  LANDSCAPE_CONTENT_BOTTOM,
+} from "./letterhead";
 
 export type ExportColumn<T> = {
   header: string;
