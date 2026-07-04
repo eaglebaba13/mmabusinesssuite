@@ -92,10 +92,8 @@ export const startImpersonation = createServerFn({ method: "POST" })
 const ResolveInput = z.object({ token: z.string().min(20) });
 
 export const resolveImpersonation = createServerFn({ method: "POST" })
-  .middleware([forwardAuth, requireSupabaseAuth])
   .inputValidator((i: unknown) => ResolveInput.parse(i))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+  .handler(async ({ data }) => {
     // Token itself is the auth secret (sha256-hashed, time-limited, audit-logged).
     // No session required — viewer may be opened cross-origin where the admin
     // session isn't available.
