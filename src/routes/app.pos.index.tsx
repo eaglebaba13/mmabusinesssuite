@@ -515,19 +515,37 @@ function PosTerminal() {
           </div>
         )}
 
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cash">Cash</SelectItem>
-              <SelectItem value="upi">UPI</SelectItem>
-              <SelectItem value="card">Card</SelectItem>
-              <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-              <SelectItem value="wallet">Wallet</SelectItem>
-              <SelectItem value="credit">Credit (unpaid)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input placeholder="Reference (txn/UTR)" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} className="h-9" />
+        <div className="mt-3 space-y-2">
+          <div>
+            <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+              Sale Date <span className="text-destructive">*</span>
+            </label>
+            <Input
+              type="date"
+              value={saleDate}
+              max={todayIso}
+              onChange={(e) => setSaleDate(e.target.value)}
+              className="h-9"
+              required
+            />
+            {!saleDateValid && (
+              <p className="mt-1 text-[10px] text-destructive">Pick a sale date (today or earlier).</p>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="upi">UPI</SelectItem>
+                <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                <SelectItem value="wallet">Wallet</SelectItem>
+                <SelectItem value="credit">Credit (unpaid)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input placeholder="Reference (txn/UTR)" value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} className="h-9" />
+          </div>
         </div>
 
         <Button
