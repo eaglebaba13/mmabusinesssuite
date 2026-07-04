@@ -403,6 +403,11 @@ function PosTerminal() {
             </SelectContent>
           </Select>
         </div>
+        {noOutlet && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-2 text-xs text-amber-400">
+            No outlet linked to this franchise — you can still charge, but stock will not be deducted. Link a warehouse under Inventory → Warehouses to enable stock tracking.
+          </div>
+        )}
 
         {activeWarehouse && (
           <div className="rounded-xl bg-background/40 px-4 py-2 text-xs text-muted-foreground flex flex-wrap items-center gap-4">
