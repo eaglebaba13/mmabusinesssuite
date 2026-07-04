@@ -250,7 +250,6 @@ function PosTerminal() {
     cart.length > 0 &&
     !!mappingType &&
     (mappingType === "company_direct" || (!!franchiseeId && !!category)) &&
-    !!warehouseId &&
     saleDateValid;
 
   const checkout = useMutation({
