@@ -27,6 +27,10 @@ function ImpersonationPage() {
     queryKey: ["imp-data", token],
     queryFn: () => fetchData({ data: { token } }),
     enabled: !!ctxQ.data,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 20000,
+    staleTime: 0,
   });
 
   const [now, setNow] = React.useState(Date.now());
