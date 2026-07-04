@@ -405,6 +405,14 @@ function FranchiseesPage() {
         </div>
       </div>
 
+      <div className="grid gap-3 grid-cols-2 md:grid-cols-5">
+        <SumTile label="Total investment" value={formatINRCompact(totals.totalInv)} />
+        <SumTile label="MG liability (this month)" value={formatINRCompact(totals.mg)} />
+        <SumTile label="Variable ROI (this month)" value={formatINRCompact(totals.vr)} />
+        <SumTile label="Payable (this month)" value={formatINRCompact(totals.payable)} highlight />
+        <SumTile label="Pending payouts" value={formatINRCompact(totals.pending)} />
+      </div>
+
       <ExportBar
         from=""
         to=""
