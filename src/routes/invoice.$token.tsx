@@ -131,10 +131,17 @@ function PublicInvoicePage() {
           <ReceiptIcon className="h-5 w-5 text-gold" />
           <h1 className="font-display text-2xl text-gradient-gold">Tax Invoice</h1>
         </div>
-        <Button onClick={downloadPdf} className="bg-gradient-gold text-background">
-          <Download className="mr-1 h-4 w-4" /> Download PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setPreviewOpen(true)}>
+            <Eye className="mr-1 h-4 w-4" /> Preview
+          </Button>
+          <Button onClick={downloadPdf} className="bg-gradient-gold text-background">
+            <Download className="mr-1 h-4 w-4" /> Download PDF
+          </Button>
+        </div>
       </div>
+
+      <InvoicePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} invoice={invoiceInput} />
 
       <div className="rounded-2xl glass p-8">
         <div className="flex items-start justify-between border-b border-border/40 pb-4">
