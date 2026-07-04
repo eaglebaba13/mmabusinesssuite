@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { listActiveImpersonationSessions, revokeImpersonationSession } from "@/server/impersonation.functions";
+import { listActiveImpersonationSessions, revokeImpersonationSession } from "@/lib/rpc/impersonation.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/app/impersonation-sessions")({

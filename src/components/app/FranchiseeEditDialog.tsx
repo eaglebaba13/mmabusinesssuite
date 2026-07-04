@@ -16,7 +16,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { resetFranchiseePassword } from "@/server/franchisee-user.functions";
+import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 
 interface Franchisee {
   id: string;

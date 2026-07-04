@@ -2,7 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { startImpersonation } from "@/server/impersonation.functions";
+import { startImpersonation } from "@/lib/rpc/impersonation.functions";
 import { toast } from "sonner";
 
 interface Props {

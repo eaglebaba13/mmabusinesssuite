@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
-import { createStateFranchiseUser } from "@/server/state-franchise-user.functions";
+import { createStateFranchiseUser } from "@/lib/rpc/state-franchise-user.functions";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 
 export const Route = createFileRoute("/app/state-franchises")({
