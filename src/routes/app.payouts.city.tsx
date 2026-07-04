@@ -105,7 +105,7 @@ function CityContent({ fr }: { fr: any }) {
   // Rate-card projection — informational only. Do NOT surface as "variance"
   // unless real payout rows exist, otherwise an empty ledger shows as debt owed.
   const monthsActive = Math.max(1, Math.floor((Date.now() - new Date(fr.joined_at).getTime()) / (30 * 86400000)));
-  const expectedBaseROI = (Number(fr.investment_amount) * Number(fr.base_roi_pct) / 100 / 12) * monthsActive;
+  const expectedBaseROI = (Number(fr.investment_amount) * Number(fr.base_roi_pct) / 100) * monthsActive;
   const expectedIncentives = empRev * Number(fr.emporium_pct) / 100 + acaRev * Number(fr.academy_pct) / 100 + dsRev * Number(fr.dark_store_pct) / 100;
   const expectedTotal = expectedBaseROI + expectedIncentives;
   const variance = hasPayouts ? expectedTotal - totalROI : 0;
@@ -140,7 +140,7 @@ function CityContent({ fr }: { fr: any }) {
       <Card>
         <CardHeader><CardTitle className="text-base">Incentive Rate Card</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 md:grid-cols-4 text-sm">
-          <Stat label={`Base ROI ${fr.base_roi_pct}%`} value={formatINR(Number(fr.investment_amount) * Number(fr.base_roi_pct) / 100 / 12)} sub="/month on investment" />
+          <Stat label={`Base ROI ${fr.base_roi_pct}%`} value={formatINR(Number(fr.investment_amount) * Number(fr.base_roi_pct) / 100)} sub="/month on investment" />
           <Stat label={`Nail Emporium ${fr.emporium_pct}%`} value={formatINR(empRev * Number(fr.emporium_pct) / 100)} sub={`on ${formatINR(empRev)} sales`} />
           <Stat label={`Academy ${fr.academy_pct}%`} value={formatINR(acaRev * Number(fr.academy_pct) / 100)} sub={`on ${formatINR(acaRev)} fees`} />
           <Stat label={`Dark Store ${fr.dark_store_pct}%`} value={formatINR(dsRev * Number(fr.dark_store_pct) / 100)} sub={`on ${formatINR(dsRev)} sales`} />
