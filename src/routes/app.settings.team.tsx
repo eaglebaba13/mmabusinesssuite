@@ -20,7 +20,10 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Search, Shield, ShieldAlert } from "lucide-react";
+import { Search, Shield, ShieldAlert, MoreVertical, Power, PowerOff, Trash2 } from "lucide-react";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/app/settings/team")({
   component: TeamRolesPage,
@@ -60,6 +63,7 @@ interface ManagedUser {
   full_name: string | null;
   phone: string | null;
   created_at: string;
+  is_active: boolean;
   roles: AppRole[];
 }
 
