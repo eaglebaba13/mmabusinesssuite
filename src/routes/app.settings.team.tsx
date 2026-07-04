@@ -105,6 +105,34 @@ function TeamRolesPage() {
     },
   });
 
+  const setActive = useMutation({
+    mutationFn: async ({ userId, active }: { userId: string; active: boolean }) => {
+      const { error } = await supabase.rpc("admin_set_user_active" as any, { _user_id: userId, _active: active });
+      if (error) throw error;
+    },
+    onSuccess: (_d, v) => {
+      toast.success(v.active ? "User activated" : "User deactivated");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to update status"),
+  });
+
+  const deleteUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { error } = await supabase.rpc("admin_delete_user" as any, { _user_id: userId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("User deleted");
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      setSelected(null);
+      setConfirmDelete(null);
+    },
+    onError: (e: any) => toast.error(e.message || "Failed to delete user"),
+  });
+
+  const [confirmDelete, setConfirmDelete] = React.useState<ManagedUser | null>(null);
+
   const filtered = React.useMemo(() => {
     const q = search.toLowerCase().trim();
     return users.filter((u) => {
