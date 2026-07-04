@@ -2582,11 +2582,17 @@ export type Database = {
           dispatch_tracking: string | null
           dispatched_at: string | null
           dispatched_by: string | null
+          franchise_mapping_type:
+            | Database["public"]["Enums"]["franchise_mapping_type"]
+            | null
           franchisee_id: string | null
           grand_total: number
           gst_total: number
           id: string
           igst_amount: number
+          invoice_category:
+            | Database["public"]["Enums"]["invoice_category"]
+            | null
           invoice_number: string | null
           notes: string | null
           payment_status: Database["public"]["Enums"]["pos_payment_status"]
@@ -2613,11 +2619,17 @@ export type Database = {
           dispatch_tracking?: string | null
           dispatched_at?: string | null
           dispatched_by?: string | null
+          franchise_mapping_type?:
+            | Database["public"]["Enums"]["franchise_mapping_type"]
+            | null
           franchisee_id?: string | null
           grand_total?: number
           gst_total?: number
           id?: string
           igst_amount?: number
+          invoice_category?:
+            | Database["public"]["Enums"]["invoice_category"]
+            | null
           invoice_number?: string | null
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["pos_payment_status"]
@@ -2644,11 +2656,17 @@ export type Database = {
           dispatch_tracking?: string | null
           dispatched_at?: string | null
           dispatched_by?: string | null
+          franchise_mapping_type?:
+            | Database["public"]["Enums"]["franchise_mapping_type"]
+            | null
           franchisee_id?: string | null
           grand_total?: number
           gst_total?: number
           id?: string
           igst_amount?: number
+          invoice_category?:
+            | Database["public"]["Enums"]["invoice_category"]
+            | null
           invoice_number?: string | null
           notes?: string | null
           payment_status?: Database["public"]["Enums"]["pos_payment_status"]
@@ -3846,6 +3864,7 @@ export type Database = {
         | "product_sales"
         | "service_sales"
         | "other"
+        | "membership"
       invoice_doc_type:
         | "b2b_tax"
         | "b2c"
@@ -4117,6 +4136,7 @@ export const Constants = {
         "product_sales",
         "service_sales",
         "other",
+        "membership",
       ],
       invoice_doc_type: [
         "b2b_tax",
