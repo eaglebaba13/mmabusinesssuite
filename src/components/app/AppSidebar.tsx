@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/brand/Logo";
 import { useAuth } from "@/lib/auth-context";
+import { useSidebarHidden, type SidebarSectionKey } from "@/lib/sidebar-visibility";
 
 const NAV_MAIN = [
   { title: "Dashboard", url: "/app/dashboard" as const, icon: LayoutDashboard },
@@ -99,6 +100,8 @@ const NAV_FOOTER = [
 export function AppSidebar() {
   const location = useLocation();
   const { isAdmin, hasRole } = useAuth();
+  const { hidden } = useSidebarHidden();
+  const show = (key: SidebarSectionKey) => !hidden.has(key);
   const isFranchisee = hasRole("franchisee");
   const isStateFranchisee = hasRole("state_franchisee");
   const isFranchiseeOnly = (isFranchisee || isStateFranchisee) && !isAdmin;
