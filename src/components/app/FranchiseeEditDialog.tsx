@@ -275,7 +275,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
             </div>
 
             <div className="rounded-xl border border-gold/30 bg-gold/5 p-4">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Live monthly MG (Investment × MG% ÷ 12)</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Live monthly MG (Investment × MG%)</div>
               <div className="mt-1 font-display text-2xl text-gradient-gold">{formatINR(monthlyMG)}</div>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {formatINR(Number(form.investment_amount ?? form.franchise_fee))} × {Number(form.mg_percent ?? 3)}% ÷ 12
