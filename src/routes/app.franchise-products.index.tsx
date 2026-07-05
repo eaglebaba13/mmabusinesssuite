@@ -40,7 +40,7 @@ import {
   type FranchiseProductTypeRow,
 } from "@/lib/rpc/franchise-products.functions";
 
-export const Route = createFileRoute("/app/franchise-products")({
+export const Route = createFileRoute("/app/franchise-products/")({
   head: () => ({
     meta: [
       { title: "Franchise Products — MMA Suite" },
