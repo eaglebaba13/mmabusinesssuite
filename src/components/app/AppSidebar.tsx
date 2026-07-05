@@ -43,6 +43,12 @@ const NAV_MAIN = [
   { title: "State Franchises", url: "/app/state-franchises" as const, icon: MapPin },
 ] as const;
 
+const NAV_FRANCHISE_NETWORK = [
+  { title: "Products", url: "/app/franchise-products" as const, icon: Package },
+  { title: "Marketplace", url: "/app/franchise-marketplace" as const, icon: Store },
+  { title: "Compare", url: "/app/franchise-compare" as const, icon: BarChart3 },
+] as const;
+
 const NAV_ACADEMY = [
   { title: "Academy", url: "/app/academy" as const, icon: GraduationCap },
 ] as const;
