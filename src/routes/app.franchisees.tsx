@@ -346,6 +346,17 @@ function FranchiseesPage() {
             <option value="expired">Expired</option>
             <option value="missing">Missing</option>
           </select>
+          <select
+            value={productFilter}
+            onChange={(e) => setProductFilter(e.target.value)}
+            className="h-9 rounded-md border border-border bg-card/40 px-2 text-sm"
+          >
+            <option value="all">All products</option>
+            <option value="none">No product linked</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>{p.brand_name || p.name}</option>
+            ))}
+          </select>
           <div className="flex items-center gap-2">
             <ImportButton configKey="franchisees" />
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setTimeout(resetWizard, 300); }}>
