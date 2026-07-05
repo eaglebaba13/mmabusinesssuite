@@ -1,4 +1,5 @@
 import * as React from "react";
+import { BrandLogo } from "@/components/app/franchise/BrandLogo";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -115,7 +116,7 @@ function ProductDetailPage() {
           <div className="flex items-start gap-4">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 ring-1 ring-border">
               {product.brand_logo ? (
-                <img src={product.brand_logo} alt={product.name} className="h-full w-full object-cover" />
+                <BrandLogo path={product.brand_logo} alt={product.name} className="h-full w-full object-cover" />
               ) : (
                 <Package className="h-10 w-10 text-primary" />
               )}

@@ -264,10 +264,10 @@ function ProductCard({
       <div className="flex items-start gap-3 p-5">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 ring-1 ring-border">
           {product.brand_logo ? (
-            <img
-              src={product.brand_logo}
+            <BrandLogo
+              path={product.brand_logo}
               alt={product.brand_name ?? product.name}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           ) : (
             <Package className="h-6 w-6 text-primary" />

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { BrandLogo } from "@/components/app/franchise/BrandLogo";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -215,7 +216,7 @@ function MarketplacePage() {
                 <div className="flex items-start gap-3 p-5">
                   <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 ring-1 ring-border">
                     {p.brand_logo ? (
-                      <img src={p.brand_logo} alt={p.name} className="h-full w-full object-cover" />
+                      <BrandLogo path={p.brand_logo} alt={p.name} className="h-full w-full object-cover" />
                     ) : (
                       <Package className="h-6 w-6 text-primary" />
                     )}
