@@ -224,28 +224,47 @@ function StateFranchiseView({ data }: { data: { roi: any[]; incentives: any[]; t
 
 function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; excluded_invoices?: any[]; payments: any[] }; extra: any; entityType: string }) {
   const totalBilled = data.invoices.reduce((s, i) => s + Number(i.grand_total), 0);
+  const totalGst = data.invoices.reduce((s, i) => s + Number(i.gst_total ?? 0), 0);
+  const taxableRevenue = totalBilled - totalGst;
   const totalPaid = data.invoices.reduce((s, i) => s + Number(i.amount_paid), 0);
   const outstanding = totalBilled - totalPaid;
   const excluded = data.excluded_invoices ?? [];
+  const investment = Number(extra?.investment_amount ?? 0);
+  const baseRoiPct = Number(extra?.base_roi_pct ?? 0);
+  const darkPct = Number(extra?.dark_store_pct ?? 0);
+  const emporiumPct = Number(extra?.emporium_pct ?? 0);
+  const academyPct = Number(extra?.academy_pct ?? 0);
+  // Accrual on taxable base. Until invoices carry a source-vertical tag, mapped
+  // franchise invoices are treated as Dark Store sales (matches franchisee dashboard).
+  const roiAccrued = taxableRevenue * (darkPct / 100);
+  const baseMonthlyRoi = investment * (baseRoiPct / 100);
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Kpi label="Total Billed" value={formatINR(totalBilled)} />
         <Kpi label="Paid" value={formatINR(totalPaid)} />
         <Kpi label="Outstanding" value={formatINR(outstanding)} />
-        <Kpi label="Investment" value={formatINR(Number(extra?.investment_amount ?? 0))} />
+        <Kpi label="Investment" value={formatINR(investment)} />
       </div>
+      {entityType === "city_franchise" && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Kpi label="Taxable Revenue (ex-GST)" value={formatINR(taxableRevenue)} />
+          <Kpi label={`ROI Accrued @ ${darkPct}%`} value={formatINR(roiAccrued)} />
+          <Kpi label={`Base Monthly ROI @ ${baseRoiPct}%`} value={formatINR(baseMonthlyRoi)} />
+          <Kpi label="GST Collected" value={formatINR(totalGst)} />
+        </div>
+      )}
       <p className="text-xs text-muted-foreground">
-        Revenue rule: final outward tax invoices only (b2b_tax / b2c / debit_note, status issued/paid/partial, non-intercompany). Proformas, drafts, revised and intercompany flows are excluded to avoid double-counting.
+        Revenue rule: final outward tax invoices only (b2b_tax / b2c / debit_note, status issued/paid/partial, non-intercompany). Proformas, drafts, revised and intercompany flows are excluded to avoid double-counting. ROI accrues on the taxable (ex-GST) base, not on gross invoice value.
       </p>
       {entityType === "city_franchise" && (
         <Card>
           <CardHeader><CardTitle className="text-base">ROI Configuration</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
-            <div>Base ROI: <strong>{extra?.base_roi_pct ?? "-"}%</strong></div>
-            <div>Nail Emporium: <strong>{extra?.emporium_pct ?? "-"}%</strong></div>
-            <div>Academy: <strong>{extra?.academy_pct ?? "-"}%</strong></div>
-            <div>Dark Store: <strong>{extra?.dark_store_pct ?? "-"}%</strong></div>
+            <div>Base ROI: <strong>{baseRoiPct}%</strong></div>
+            <div>Nail Emporium: <strong>{emporiumPct}%</strong></div>
+            <div>Academy: <strong>{academyPct}%</strong></div>
+            <div>Dark Store: <strong>{darkPct}%</strong></div>
           </CardContent>
         </Card>
       )}
