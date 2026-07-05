@@ -627,10 +627,13 @@ export function ProductEditor({
               onCancel();
             }}
           >
-        <Button type="submit" disabled={upsert.isPending}>
-          <Save className="mr-2 h-4 w-4" />
-          {upsert.isPending ? "Saving..." : initialProduct ? "Save changes" : "Create product"}
-        </Button>
+            <X className="mr-2 h-4 w-4" /> Cancel
+          </Button>
+          <Button type="submit" disabled={upsert.isPending}>
+            <Save className="mr-2 h-4 w-4" />
+            {upsert.isPending ? "Saving..." : initialProduct ? "Save changes" : "Create product"}
+          </Button>
+        </div>
       </div>
     </form>
   );
