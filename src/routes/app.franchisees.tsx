@@ -101,6 +101,20 @@ function FranchiseesPage() {
     },
   });
 
+  const { data: products = [] } = useQuery({
+    queryKey: ["franchise_products_active"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("franchise_products")
+        .select("id,name,brand_name,investment_amount,royalty_percent,expected_roi_percent,status")
+        .eq("status", "active")
+        .order("is_featured", { ascending: false })
+        .order("name");
+      if (error) throw error;
+      return data as Array<{ id: string; name: string; brand_name: string | null; investment_amount: number; royalty_percent: number; expected_roi_percent: number | null; status: string }>;
+    },
+  });
+
   const today = new Date().toISOString().slice(0, 10);
   const agreementStatusOf = (f: any): "active" | "expired" | "expiring" | "missing" => {
     if (!f.agreement_expiry) return "missing";
