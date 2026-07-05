@@ -261,7 +261,7 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
       const [allInvoices, payments] = await Promise.all([
         supabaseAdmin
           .from("invoices")
-          .select("id,invoice_number,doc_type,grand_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id,archived_at")
+          .select("id,invoice_number,doc_type,grand_total,gst_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id,archived_at")
           .or(`and(bill_to_entity_type.eq.${sess.entity_type},bill_to_entity_id.eq.${sess.entity_id}),franchisee_id.eq.${sess.entity_id}`)
           .order("invoice_date", { ascending: false })
           .limit(200),
