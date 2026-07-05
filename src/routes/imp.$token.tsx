@@ -230,14 +230,28 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; ex
   const outstanding = totalBilled - totalPaid;
   const excluded = data.excluded_invoices ?? [];
   const investment = Number(extra?.investment_amount ?? 0);
-  const baseRoiPct = Number(extra?.base_roi_pct ?? 0);
-  const darkPct = Number(extra?.dark_store_pct ?? 0);
-  const emporiumPct = Number(extra?.emporium_pct ?? 0);
-  const academyPct = Number(extra?.academy_pct ?? 0);
-  // Accrual on taxable base. Until invoices carry a source-vertical tag, mapped
-  // franchise invoices are treated as Dark Store sales (matches franchisee dashboard).
-  const roiAccrued = taxableRevenue * (darkPct / 100);
-  const baseMonthlyRoi = investment * (baseRoiPct / 100);
+  const mgPct = Number(extra?.mg_percent ?? 0);
+  const tnsPct = Number(extra?.tns_percent ?? 0);
+  const academyPct = Number(extra?.academy_percent ?? 0);
+  const mallPct = Number(extra?.mall_percent ?? 0);
+  const royaltyPct = Number(extra?.royalty_percent ?? 0);
+
+  // Category-wise turnover from mapped invoices (matches compute_franchisee_monthly_roi)
+  const sumBy = (cat: string) => data.invoices
+    .filter((i) => i.invoice_category === cat)
+    .reduce((s, i) => s + Number(i.grand_total), 0);
+  const tnsTotal = sumBy("tns_turnover");
+  const academyTotal = sumBy("academy_sales");
+  const mallTotal = sumBy("mall_of_salon_sales");
+
+  const tnsRoi = tnsTotal * tnsPct / 100;
+  const academyRoi = academyTotal * academyPct / 100;
+  const mallRoi = mallTotal * mallPct / 100;
+  const variableRoi = tnsRoi + academyRoi + mallRoi;
+  const mgRoi = investment * mgPct / 100;
+  const finalPayable = Math.max(variableRoi, mgRoi);
+  const payableReason = variableRoi >= mgRoi ? "Variable ROI exceeded MG" : "Minimum Guarantee Applied";
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -247,24 +261,33 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; ex
         <Kpi label="Investment" value={formatINR(investment)} />
       </div>
       {entityType === "city_franchise" && (
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Kpi label="Taxable Revenue (ex-GST)" value={formatINR(taxableRevenue)} />
-          <Kpi label={`ROI Accrued @ ${darkPct}%`} value={formatINR(roiAccrued)} />
-          <Kpi label={`Base Monthly ROI @ ${baseRoiPct}%`} value={formatINR(baseMonthlyRoi)} />
-          <Kpi label="GST Collected" value={formatINR(totalGst)} />
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Kpi label="Taxable Revenue (ex-GST)" value={formatINR(taxableRevenue)} />
+            <Kpi label="GST Collected" value={formatINR(totalGst)} />
+            <Kpi label={`MG @ ${mgPct}%`} value={formatINR(mgRoi)} />
+            <Kpi label="Variable ROI" value={formatINR(variableRoi)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Kpi label={`TNS @ ${tnsPct}%`} value={formatINR(tnsRoi)} />
+            <Kpi label={`Academy @ ${academyPct}%`} value={formatINR(academyRoi)} />
+            <Kpi label={`Mall of Salon @ ${mallPct}%`} value={formatINR(mallRoi)} />
+            <Kpi label="Final Payable ROI" value={formatINR(finalPayable)} />
+          </div>
+        </>
       )}
       <p className="text-xs text-muted-foreground">
-        Revenue rule: final outward tax invoices only (b2b_tax / b2c / debit_note, status issued/paid/partial, non-intercompany). Proformas, drafts, revised and intercompany flows are excluded to avoid double-counting. ROI accrues on the taxable (ex-GST) base, not on gross invoice value.
+        Revenue rule: final outward tax invoices only (b2b_tax / b2c / debit_note, status issued/paid/partial, non-intercompany). Proformas, drafts, revised and intercompany flows are excluded. ROI is computed per invoice_category (TNS / Academy / Mall of Salon) using the agreement's negotiated percentages, and compared against the Minimum Guarantee — whichever is higher becomes payable. Reason: <strong>{payableReason}</strong>.
       </p>
       {entityType === "city_franchise" && (
         <Card>
-          <CardHeader><CardTitle className="text-base">ROI Configuration</CardTitle></CardHeader>
-          <CardContent className="grid grid-cols-2 gap-2 text-sm md:grid-cols-4">
-            <div>Base ROI: <strong>{baseRoiPct}%</strong></div>
-            <div>Nail Emporium: <strong>{emporiumPct}%</strong></div>
+          <CardHeader><CardTitle className="text-base">ROI Configuration (from agreement)</CardTitle></CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3 text-sm md:grid-cols-5">
+            <div>MG: <strong>{mgPct}%</strong></div>
+            <div>TNS Turnover: <strong>{tnsPct}%</strong></div>
             <div>Academy: <strong>{academyPct}%</strong></div>
-            <div>Dark Store: <strong>{darkPct}%</strong></div>
+            <div>Mall of Salon: <strong>{mallPct}%</strong></div>
+            <div>Royalty: <strong>{royaltyPct}%</strong></div>
           </CardContent>
         </Card>
       )}

@@ -115,7 +115,7 @@ export const resolveImpersonation = createServerFn({ method: "POST" })
       name = e?.full_name ?? name;
       extra = e ?? {};
     } else if (sess.entity_type === "city_franchise") {
-      const { data: e } = await supabaseAdmin.from("franchisees").select("full_name,investment_amount,base_roi_pct,emporium_pct,academy_pct,dark_store_pct").eq("id", sess.entity_id).maybeSingle();
+      const { data: e } = await supabaseAdmin.from("franchisees").select("full_name,investment_amount,mg_percent,tns_percent,academy_percent,mall_percent,royalty_percent").eq("id", sess.entity_id).maybeSingle();
       name = e?.full_name ?? name;
       extra = e ?? {};
     } else if (sess.entity_type === "salon_branch") {
@@ -261,7 +261,7 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
       const [allInvoices, payments] = await Promise.all([
         supabaseAdmin
           .from("invoices")
-          .select("id,invoice_number,doc_type,grand_total,gst_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id,archived_at")
+          .select("id,invoice_number,doc_type,grand_total,gst_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id,archived_at,invoice_category")
           .or(`and(bill_to_entity_type.eq.${sess.entity_type},bill_to_entity_id.eq.${sess.entity_id}),franchisee_id.eq.${sess.entity_id}`)
           .order("invoice_date", { ascending: false })
           .limit(200),
