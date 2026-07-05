@@ -150,7 +150,7 @@ function ComparePage() {
                 label="Lock-in"
                 values={products.map((p) => (p.lock_in_months ? `${p.lock_in_months} months` : "—"))}
               />
-              <CompareRow label="Territory" values={products.map((p) => p.territory ?? "—")} />
+              
               <CompareRow
                 label="Highlights"
                 values={products.map((p) =>

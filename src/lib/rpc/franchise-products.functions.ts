@@ -35,7 +35,7 @@ export type FranchiseProductRow = {
   gst_percent: number;
   security_deposit: number;
   lock_in_months: number;
-  territory: string | null;
+  
   royalty_percent: number;
   revenue_share_percent: number;
   minimum_guarantee: number;
@@ -147,7 +147,6 @@ const ProductInput = z.object({
   gst_percent: z.number().min(0).max(100).default(18),
   security_deposit: z.number().min(0).default(0),
   lock_in_months: z.number().int().min(0).default(0),
-  territory: z.string().max(120).nullable().optional(),
 
   royalty_percent: z.number().min(0).max(100).default(0),
   revenue_share_percent: z.number().min(0).max(100).default(0),
@@ -181,7 +180,7 @@ export const listFranchiseProducts = createServerFn({ method: "GET" })
     const { data, error } = await asLoose(context.supabase)
       .from("franchise_products")
       .select(
-        "id,name,brand_name,brand_logo_url,category,type_id,revenue_model_id,investment_amount,gst_percent,security_deposit,lock_in_months,territory,royalty_percent,revenue_share_percent,minimum_guarantee,expected_roi_percent,roi_timeline_months,profit_margin_percent,brochure_url,video_url,agreement_template,short_description,long_description,highlights,requirements,status,is_featured,created_at,updated_at",
+        "id,name,brand_name,brand_logo_url,category,type_id,revenue_model_id,investment_amount,gst_percent,security_deposit,lock_in_months,royalty_percent,revenue_share_percent,minimum_guarantee,expected_roi_percent,roi_timeline_months,profit_margin_percent,brochure_url,video_url,agreement_template,short_description,long_description,highlights,requirements,status,is_featured,created_at,updated_at",
       )
       .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false });

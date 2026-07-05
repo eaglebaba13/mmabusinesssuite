@@ -31,7 +31,7 @@ type Product = {
   minimum_guarantee: number;
   security_deposit: number;
   lock_in_months: number;
-  territory: string | null;
+  
   gst_percent: number;
   agreement_template: string | null;
 };
@@ -44,7 +44,6 @@ FRANCHISOR: Make Me Artist Business Suite ("Company")
 FRANCHISEE: {{franchisee.full_name}}, {{franchisee.email}}, {{franchisee.phone}}
 
 PRODUCT: {{product.name}} ({{product.brand_name}})
-TERRITORY: {{product.territory}}
 
 1. INVESTMENT & FEES
    The Franchisee agrees to invest {{product.investment_amount}} (plus applicable {{product.gst_percent}}% GST)
@@ -80,7 +79,7 @@ function mergeTemplate(
     valid_till: ctx.valid_till,
     "product.name": ctx.product.name,
     "product.brand_name": ctx.product.brand_name ?? "—",
-    "product.territory": ctx.product.territory ?? "—",
+    
     "product.investment_amount": formatINR(ctx.product.investment_amount),
     "product.security_deposit": formatINR(ctx.product.security_deposit),
     "product.minimum_guarantee": formatINR(ctx.product.minimum_guarantee),
