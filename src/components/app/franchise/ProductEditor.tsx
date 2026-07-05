@@ -150,9 +150,39 @@ export function ProductEditor({
   onSaved: (id: string | null) => void;
   onCancel: () => void;
 }) {
-  const [state, setState] = React.useState<FormState>(() =>
-    toFormState(initialProduct, initialCommissions),
+  const storageKey = React.useMemo(
+    () => `franchise-product-editor:${initialProduct?.id ?? "new"}`,
+    [initialProduct?.id],
   );
+  const [state, setState] = React.useState<FormState>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.sessionStorage.getItem(storageKey);
+        if (raw) return JSON.parse(raw) as FormState;
+      } catch {
+        /* ignore */
+      }
+    }
+    return toFormState(initialProduct, initialCommissions);
+  });
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(storageKey, JSON.stringify(state));
+    } catch {
+      /* ignore */
+    }
+  }, [state, storageKey]);
+
+  const clearDraft = React.useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.removeItem(storageKey);
+    } catch {
+      /* ignore */
+    }
+  }, [storageKey]);
   const qc = useQueryClient();
 
   const listTypesFn = useServerFn(listFranchiseProductTypes);
