@@ -36,6 +36,16 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
     ],
   },
   {
+    key: "franchise_network",
+    label: "Franchise Network",
+    description: "Products, Marketplace, Compare",
+    items: [
+      { id: "/app/franchise-products", label: "Products" },
+      { id: "/app/franchise-marketplace", label: "Marketplace" },
+      { id: "/app/franchise-compare", label: "Compare" },
+    ],
+  },
+  {
     key: "academy",
     label: "Academy",
     description: "Academy module",
