@@ -149,3 +149,62 @@ function MyFranchisePage() {
     </div>
   );
 }
+
+function MyAgreements({ franchiseeId }: { franchiseeId: string }) {
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["my-agreements", franchiseeId],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("franchise_agreements")
+        .select("id, product_id, version, status, valid_from, valid_till, created_at, merged_html")
+        .eq("franchisee_id", franchiseeId)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  if (isLoading) {
+    return <Card className="p-8 text-center text-sm text-muted-foreground">Loading…</Card>;
+  }
+  if (rows.length === 0) {
+    return (
+      <Card className="p-12 text-center">
+        <FileSignature className="mx-auto h-10 w-10 text-muted-foreground/50" />
+        <p className="mt-3 text-sm text-muted-foreground">No agreements addressed to you yet.</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Your account manager will generate an agreement here when ready.
+        </p>
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {rows.map((a: any) => (
+        <Card key={a.id} className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="font-medium">Agreement {a.version}</div>
+              <div className="text-xs text-muted-foreground">
+                {a.valid_from ?? "—"} → {a.valid_till ?? "—"} · created{" "}
+                {format(new Date(a.created_at), "dd MMM yyyy")}
+              </div>
+            </div>
+            <Badge variant="outline" className="capitalize">{a.status}</Badge>
+          </div>
+          {a.merged_html && (
+            <details className="mt-3">
+              <summary className="cursor-pointer text-xs text-gold hover:underline">
+                View full text
+              </summary>
+              <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap rounded-md border border-border/40 bg-background/30 p-3 text-xs">
+                {a.merged_html}
+              </pre>
+            </details>
+          )}
+        </Card>
+      ))}
+    </div>
+  );
+}
+
