@@ -616,10 +616,17 @@ export function ProductEditor({
         )}
       </Card>
 
-      <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-end gap-3 border-t border-border/50 bg-background/95 px-6 py-4 backdrop-blur">
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          <X className="mr-2 h-4 w-4" /> Cancel
-        </Button>
+      <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-between gap-3 border-t border-border/50 bg-background/95 px-6 py-4 backdrop-blur">
+        <p className="text-xs text-muted-foreground">Draft auto-saved locally</p>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              clearDraft();
+              onCancel();
+            }}
+          >
         <Button type="submit" disabled={upsert.isPending}>
           <Save className="mr-2 h-4 w-4" />
           {upsert.isPending ? "Saving..." : initialProduct ? "Save changes" : "Create product"}
