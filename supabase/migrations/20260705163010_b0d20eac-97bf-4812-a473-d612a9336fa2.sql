@@ -1,0 +1,1 @@
+ALTER TABLE public.franchise_products RENAME COLUMN brand_logo_url TO brand_logo;
