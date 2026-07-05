@@ -1076,7 +1076,6 @@ export type Database = {
           security_deposit: number
           short_description: string | null
           status: string
-          territory: string | null
           type_id: string | null
           updated_at: string
           video_url: string | null
@@ -1108,7 +1107,6 @@ export type Database = {
           security_deposit?: number
           short_description?: string | null
           status?: string
-          territory?: string | null
           type_id?: string | null
           updated_at?: string
           video_url?: string | null
@@ -1140,7 +1138,6 @@ export type Database = {
           security_deposit?: number
           short_description?: string | null
           status?: string
-          territory?: string | null
           type_id?: string | null
           updated_at?: string
           video_url?: string | null
@@ -1430,10 +1427,12 @@ export type Database = {
       }
       franchisees: {
         Row: {
+          aadhaar_number: string | null
           academy_pct: number
           academy_percent: number
           agreement_date: string | null
           agreement_expiry: string | null
+          agreement_number: string | null
           agreement_url: string | null
           agreement_version: string | null
           area_sqft: number | null
@@ -1452,29 +1451,47 @@ export type Database = {
           franchise_product_id: string | null
           franchise_type: string
           full_name: string
+          gst_number: string | null
           id: string
           investment_amount: number
           is_demo: boolean
           joined_at: string
           mall_percent: number
+          manager_user_id: string | null
           mg_percent: number
           notes: string | null
+          pan_number: string | null
+          payment_status: string | null
           phone: string | null
           printer_count: number
           royalty_percent: number
+          sales_executive_user_id: string | null
           status: Database["public"]["Enums"]["franchisee_status"]
           tables_count: number
+          territory_approved: boolean
+          territory_area: string | null
+          territory_city: string | null
+          territory_country: string | null
+          territory_district: string | null
+          territory_end_date: string | null
+          territory_exclusive: boolean
           territory_id: string | null
+          territory_pincode: string | null
+          territory_radius_km: number | null
+          territory_start_date: string | null
+          territory_state: string | null
           tns_percent: number
           updated_at: string
           user_id: string | null
           warehouse_id: string | null
         }
         Insert: {
+          aadhaar_number?: string | null
           academy_pct?: number
           academy_percent?: number
           agreement_date?: string | null
           agreement_expiry?: string | null
+          agreement_number?: string | null
           agreement_url?: string | null
           agreement_version?: string | null
           area_sqft?: number | null
@@ -1493,29 +1510,47 @@ export type Database = {
           franchise_product_id?: string | null
           franchise_type?: string
           full_name: string
+          gst_number?: string | null
           id?: string
           investment_amount?: number
           is_demo?: boolean
           joined_at?: string
           mall_percent?: number
+          manager_user_id?: string | null
           mg_percent?: number
           notes?: string | null
+          pan_number?: string | null
+          payment_status?: string | null
           phone?: string | null
           printer_count?: number
           royalty_percent?: number
+          sales_executive_user_id?: string | null
           status?: Database["public"]["Enums"]["franchisee_status"]
           tables_count?: number
+          territory_approved?: boolean
+          territory_area?: string | null
+          territory_city?: string | null
+          territory_country?: string | null
+          territory_district?: string | null
+          territory_end_date?: string | null
+          territory_exclusive?: boolean
           territory_id?: string | null
+          territory_pincode?: string | null
+          territory_radius_km?: number | null
+          territory_start_date?: string | null
+          territory_state?: string | null
           tns_percent?: number
           updated_at?: string
           user_id?: string | null
           warehouse_id?: string | null
         }
         Update: {
+          aadhaar_number?: string | null
           academy_pct?: number
           academy_percent?: number
           agreement_date?: string | null
           agreement_expiry?: string | null
+          agreement_number?: string | null
           agreement_url?: string | null
           agreement_version?: string | null
           area_sqft?: number | null
@@ -1534,19 +1569,35 @@ export type Database = {
           franchise_product_id?: string | null
           franchise_type?: string
           full_name?: string
+          gst_number?: string | null
           id?: string
           investment_amount?: number
           is_demo?: boolean
           joined_at?: string
           mall_percent?: number
+          manager_user_id?: string | null
           mg_percent?: number
           notes?: string | null
+          pan_number?: string | null
+          payment_status?: string | null
           phone?: string | null
           printer_count?: number
           royalty_percent?: number
+          sales_executive_user_id?: string | null
           status?: Database["public"]["Enums"]["franchisee_status"]
           tables_count?: number
+          territory_approved?: boolean
+          territory_area?: string | null
+          territory_city?: string | null
+          territory_country?: string | null
+          territory_district?: string | null
+          territory_end_date?: string | null
+          territory_exclusive?: boolean
           territory_id?: string | null
+          territory_pincode?: string | null
+          territory_radius_km?: number | null
+          territory_start_date?: string | null
+          territory_state?: string | null
           tns_percent?: number
           updated_at?: string
           user_id?: string | null

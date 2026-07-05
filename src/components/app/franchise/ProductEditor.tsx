@@ -58,7 +58,7 @@ type FormState = {
   gst_percent: string;
   security_deposit: string;
   lock_in_months: string;
-  territory: string;
+  
 
   royalty_percent: string;
   revenue_share_percent: string;
@@ -97,7 +97,7 @@ function toFormState(
     gst_percent: String(product?.gst_percent ?? "18"),
     security_deposit: String(product?.security_deposit ?? "0"),
     lock_in_months: String(product?.lock_in_months ?? "0"),
-    territory: product?.territory ?? "",
+    
 
     royalty_percent: String(product?.royalty_percent ?? "0"),
     revenue_share_percent: String(product?.revenue_share_percent ?? "0"),
@@ -251,7 +251,8 @@ export function ProductEditor({
       gst_percent: numOrZero(state.gst_percent),
       security_deposit: numOrZero(state.security_deposit),
       lock_in_months: Math.floor(numOrZero(state.lock_in_months)),
-      territory: state.territory.trim() || null,
+
+
 
       royalty_percent: numOrZero(state.royalty_percent),
       revenue_share_percent: numOrZero(state.revenue_share_percent),
@@ -367,15 +368,6 @@ export function ProductEditor({
               value={state.brand_logo_url}
               onChange={(e) => update("brand_logo_url", e.target.value)}
               placeholder="https://..."
-            />
-          </div>
-          <div>
-            <Label htmlFor="p-terr">Territory</Label>
-            <Input
-              id="p-terr"
-              value={state.territory}
-              onChange={(e) => update("territory", e.target.value)}
-              placeholder="City / State / Pan India"
             />
           </div>
           <div>
