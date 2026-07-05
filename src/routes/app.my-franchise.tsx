@@ -130,6 +130,14 @@ function MyFranchisePage() {
         <TabsContent value="timeline" className="mt-6">
           <FranchiseeTimeline franchiseeId={f.id} territoryId={f.territory_id} />
         </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <DocumentVault franchiseeId={f.id} />
+        </TabsContent>
+
+        <TabsContent value="agreements" className="mt-6">
+          <MyAgreements franchiseeId={f.id} />
+        </TabsContent>
       </Tabs>
 
       <Link
