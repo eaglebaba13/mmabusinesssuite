@@ -91,6 +91,7 @@ function FranchiseesPage() {
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [agreementFilter, setAgreementFilter] = React.useState<string>("all");
+  const [productFilter, setProductFilter] = React.useState<string>("all");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
   const [form, setForm] = React.useState<OnboardForm>(emptyForm);
@@ -167,12 +168,18 @@ function FranchiseesPage() {
   };
 
   const filtered = (franchisees ?? []).filter((f: any) => {
+    const s = search.toLowerCase();
     const matchSearch =
-      f.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      (f.email ?? "").toLowerCase().includes(search.toLowerCase());
+      !s ||
+      (f.full_name ?? "").toLowerCase().includes(s) ||
+      (f.email ?? "").toLowerCase().includes(s) ||
+      (f.phone ?? "").toLowerCase().includes(s);
     const matchType = typeFilter === "all" || (f.franchise_type ?? "city") === typeFilter;
     const matchAgr = agreementFilter === "all" || agreementStatusOf(f) === agreementFilter;
-    return matchSearch && matchType && matchAgr;
+    const matchProd =
+      productFilter === "all" ||
+      (productFilter === "none" ? !f.franchise_product_id : f.franchise_product_id === productFilter);
+    return matchSearch && matchType && matchAgr && matchProd;
   });
 
   // Current month ROI summary
@@ -338,6 +345,17 @@ function FranchiseesPage() {
             <option value="expiring">Expiring soon</option>
             <option value="expired">Expired</option>
             <option value="missing">Missing</option>
+          </select>
+          <select
+            value={productFilter}
+            onChange={(e) => setProductFilter(e.target.value)}
+            className="h-9 rounded-md border border-border bg-card/40 px-2 text-sm"
+          >
+            <option value="all">All products</option>
+            <option value="none">No product linked</option>
+            {products.map((p) => (
+              <option key={p.id} value={p.id}>{p.brand_name || p.name}</option>
+            ))}
           </select>
           <div className="flex items-center gap-2">
             <ImportButton configKey="franchisees" />
