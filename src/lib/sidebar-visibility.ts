@@ -27,12 +27,11 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
   {
     key: "operations",
     label: "Operations",
-    description: "Dashboard, Leads, Franchisees, State Franchises",
+    description: "Dashboard, Leads, Franchisees",
     items: [
       { id: "/app/dashboard", label: "Dashboard" },
       { id: "/app/leads", label: "Leads" },
       { id: "/app/franchisees", label: "Franchisees" },
-      { id: "/app/state-franchises", label: "State Franchises" },
     ],
   },
   {
