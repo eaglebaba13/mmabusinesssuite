@@ -150,9 +150,39 @@ export function ProductEditor({
   onSaved: (id: string | null) => void;
   onCancel: () => void;
 }) {
-  const [state, setState] = React.useState<FormState>(() =>
-    toFormState(initialProduct, initialCommissions),
+  const storageKey = React.useMemo(
+    () => `franchise-product-editor:${initialProduct?.id ?? "new"}`,
+    [initialProduct?.id],
   );
+  const [state, setState] = React.useState<FormState>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.sessionStorage.getItem(storageKey);
+        if (raw) return JSON.parse(raw) as FormState;
+      } catch {
+        /* ignore */
+      }
+    }
+    return toFormState(initialProduct, initialCommissions);
+  });
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.setItem(storageKey, JSON.stringify(state));
+    } catch {
+      /* ignore */
+    }
+  }, [state, storageKey]);
+
+  const clearDraft = React.useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.sessionStorage.removeItem(storageKey);
+    } catch {
+      /* ignore */
+    }
+  }, [storageKey]);
   const qc = useQueryClient();
 
   const listTypesFn = useServerFn(listFranchiseProductTypes);
@@ -170,6 +200,7 @@ export function ProductEditor({
       if (initialProduct?.id) {
         qc.invalidateQueries({ queryKey: ["franchise-product", initialProduct.id] });
       }
+      clearDraft();
       onSaved(res.id);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -585,14 +616,24 @@ export function ProductEditor({
         )}
       </Card>
 
-      <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-end gap-3 border-t border-border/50 bg-background/95 px-6 py-4 backdrop-blur">
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          <X className="mr-2 h-4 w-4" /> Cancel
-        </Button>
-        <Button type="submit" disabled={upsert.isPending}>
-          <Save className="mr-2 h-4 w-4" />
-          {upsert.isPending ? "Saving..." : initialProduct ? "Save changes" : "Create product"}
-        </Button>
+      <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-between gap-3 border-t border-border/50 bg-background/95 px-6 py-4 backdrop-blur">
+        <p className="text-xs text-muted-foreground">Draft auto-saved locally</p>
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              clearDraft();
+              onCancel();
+            }}
+          >
+            <X className="mr-2 h-4 w-4" /> Cancel
+          </Button>
+          <Button type="submit" disabled={upsert.isPending}>
+            <Save className="mr-2 h-4 w-4" />
+            {upsert.isPending ? "Saving..." : initialProduct ? "Save changes" : "Create product"}
+          </Button>
+        </div>
       </div>
     </form>
   );
