@@ -33,7 +33,6 @@ import { Route as AppInventoryRouteImport } from './routes/app.inventory'
 import { Route as AppImpersonationSessionsRouteImport } from './routes/app.impersonation-sessions'
 import { Route as AppHrRouteImport } from './routes/app.hr'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
-import { Route as AppFranchiseProductsRouteImport } from './routes/app.franchise-products'
 import { Route as AppFranchiseMarketplaceRouteImport } from './routes/app.franchise-marketplace'
 import { Route as AppFranchiseCompareRouteImport } from './routes/app.franchise-compare'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
@@ -47,6 +46,7 @@ import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.inde
 import { Route as AppPosIndexRouteImport } from './routes/app.pos.index'
 import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
 import { Route as AppHrIndexRouteImport } from './routes/app.hr.index'
+import { Route as AppFranchiseProductsIndexRouteImport } from './routes/app.franchise-products.index'
 import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
 import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
 import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
@@ -218,11 +218,6 @@ const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
   path: '/franchisees',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFranchiseProductsRoute = AppFranchiseProductsRouteImport.update({
-  id: '/franchise-products',
-  path: '/franchise-products',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppFranchiseMarketplaceRoute = AppFranchiseMarketplaceRouteImport.update({
   id: '/franchise-marketplace',
   path: '/franchise-marketplace',
@@ -288,6 +283,12 @@ const AppHrIndexRoute = AppHrIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppHrRoute,
 } as any)
+const AppFranchiseProductsIndexRoute =
+  AppFranchiseProductsIndexRouteImport.update({
+    id: '/franchise-products/',
+    path: '/franchise-products/',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppFinanceIndexRoute = AppFinanceIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -422,15 +423,15 @@ const AppFranchiseesFranchiseeIdRoute =
     getParentRoute: () => AppFranchiseesRoute,
   } as any)
 const AppFranchiseProductsNewRoute = AppFranchiseProductsNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AppFranchiseProductsRoute,
+  id: '/franchise-products/new',
+  path: '/franchise-products/new',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppFranchiseProductsProductIdRoute =
   AppFranchiseProductsProductIdRouteImport.update({
-    id: '/$productId',
-    path: '/$productId',
-    getParentRoute: () => AppFranchiseProductsRoute,
+    id: '/franchise-products/$productId',
+    path: '/franchise-products/$productId',
+    getParentRoute: () => AppRoute,
   } as any)
 const AppFinanceRevenueModelRoute = AppFinanceRevenueModelRouteImport.update({
   id: '/revenue-model',
@@ -556,7 +557,6 @@ export interface FileRoutesByFullPath {
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchise-compare': typeof AppFranchiseCompareRoute
   '/app/franchise-marketplace': typeof AppFranchiseMarketplaceRoute
-  '/app/franchise-products': typeof AppFranchiseProductsRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
   '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
@@ -622,6 +622,7 @@ export interface FileRoutesByFullPath {
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
+  '/app/franchise-products/': typeof AppFranchiseProductsIndexRoute
   '/app/hr/': typeof AppHrIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/pos/': typeof AppPosIndexRoute
@@ -642,7 +643,6 @@ export interface FileRoutesByTo {
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
   '/app/franchise-compare': typeof AppFranchiseCompareRoute
   '/app/franchise-marketplace': typeof AppFranchiseMarketplaceRoute
-  '/app/franchise-products': typeof AppFranchiseProductsRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -703,6 +703,7 @@ export interface FileRoutesByTo {
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy': typeof AppAcademyIndexRoute
   '/app/finance': typeof AppFinanceIndexRoute
+  '/app/franchise-products': typeof AppFranchiseProductsIndexRoute
   '/app/hr': typeof AppHrIndexRoute
   '/app/inventory': typeof AppInventoryIndexRoute
   '/app/pos': typeof AppPosIndexRoute
@@ -727,7 +728,6 @@ export interface FileRoutesById {
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchise-compare': typeof AppFranchiseCompareRoute
   '/app/franchise-marketplace': typeof AppFranchiseMarketplaceRoute
-  '/app/franchise-products': typeof AppFranchiseProductsRouteWithChildren
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
   '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
@@ -793,6 +793,7 @@ export interface FileRoutesById {
   '/app/webinars/analytics': typeof AppWebinarsAnalyticsRoute
   '/app/academy/': typeof AppAcademyIndexRoute
   '/app/finance/': typeof AppFinanceIndexRoute
+  '/app/franchise-products/': typeof AppFranchiseProductsIndexRoute
   '/app/hr/': typeof AppHrIndexRoute
   '/app/inventory/': typeof AppInventoryIndexRoute
   '/app/pos/': typeof AppPosIndexRoute
@@ -818,7 +819,6 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/franchise-compare'
     | '/app/franchise-marketplace'
-    | '/app/franchise-products'
     | '/app/franchisees'
     | '/app/hr'
     | '/app/impersonation-sessions'
@@ -884,6 +884,7 @@ export interface FileRouteTypes {
     | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
+    | '/app/franchise-products/'
     | '/app/hr/'
     | '/app/inventory/'
     | '/app/pos/'
@@ -904,7 +905,6 @@ export interface FileRouteTypes {
     | '/app/dashboards'
     | '/app/franchise-compare'
     | '/app/franchise-marketplace'
-    | '/app/franchise-products'
     | '/app/franchisees'
     | '/app/impersonation-sessions'
     | '/app/leads'
@@ -965,6 +965,7 @@ export interface FileRouteTypes {
     | '/app/webinars/analytics'
     | '/app/academy'
     | '/app/finance'
+    | '/app/franchise-products'
     | '/app/hr'
     | '/app/inventory'
     | '/app/pos'
@@ -988,7 +989,6 @@ export interface FileRouteTypes {
     | '/app/finance'
     | '/app/franchise-compare'
     | '/app/franchise-marketplace'
-    | '/app/franchise-products'
     | '/app/franchisees'
     | '/app/hr'
     | '/app/impersonation-sessions'
@@ -1054,6 +1054,7 @@ export interface FileRouteTypes {
     | '/app/webinars/analytics'
     | '/app/academy/'
     | '/app/finance/'
+    | '/app/franchise-products/'
     | '/app/hr/'
     | '/app/inventory/'
     | '/app/pos/'
@@ -1249,13 +1250,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFranchiseesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/franchise-products': {
-      id: '/app/franchise-products'
-      path: '/franchise-products'
-      fullPath: '/app/franchise-products'
-      preLoaderRoute: typeof AppFranchiseProductsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/franchise-marketplace': {
       id: '/app/franchise-marketplace'
       path: '/franchise-marketplace'
@@ -1346,6 +1340,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/hr/'
       preLoaderRoute: typeof AppHrIndexRouteImport
       parentRoute: typeof AppHrRoute
+    }
+    '/app/franchise-products/': {
+      id: '/app/franchise-products/'
+      path: '/franchise-products'
+      fullPath: '/app/franchise-products/'
+      preLoaderRoute: typeof AppFranchiseProductsIndexRouteImport
+      parentRoute: typeof AppRoute
     }
     '/app/finance/': {
       id: '/app/finance/'
@@ -1531,17 +1532,17 @@ declare module '@tanstack/react-router' {
     }
     '/app/franchise-products/new': {
       id: '/app/franchise-products/new'
-      path: '/new'
+      path: '/franchise-products/new'
       fullPath: '/app/franchise-products/new'
       preLoaderRoute: typeof AppFranchiseProductsNewRouteImport
-      parentRoute: typeof AppFranchiseProductsRoute
+      parentRoute: typeof AppRoute
     }
     '/app/franchise-products/$productId': {
       id: '/app/franchise-products/$productId'
-      path: '/$productId'
+      path: '/franchise-products/$productId'
       fullPath: '/app/franchise-products/$productId'
       preLoaderRoute: typeof AppFranchiseProductsProductIdRouteImport
-      parentRoute: typeof AppFranchiseProductsRoute
+      parentRoute: typeof AppRoute
     }
     '/app/finance/revenue-model': {
       id: '/app/finance/revenue-model'
@@ -1766,19 +1767,6 @@ const AppFinanceRouteWithChildren = AppFinanceRoute._addFileChildren(
   AppFinanceRouteChildren,
 )
 
-interface AppFranchiseProductsRouteChildren {
-  AppFranchiseProductsProductIdRoute: typeof AppFranchiseProductsProductIdRoute
-  AppFranchiseProductsNewRoute: typeof AppFranchiseProductsNewRoute
-}
-
-const AppFranchiseProductsRouteChildren: AppFranchiseProductsRouteChildren = {
-  AppFranchiseProductsProductIdRoute: AppFranchiseProductsProductIdRoute,
-  AppFranchiseProductsNewRoute: AppFranchiseProductsNewRoute,
-}
-
-const AppFranchiseProductsRouteWithChildren =
-  AppFranchiseProductsRoute._addFileChildren(AppFranchiseProductsRouteChildren)
-
 interface AppFranchiseesRouteChildren {
   AppFranchiseesFranchiseeIdRoute: typeof AppFranchiseesFranchiseeIdRoute
 }
@@ -1942,7 +1930,6 @@ interface AppRouteChildren {
   AppFinanceRoute: typeof AppFinanceRouteWithChildren
   AppFranchiseCompareRoute: typeof AppFranchiseCompareRoute
   AppFranchiseMarketplaceRoute: typeof AppFranchiseMarketplaceRoute
-  AppFranchiseProductsRoute: typeof AppFranchiseProductsRouteWithChildren
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
   AppHrRoute: typeof AppHrRouteWithChildren
   AppImpersonationSessionsRoute: typeof AppImpersonationSessionsRoute
@@ -1959,8 +1946,11 @@ interface AppRouteChildren {
   AppWebinarsRoute: typeof AppWebinarsRouteWithChildren
   AppIndexRoute: typeof AppIndexRoute
   AppBillingInvoicesRoute: typeof AppBillingInvoicesRouteWithChildren
+  AppFranchiseProductsProductIdRoute: typeof AppFranchiseProductsProductIdRoute
+  AppFranchiseProductsNewRoute: typeof AppFranchiseProductsNewRoute
   AppPayoutsCityRoute: typeof AppPayoutsCityRoute
   AppPayoutsStateRoute: typeof AppPayoutsStateRoute
+  AppFranchiseProductsIndexRoute: typeof AppFranchiseProductsIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -1972,7 +1962,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppFinanceRoute: AppFinanceRouteWithChildren,
   AppFranchiseCompareRoute: AppFranchiseCompareRoute,
   AppFranchiseMarketplaceRoute: AppFranchiseMarketplaceRoute,
-  AppFranchiseProductsRoute: AppFranchiseProductsRouteWithChildren,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
   AppHrRoute: AppHrRouteWithChildren,
   AppImpersonationSessionsRoute: AppImpersonationSessionsRoute,
@@ -1989,8 +1978,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppWebinarsRoute: AppWebinarsRouteWithChildren,
   AppIndexRoute: AppIndexRoute,
   AppBillingInvoicesRoute: AppBillingInvoicesRouteWithChildren,
+  AppFranchiseProductsProductIdRoute: AppFranchiseProductsProductIdRoute,
+  AppFranchiseProductsNewRoute: AppFranchiseProductsNewRoute,
   AppPayoutsCityRoute: AppPayoutsCityRoute,
   AppPayoutsStateRoute: AppPayoutsStateRoute,
+  AppFranchiseProductsIndexRoute: AppFranchiseProductsIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
