@@ -24,6 +24,7 @@ import {
   type FranchiseProductRow,
   type ProductCommissionRow,
 } from "@/lib/rpc/franchise-products.functions";
+import { BrandLogoUpload } from "./BrandLogoUpload";
 
 type CommissionKind =
   | "one_time"
@@ -362,13 +363,13 @@ export function ProductEditor({
             </Select>
           </div>
           <div className="sm:col-span-2">
-            <Label htmlFor="p-logo">Brand Logo URL</Label>
-            <Input
-              id="p-logo"
-              value={state.brand_logo}
-              onChange={(e) => update("brand_logo", e.target.value)}
-              placeholder="https://..."
-            />
+            <Label>Brand Logo</Label>
+            <div className="mt-1">
+              <BrandLogoUpload
+                value={state.brand_logo || null}
+                onChange={(path) => update("brand_logo", path ?? "")}
+              />
+            </div>
           </div>
           <div>
             <Label>Status</Label>
