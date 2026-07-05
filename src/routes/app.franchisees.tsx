@@ -348,7 +348,7 @@ function FranchiseesPage() {
         },
       });
       setCreds({ email: loginEmail, password });
-      setStep(5);
+      setStep(6);
       toast.success("Login created");
       qc.invalidateQueries({ queryKey: ["franchisees"] });
     } catch (e: any) {
