@@ -2112,6 +2112,7 @@ export type Database = {
           franchise_product_id: string | null
           full_name: string
           id: string
+          interest_stage: string | null
           notes: string | null
           phone: string | null
           score: number | null
@@ -2130,6 +2131,7 @@ export type Database = {
           franchise_product_id?: string | null
           full_name: string
           id?: string
+          interest_stage?: string | null
           notes?: string | null
           phone?: string | null
           score?: number | null
@@ -2148,6 +2150,7 @@ export type Database = {
           franchise_product_id?: string | null
           full_name?: string
           id?: string
+          interest_stage?: string | null
           notes?: string | null
           phone?: string | null
           score?: number | null
