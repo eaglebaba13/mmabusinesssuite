@@ -187,6 +187,63 @@ function LeadDetailPage() {
         </div>
       </div>
 
+      {/* Franchise product interest */}
+      <div className="rounded-2xl glass p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-display text-xl">Franchise product interest</h3>
+          <Button
+            size="sm"
+            className="bg-gradient-gold text-background"
+            onClick={convertToFranchisee}
+            disabled={!lead.franchise_product_id || setInterest.isPending}
+          >
+            <Rocket className="mr-1 h-4 w-4" /> Convert to franchisee
+          </Button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Product</Label>
+            <select
+              value={lead.franchise_product_id ?? ""}
+              onChange={(e) =>
+                setInterest.mutate({ franchise_product_id: e.target.value || null })
+              }
+              className="mt-1 h-10 w-full rounded-md border border-border bg-card/40 px-2 text-sm"
+            >
+              <option value="">— None —</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.brand_name ? `${p.brand_name} · ` : ""}{p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label className="text-xs">Pipeline stage</Label>
+            <select
+              value={lead.interest_stage ?? ""}
+              onChange={(e) => setInterest.mutate({ interest_stage: e.target.value || null })}
+              disabled={!lead.franchise_product_id}
+              className="mt-1 h-10 w-full rounded-md border border-border bg-card/40 px-2 text-sm disabled:opacity-50"
+            >
+              <option value="">— Not set —</option>
+              <option value="interested">Interested</option>
+              <option value="shortlisted">Shortlisted</option>
+              <option value="negotiating">Negotiating</option>
+              <option value="won">Won</option>
+              <option value="lost">Lost</option>
+            </select>
+          </div>
+        </div>
+        {lead.franchise_product_id && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            This lead will appear on the Pipeline tab of the linked product.
+          </p>
+        )}
+      </div>
+
+
+
       <div className="rounded-2xl glass p-6">
         <h3 className="font-display text-xl">Activity</h3>
         <div className="mt-4 space-y-3">
