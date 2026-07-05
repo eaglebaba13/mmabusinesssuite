@@ -163,7 +163,8 @@ export function ProductEditor({
   const modelsQ = useQuery({ queryKey: ["franchise-revenue-models"], queryFn: () => listModelsFn() });
 
   const upsert = useMutation({
-    mutationFn: (payload: Parameters<typeof upsertFn>[0]["data"]) => upsertFn({ data: payload }),
+    mutationFn: (payload: Parameters<typeof upsertFranchiseProduct>[0] extends { data: infer D } ? D : never) =>
+      upsertFn({ data: payload as never }),
     onSuccess: (res) => {
       toast.success(initialProduct ? "Product updated" : "Product created");
       qc.invalidateQueries({ queryKey: ["franchise-products"] });
