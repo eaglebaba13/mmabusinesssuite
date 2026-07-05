@@ -11,7 +11,7 @@ export const Route = createFileRoute("/app")({
 
 const FRANCHISEE_BLOCKED = [
   "/app/dashboard", "/app/leads", "/app/franchisees", "/app/state-franchises",
-  "/app/franchise-products",
+  "/app/franchise-products", "/app/agreements",
   "/app/finance", "/app/billing", "/app/payouts", "/app/accounts", "/app/reports",
   "/app/dashboards", "/app/audit-logs", "/app/impersonation-sessions", "/app/hr", "/app/academy", "/app/inventory",
   "/app/webinars", "/app/pos", "/app/settings", "/app/trainer",

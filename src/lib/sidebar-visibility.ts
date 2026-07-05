@@ -43,6 +43,7 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
       { id: "/app/franchise-products", label: "Products" },
       { id: "/app/franchise-marketplace", label: "Marketplace" },
       { id: "/app/franchise-compare", label: "Compare" },
+      { id: "/app/agreements", label: "Agreements" },
     ],
   },
   {

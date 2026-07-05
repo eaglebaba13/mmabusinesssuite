@@ -20,6 +20,7 @@ import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 import { MonthlyRoiPanel } from "@/components/app/MonthlyRoiPanel";
 import { AgreementAuditPanel } from "@/components/app/AgreementAuditPanel";
+import { DocumentVault } from "@/components/app/franchise/DocumentVault";
 
 export const Route = createFileRoute("/app/franchisees/$franchiseeId")({
   head: () => ({ meta: [{ title: "Franchisee — MMA Suite" }] }),
@@ -129,7 +130,9 @@ function FranchiseeDetailPage() {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="ledger">ROI Ledger</TabsTrigger>
           <TabsTrigger value="agreement">Agreement</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="dashboard" className="space-y-6">
           <FranchiseeDashboard
@@ -208,6 +211,12 @@ function FranchiseeDetailPage() {
         <TabsContent value="agreement" className="space-y-6">
           <AgreementAuditPanel franchiseeId={f.id} />
         </TabsContent>
+
+        <TabsContent value="documents" className="space-y-6">
+          <DocumentVault franchiseeId={f.id} />
+        </TabsContent>
+
+
 
 
         <TabsContent value="ledger" className="space-y-6">

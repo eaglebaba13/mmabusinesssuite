@@ -837,6 +837,81 @@ export type Database = {
           },
         ]
       }
+      franchise_agreements: {
+        Row: {
+          created_at: string
+          franchisee_id: string
+          generated_by: string | null
+          id: string
+          merged_html: string | null
+          notes: string | null
+          product_id: string
+          sent_at: string | null
+          signed_at: string | null
+          signed_pdf_url: string | null
+          status: Database["public"]["Enums"]["franchise_agreement_status"]
+          storage_path: string | null
+          template_snapshot: string | null
+          updated_at: string
+          valid_from: string | null
+          valid_till: string | null
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          franchisee_id: string
+          generated_by?: string | null
+          id?: string
+          merged_html?: string | null
+          notes?: string | null
+          product_id: string
+          sent_at?: string | null
+          signed_at?: string | null
+          signed_pdf_url?: string | null
+          status?: Database["public"]["Enums"]["franchise_agreement_status"]
+          storage_path?: string | null
+          template_snapshot?: string | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_till?: string | null
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          franchisee_id?: string
+          generated_by?: string | null
+          id?: string
+          merged_html?: string | null
+          notes?: string | null
+          product_id?: string
+          sent_at?: string | null
+          signed_at?: string | null
+          signed_pdf_url?: string | null
+          status?: Database["public"]["Enums"]["franchise_agreement_status"]
+          storage_path?: string | null
+          template_snapshot?: string | null
+          updated_at?: string
+          valid_from?: string | null
+          valid_till?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchise_agreements_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "franchise_agreements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       franchise_product_commissions: {
         Row: {
           amount: number | null
@@ -1158,6 +1233,50 @@ export type Database = {
         }
         Relationships: []
       }
+      franchise_roi_scenarios: {
+        Row: {
+          created_at: string
+          id: string
+          inputs: Json
+          name: string
+          notes: string | null
+          outputs: Json
+          product_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inputs?: Json
+          name: string
+          notes?: string | null
+          outputs?: Json
+          product_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inputs?: Json
+          name?: string
+          notes?: string | null
+          outputs?: Json
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchise_roi_scenarios_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       franchisee_credentials: {
         Row: {
           created_at: string
@@ -1189,6 +1308,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "franchisee_credentials_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      franchisee_documents: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          file_name: string | null
+          file_url: string
+          franchisee_id: string
+          id: string
+          is_verified: boolean
+          kind: Database["public"]["Enums"]["franchisee_document_kind"]
+          notes: string | null
+          size_bytes: number | null
+          storage_path: string | null
+          updated_at: string
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_url: string
+          franchisee_id: string
+          id?: string
+          is_verified?: boolean
+          kind?: Database["public"]["Enums"]["franchisee_document_kind"]
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_url?: string
+          franchisee_id?: string
+          id?: string
+          is_verified?: boolean
+          kind?: Database["public"]["Enums"]["franchisee_document_kind"]
+          notes?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+          updated_at?: string
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchisee_documents_franchisee_id_fkey"
             columns: ["franchisee_id"]
             isOneToOne: false
             referencedRelation: "franchisees"
@@ -4208,7 +4389,22 @@ export type Database = {
         | "department"
       expense_status: "pending" | "paid" | "cancelled"
       fee_status: "pending" | "paid" | "partial" | "overdue" | "waived"
+      franchise_agreement_status:
+        | "draft"
+        | "sent"
+        | "signed"
+        | "expired"
+        | "cancelled"
       franchise_mapping_type: "company_direct" | "master" | "state" | "city"
+      franchisee_document_kind:
+        | "aadhaar"
+        | "pan"
+        | "gst"
+        | "agreement"
+        | "brochure"
+        | "photo"
+        | "bank"
+        | "other"
       franchisee_status: "active" | "onboarding" | "suspended" | "closed"
       impersonation_mode: "read_only" | "read_write"
       invoice_category:
@@ -4480,7 +4676,24 @@ export const Constants = {
       ],
       expense_status: ["pending", "paid", "cancelled"],
       fee_status: ["pending", "paid", "partial", "overdue", "waived"],
+      franchise_agreement_status: [
+        "draft",
+        "sent",
+        "signed",
+        "expired",
+        "cancelled",
+      ],
       franchise_mapping_type: ["company_direct", "master", "state", "city"],
+      franchisee_document_kind: [
+        "aadhaar",
+        "pan",
+        "gst",
+        "agreement",
+        "brochure",
+        "photo",
+        "bank",
+        "other",
+      ],
       franchisee_status: ["active", "onboarding", "suspended", "closed"],
       impersonation_mode: ["read_only", "read_write"],
       invoice_category: [
