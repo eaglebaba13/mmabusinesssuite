@@ -20,6 +20,7 @@ import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 import { MonthlyRoiPanel } from "@/components/app/MonthlyRoiPanel";
 import { AgreementAuditPanel } from "@/components/app/AgreementAuditPanel";
+import { DocumentVault } from "@/components/app/franchise/DocumentVault";
 
 export const Route = createFileRoute("/app/franchisees/$franchiseeId")({
   head: () => ({ meta: [{ title: "Franchisee — MMA Suite" }] }),
