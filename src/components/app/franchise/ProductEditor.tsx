@@ -24,6 +24,7 @@ import {
   type FranchiseProductRow,
   type ProductCommissionRow,
 } from "@/lib/rpc/franchise-products.functions";
+import { BrandLogoUpload } from "./BrandLogoUpload";
 
 type CommissionKind =
   | "one_time"
@@ -49,7 +50,7 @@ type CommissionDraft = {
 type FormState = {
   name: string;
   brand_name: string;
-  brand_logo_url: string;
+  brand_logo: string;
   category: string;
   type_id: string;
   revenue_model_id: string;
@@ -88,7 +89,7 @@ function toFormState(
   return {
     name: product?.name ?? "",
     brand_name: product?.brand_name ?? "",
-    brand_logo_url: product?.brand_logo_url ?? "",
+    brand_logo: product?.brand_logo ?? "",
     category: product?.category ?? "",
     type_id: product?.type_id ?? "",
     revenue_model_id: product?.revenue_model_id ?? "",
@@ -242,7 +243,7 @@ export function ProductEditor({
       id: initialProduct?.id,
       name: state.name.trim(),
       brand_name: state.brand_name.trim() || null,
-      brand_logo_url: state.brand_logo_url.trim() || null,
+      brand_logo: state.brand_logo.trim() || null,
       category: state.category.trim() || null,
       type_id: state.type_id || null,
       revenue_model_id: state.revenue_model_id || null,
@@ -362,13 +363,13 @@ export function ProductEditor({
             </Select>
           </div>
           <div className="sm:col-span-2">
-            <Label htmlFor="p-logo">Brand Logo URL</Label>
-            <Input
-              id="p-logo"
-              value={state.brand_logo_url}
-              onChange={(e) => update("brand_logo_url", e.target.value)}
-              placeholder="https://..."
-            />
+            <Label>Brand Logo</Label>
+            <div className="mt-1">
+              <BrandLogoUpload
+                value={state.brand_logo || null}
+                onChange={(path) => update("brand_logo", path ?? "")}
+              />
+            </div>
           </div>
           <div>
             <Label>Status</Label>
