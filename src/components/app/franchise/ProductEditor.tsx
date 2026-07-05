@@ -58,7 +58,7 @@ type FormState = {
   gst_percent: string;
   security_deposit: string;
   lock_in_months: string;
-  territory: string;
+  
 
   royalty_percent: string;
   revenue_share_percent: string;
