@@ -161,9 +161,9 @@ export function DocumentVault({ franchiseeId }: { franchiseeId: string }) {
             disabled={uploading}
           />
         </div>
-        <Button disabled className="bg-gradient-gold text-background">
-          <Upload className="mr-2 h-4 w-4" /> {uploading ? "Uploading…" : "Pick a file"}
-        </Button>
+        <div className="text-xs text-muted-foreground">
+          {uploading ? "Uploading…" : "Choose a file to upload."}
+        </div>
       </div>
 
       {isLoading ? (
