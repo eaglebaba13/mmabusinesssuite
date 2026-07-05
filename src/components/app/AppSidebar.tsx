@@ -40,7 +40,7 @@ const NAV_MAIN = [
   { title: "Dashboard", url: "/app/dashboard" as const, icon: LayoutDashboard },
   { title: "Leads", url: "/app/leads" as const, icon: Users },
   { title: "Franchisees", url: "/app/franchisees" as const, icon: Building2 },
-  { title: "State Franchises", url: "/app/state-franchises" as const, icon: MapPin },
+  
 ] as const;
 
 const NAV_FRANCHISE_NETWORK = [
