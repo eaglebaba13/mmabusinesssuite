@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 
 export type SidebarSectionKey =
   | "operations"
+  | "franchise_network"
   | "academy"
   | "inventory"
   | "pos"
