@@ -18,9 +18,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatINR, formatINRCompact } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
 import { ProductEditor } from "@/components/app/franchise/ProductEditor";
+import { RoiCalculator } from "@/components/app/franchise/RoiCalculator";
+import { AgreementBuilder } from "@/components/app/franchise/AgreementBuilder";
 import {
   getFranchiseProduct,
   listFranchiseProductTypes,
