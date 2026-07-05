@@ -37,19 +37,38 @@ export const Route = createFileRoute("/app/franchisees")({
   component: FranchiseesPage,
 });
 
-type Step = 1 | 2 | 3 | 4 | 5;
+type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 interface OnboardForm {
   franchise_product_id: string;
   full_name: string;
   email: string;
   phone: string;
+  gst_number: string;
+  pan_number: string;
+  aadhaar_number: string;
+  agreement_number: string;
+  payment_status: string;
+
   investment_amount: string;
   franchise_fee: string;
   base_roi_pct: string;
   emporium_pct: string;
   academy_pct: string;
   dark_store_pct: string;
+
+  territory_country: string;
+  territory_state: string;
+  territory_district: string;
+  territory_city: string;
+  territory_area: string;
+  territory_pincode: string;
+  territory_radius_km: string;
+  territory_exclusive: boolean;
+  territory_approved: boolean;
+  territory_start_date: string;
+  territory_end_date: string;
+
   area_sqft: string;
   chairs: string;
   tables_count: string;
@@ -63,12 +82,28 @@ const emptyForm: OnboardForm = {
   full_name: "",
   email: "",
   phone: "",
+  gst_number: "",
+  pan_number: "",
+  aadhaar_number: "",
+  agreement_number: "",
+  payment_status: "pending",
   investment_amount: "500000",
   franchise_fee: "500000",
   base_roi_pct: "3",
   emporium_pct: "10",
   academy_pct: "3",
   dark_store_pct: "3",
+  territory_country: "India",
+  territory_state: "",
+  territory_district: "",
+  territory_city: "",
+  territory_area: "",
+  territory_pincode: "",
+  territory_radius_km: "",
+  territory_exclusive: false,
+  territory_approved: false,
+  territory_start_date: "",
+  territory_end_date: "",
   area_sqft: "150",
   chairs: "2",
   tables_count: "1",
