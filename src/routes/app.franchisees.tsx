@@ -99,7 +99,7 @@ function FranchiseesPage() {
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
   const createUserFn = useServerFn(createFranchiseeUser);
   const navigate = useNavigate();
-  const search = useSearch({ from: "/app/franchisees" });
+  const routeSearch = useSearch({ from: "/app/franchisees" });
   const appliedPrefill = React.useRef(false);
 
   const { isTesting } = useMode();
