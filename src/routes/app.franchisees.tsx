@@ -168,12 +168,18 @@ function FranchiseesPage() {
   };
 
   const filtered = (franchisees ?? []).filter((f: any) => {
+    const s = search.toLowerCase();
     const matchSearch =
-      f.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      (f.email ?? "").toLowerCase().includes(search.toLowerCase());
+      !s ||
+      (f.full_name ?? "").toLowerCase().includes(s) ||
+      (f.email ?? "").toLowerCase().includes(s) ||
+      (f.phone ?? "").toLowerCase().includes(s);
     const matchType = typeFilter === "all" || (f.franchise_type ?? "city") === typeFilter;
     const matchAgr = agreementFilter === "all" || agreementStatusOf(f) === agreementFilter;
-    return matchSearch && matchType && matchAgr;
+    const matchProd =
+      productFilter === "all" ||
+      (productFilter === "none" ? !f.franchise_product_id : f.franchise_product_id === productFilter);
+    return matchSearch && matchType && matchAgr && matchProd;
   });
 
   // Current month ROI summary
