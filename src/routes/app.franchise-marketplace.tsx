@@ -63,9 +63,37 @@ function MarketplacePage() {
   const productsQ = useQuery({ queryKey: ["franchise-products"], queryFn: () => listFn() });
   const typesQ = useQuery({ queryKey: ["franchise-product-types"], queryFn: () => listTypesFn() });
 
+  const { isAdmin, hasRole } = useAuth();
+  const canEnquire = isAdmin || hasRole("sales");
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [enquireFor, setEnquireFor] = React.useState<{ id: string; name: string } | null>(null);
+  const [enq, setEnq] = React.useState({ full_name: "", email: "", phone: "", city: "" });
+  const [saving, setSaving] = React.useState(false);
+
+  async function submitEnquiry() {
+    if (!enquireFor || !enq.full_name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("leads").insert({
+      full_name: enq.full_name.trim(),
+      email: enq.email.trim() || null,
+      phone: enq.phone.trim() || null,
+      city: enq.city.trim() || null,
+      source: "referral" as any,
+      stage: "new" as any,
+      franchise_product_id: enquireFor.id,
+      interest_stage: "interested",
+    });
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Lead created for ${enquireFor.name}`);
+    setEnquireFor(null);
+    setEnq({ full_name: "", email: "", phone: "", city: "" });
+  }
 
   const typeLabelById = React.useMemo(() => {
     const m = new Map<string, string>();
