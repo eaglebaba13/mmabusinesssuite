@@ -1,12 +1,13 @@
 import * as React from "react";
-import { createFileRoute, Link, useParams, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 
@@ -33,8 +34,22 @@ export const Route = createFileRoute("/app/leads/$leadId")({
 function LeadDetailPage() {
   const { leadId } = useParams({ from: "/app/leads/$leadId" });
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [note, setNote] = React.useState("");
   const [scoring, setScoring] = React.useState(false);
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["franchise_products_active_leads"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("franchise_products")
+        .select("id, name, brand_name")
+        .eq("status", "active")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; name: string; brand_name: string | null }>;
+    },
+  });
 
   const { data: lead, isLoading } = useQuery({
     queryKey: ["lead", leadId],
