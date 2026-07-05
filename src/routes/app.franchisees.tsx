@@ -197,6 +197,7 @@ function FranchiseesPage() {
       const { data, error } = await supabase
         .from("franchisees")
         .insert({
+          franchise_product_id: form.franchise_product_id || null,
           full_name: form.full_name,
           email: form.email || null,
           phone: form.phone || null,
