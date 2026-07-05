@@ -371,15 +371,6 @@ export function ProductEditor({
             />
           </div>
           <div>
-            <Label htmlFor="p-terr">Territory</Label>
-            <Input
-              id="p-terr"
-              value={state.territory}
-              onChange={(e) => update("territory", e.target.value)}
-              placeholder="City / State / Pan India"
-            />
-          </div>
-          <div>
             <Label>Status</Label>
             <Select value={state.status} onValueChange={(v) => update("status", v as FormState["status"])}>
               <SelectTrigger>
