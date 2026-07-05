@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 
 export type SidebarSectionKey =
   | "operations"
+  | "franchise_network"
   | "academy"
   | "inventory"
   | "pos"
@@ -32,6 +33,16 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
       { id: "/app/leads", label: "Leads" },
       { id: "/app/franchisees", label: "Franchisees" },
       { id: "/app/state-franchises", label: "State Franchises" },
+    ],
+  },
+  {
+    key: "franchise_network",
+    label: "Franchise Network",
+    description: "Products, Marketplace, Compare",
+    items: [
+      { id: "/app/franchise-products", label: "Products" },
+      { id: "/app/franchise-marketplace", label: "Marketplace" },
+      { id: "/app/franchise-compare", label: "Compare" },
     ],
   },
   {

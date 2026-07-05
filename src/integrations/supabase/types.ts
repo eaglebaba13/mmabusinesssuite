@@ -837,6 +837,327 @@ export type Database = {
           },
         ]
       }
+      franchise_product_commissions: {
+        Row: {
+          amount: number | null
+          created_at: string
+          frequency: string | null
+          id: string
+          kind: string
+          label: string
+          notes: string | null
+          percent: number | null
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          frequency?: string | null
+          id?: string
+          kind: string
+          label: string
+          notes?: string | null
+          percent?: number | null
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          frequency?: string | null
+          id?: string
+          kind?: string
+          label?: string
+          notes?: string | null
+          percent?: number | null
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchise_product_commissions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      franchise_product_media: {
+        Row: {
+          caption: string | null
+          content_type: string | null
+          created_at: string
+          created_by: string | null
+          file_name: string | null
+          file_size_bytes: number | null
+          id: string
+          kind: string
+          product_id: string
+          sort_order: number
+          storage_path: string | null
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          content_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          kind: string
+          product_id: string
+          sort_order?: number
+          storage_path?: string | null
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          content_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          kind?: string
+          product_id?: string
+          sort_order?: number
+          storage_path?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchise_product_media_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      franchise_product_types: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      franchise_products: {
+        Row: {
+          agreement_template: string | null
+          brand_logo_url: string | null
+          brand_name: string | null
+          brochure_url: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          expected_roi_percent: number | null
+          gst_percent: number
+          highlights: Json
+          id: string
+          investment_amount: number
+          is_featured: boolean
+          lock_in_months: number
+          long_description: string | null
+          minimum_guarantee: number
+          name: string
+          profit_margin_percent: number | null
+          requirements: Json
+          revenue_model_id: string | null
+          revenue_share_percent: number
+          roi_timeline_months: number | null
+          royalty_percent: number
+          security_deposit: number
+          short_description: string | null
+          status: string
+          territory: string | null
+          type_id: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          agreement_template?: string | null
+          brand_logo_url?: string | null
+          brand_name?: string | null
+          brochure_url?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_roi_percent?: number | null
+          gst_percent?: number
+          highlights?: Json
+          id?: string
+          investment_amount?: number
+          is_featured?: boolean
+          lock_in_months?: number
+          long_description?: string | null
+          minimum_guarantee?: number
+          name: string
+          profit_margin_percent?: number | null
+          requirements?: Json
+          revenue_model_id?: string | null
+          revenue_share_percent?: number
+          roi_timeline_months?: number | null
+          royalty_percent?: number
+          security_deposit?: number
+          short_description?: string | null
+          status?: string
+          territory?: string | null
+          type_id?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          agreement_template?: string | null
+          brand_logo_url?: string | null
+          brand_name?: string | null
+          brochure_url?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          expected_roi_percent?: number | null
+          gst_percent?: number
+          highlights?: Json
+          id?: string
+          investment_amount?: number
+          is_featured?: boolean
+          lock_in_months?: number
+          long_description?: string | null
+          minimum_guarantee?: number
+          name?: string
+          profit_margin_percent?: number | null
+          requirements?: Json
+          revenue_model_id?: string | null
+          revenue_share_percent?: number
+          roi_timeline_months?: number | null
+          royalty_percent?: number
+          security_deposit?: number
+          short_description?: string | null
+          status?: string
+          territory?: string | null
+          type_id?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchise_products_revenue_model_id_fkey"
+            columns: ["revenue_model_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_revenue_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "franchise_products_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_product_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      franchise_revenue_model_splits: {
+        Row: {
+          created_at: string
+          id: string
+          model_id: string
+          notes: string | null
+          party_label: string
+          percent: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          model_id: string
+          notes?: string | null
+          party_label: string
+          percent: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          model_id?: string
+          notes?: string | null
+          party_label?: string
+          percent?: number
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchise_revenue_model_splits_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_revenue_models"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      franchise_revenue_models: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       franchisee_credentials: {
         Row: {
           created_at: string
@@ -947,6 +1268,7 @@ export type Database = {
           equipment_verified_at: string | null
           franchise_commission_amount: number
           franchise_fee: number
+          franchise_product_id: string | null
           franchise_type: string
           full_name: string
           id: string
@@ -987,6 +1309,7 @@ export type Database = {
           equipment_verified_at?: string | null
           franchise_commission_amount?: number
           franchise_fee?: number
+          franchise_product_id?: string | null
           franchise_type?: string
           full_name: string
           id?: string
@@ -1027,6 +1350,7 @@ export type Database = {
           equipment_verified_at?: string | null
           franchise_commission_amount?: number
           franchise_fee?: number
+          franchise_product_id?: string | null
           franchise_type?: string
           full_name?: string
           id?: string
@@ -1048,6 +1372,13 @@ export type Database = {
           warehouse_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "franchisees_franchise_product_id_fkey"
+            columns: ["franchise_product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "franchisees_territory_id_fkey"
             columns: ["territory_id"]
@@ -1597,6 +1928,7 @@ export type Database = {
           city: string | null
           created_at: string
           email: string | null
+          franchise_product_id: string | null
           full_name: string
           id: string
           notes: string | null
@@ -1614,6 +1946,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           email?: string | null
+          franchise_product_id?: string | null
           full_name: string
           id?: string
           notes?: string | null
@@ -1631,6 +1964,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           email?: string | null
+          franchise_product_id?: string | null
           full_name?: string
           id?: string
           notes?: string | null
@@ -1642,6 +1976,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_franchise_product_id_fkey"
+            columns: ["franchise_product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_territory_id_fkey"
             columns: ["territory_id"]

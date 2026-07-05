@@ -43,6 +43,12 @@ const NAV_MAIN = [
   { title: "State Franchises", url: "/app/state-franchises" as const, icon: MapPin },
 ] as const;
 
+const NAV_FRANCHISE_NETWORK = [
+  { title: "Products", url: "/app/franchise-products" as const, icon: Package },
+  { title: "Marketplace", url: "/app/franchise-marketplace" as const, icon: Store },
+  { title: "Compare", url: "/app/franchise-compare" as const, icon: BarChart3 },
+] as const;
+
 const NAV_ACADEMY = [
   { title: "Academy", url: "/app/academy" as const, icon: GraduationCap },
 ] as const;
@@ -153,6 +159,34 @@ export function AppSidebar() {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
+
+        {showOps && show("franchise_network") && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Franchise Network
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_FRANCHISE_NETWORK.filter((item) => itemOn(item.url)).map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
+                      className="data-[active=true]:bg-gradient-gold data-[active=true]:text-background"
+                    >
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
 
         {isAcademyStaff && show("academy") && (
           <SidebarGroup>
