@@ -184,122 +184,139 @@ function ProductDetailPage() {
         />
       </div>
 
-      {/* Details grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="p-6 lg:col-span-2">
-          <h2 className="mb-3 font-display text-xl">About</h2>
-          {product.short_description && (
-            <p className="mb-3 text-sm font-medium text-foreground/90">{product.short_description}</p>
-          )}
-          {product.long_description ? (
-            <p className="whitespace-pre-line text-sm text-muted-foreground">{product.long_description}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground">No description yet.</p>
-          )}
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-card/40">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="roi">ROI Calculator</TabsTrigger>
+          <TabsTrigger value="agreement">Agreement</TabsTrigger>
+        </TabsList>
 
-          {product.highlights.length > 0 && (
-            <div className="mt-6">
-              <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Highlights
-              </h3>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {product.highlights.map((h, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                    {h}
-                  </li>
-                ))}
-              </ul>
+        <TabsContent value="overview" className="space-y-6">
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Card className="p-6 lg:col-span-2">
+              <h2 className="mb-3 font-display text-xl">About</h2>
+              {product.short_description && (
+                <p className="mb-3 text-sm font-medium text-foreground/90">{product.short_description}</p>
+              )}
+              {product.long_description ? (
+                <p className="whitespace-pre-line text-sm text-muted-foreground">{product.long_description}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">No description yet.</p>
+              )}
+
+              {product.highlights.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Highlights
+                  </h3>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {product.highlights.map((h, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                        {h}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {product.requirements.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Requirements
+                  </h3>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {product.requirements.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                        {r}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </Card>
+
+            <div className="space-y-6">
+              <Card className="p-6">
+                <h3 className="mb-3 font-display text-lg">Financials</h3>
+                <dl className="space-y-2 text-sm">
+                  <Row label="Investment" value={formatINR(product.investment_amount)} />
+                  <Row label="GST" value={`${product.gst_percent}%`} />
+                  <Row label="Security deposit" value={formatINR(product.security_deposit)} />
+                  <Row label="Minimum guarantee" value={formatINR(product.minimum_guarantee)} />
+                  <Row
+                    label="Profit margin"
+                    value={product.profit_margin_percent != null ? `${product.profit_margin_percent}%` : "—"}
+                  />
+                  <Row label="Territory" value={product.territory ?? "—"} />
+                </dl>
+              </Card>
+
+              {revenueModel && (
+                <Card className="p-6">
+                  <h3 className="mb-3 font-display text-lg">Revenue Model</h3>
+                  <p className="mb-3 text-sm font-medium">{revenueModel.name}</p>
+                  <ul className="space-y-2">
+                    {revenueModel.franchise_revenue_model_splits
+                      .sort((a, b) => a.sort_order - b.sort_order)
+                      .map((s) => (
+                        <li key={s.id} className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">{s.party_label}</span>
+                          <span className="font-medium text-primary">{s.percent}%</span>
+                        </li>
+                      ))}
+                  </ul>
+                </Card>
+              )}
             </div>
-          )}
+          </div>
 
-          {product.requirements.length > 0 && (
-            <div className="mt-6">
-              <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Requirements
-              </h3>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {product.requirements.map((r, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                    {r}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </Card>
-
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h3 className="mb-3 font-display text-lg">Financials</h3>
-            <dl className="space-y-2 text-sm">
-              <Row label="Investment" value={formatINR(product.investment_amount)} />
-              <Row label="GST" value={`${product.gst_percent}%`} />
-              <Row label="Security deposit" value={formatINR(product.security_deposit)} />
-              <Row label="Minimum guarantee" value={formatINR(product.minimum_guarantee)} />
-              <Row
-                label="Profit margin"
-                value={product.profit_margin_percent != null ? `${product.profit_margin_percent}%` : "—"}
-              />
-              <Row label="Territory" value={product.territory ?? "—"} />
-            </dl>
-          </Card>
-
-          {revenueModel && (
+          {commissions.length > 0 && (
             <Card className="p-6">
-              <h3 className="mb-3 font-display text-lg">Revenue Model</h3>
-              <p className="mb-3 text-sm font-medium">{revenueModel.name}</p>
-              <ul className="space-y-2">
-                {revenueModel.franchise_revenue_model_splits
-                  .sort((a, b) => a.sort_order - b.sort_order)
-                  .map((s) => (
-                    <li key={s.id} className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">{s.party_label}</span>
-                      <span className="font-medium text-primary">{s.percent}%</span>
-                    </li>
-                  ))}
-              </ul>
+              <h2 className="mb-4 font-display text-xl">Commission Structure</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                      <th className="py-2 pr-4">Type</th>
+                      <th className="py-2 pr-4">Label</th>
+                      <th className="py-2 pr-4">Amount</th>
+                      <th className="py-2 pr-4">Percent</th>
+                      <th className="py-2 pr-4">Frequency</th>
+                      <th className="py-2">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {commissions.map((c) => (
+                      <tr key={c.id} className="border-b border-border/30 last:border-0">
+                        <td className="py-2 pr-4">
+                          <Badge variant="outline" className="text-[10px] capitalize">
+                            {c.kind.replace(/_/g, " ")}
+                          </Badge>
+                        </td>
+                        <td className="py-2 pr-4 font-medium">{c.label}</td>
+                        <td className="py-2 pr-4">{c.amount != null ? formatINR(c.amount) : "—"}</td>
+                        <td className="py-2 pr-4">{c.percent != null ? `${c.percent}%` : "—"}</td>
+                        <td className="py-2 pr-4 capitalize">{(c.frequency ?? "—").replace(/_/g, " ")}</td>
+                        <td className="py-2 text-muted-foreground">{c.notes ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Card>
           )}
-        </div>
-      </div>
+        </TabsContent>
 
-      {commissions.length > 0 && (
-        <Card className="mt-6 p-6">
-          <h2 className="mb-4 font-display text-xl">Commission Structure</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <th className="py-2 pr-4">Type</th>
-                  <th className="py-2 pr-4">Label</th>
-                  <th className="py-2 pr-4">Amount</th>
-                  <th className="py-2 pr-4">Percent</th>
-                  <th className="py-2 pr-4">Frequency</th>
-                  <th className="py-2">Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {commissions.map((c) => (
-                  <tr key={c.id} className="border-b border-border/30 last:border-0">
-                    <td className="py-2 pr-4">
-                      <Badge variant="outline" className="text-[10px] capitalize">
-                        {c.kind.replace(/_/g, " ")}
-                      </Badge>
-                    </td>
-                    <td className="py-2 pr-4 font-medium">{c.label}</td>
-                    <td className="py-2 pr-4">{c.amount != null ? formatINR(c.amount) : "—"}</td>
-                    <td className="py-2 pr-4">{c.percent != null ? `${c.percent}%` : "—"}</td>
-                    <td className="py-2 pr-4 capitalize">{(c.frequency ?? "—").replace(/_/g, " ")}</td>
-                    <td className="py-2 text-muted-foreground">{c.notes ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      )}
+        <TabsContent value="roi">
+          <RoiCalculator product={product} />
+        </TabsContent>
+
+        <TabsContent value="agreement">
+          <AgreementBuilder product={product} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
