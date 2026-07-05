@@ -417,14 +417,16 @@ function FranchiseesPage() {
             <DialogContent className="max-w-2xl bg-card">
               <DialogHeader>
                 <DialogTitle className="font-display text-2xl">Onboard franchisee</DialogTitle>
-                <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                   <StepDot active={step >= 1} done={step > 1} label="Partner" />
                   <StepLine />
                   <StepDot active={step >= 2} done={step > 2} label="ROI" />
                   <StepLine />
-                  <StepDot active={step >= 3} done={step > 3} label="Premises" />
+                  <StepDot active={step >= 3} done={step > 3} label="Territory" />
                   <StepLine />
-                  <StepDot active={step >= 4} done={step > 4} label="Login" />
+                  <StepDot active={step >= 4} done={step > 4} label="Premises" />
+                  <StepLine />
+                  <StepDot active={step >= 5} done={step > 5} label="Login" />
                 </div>
               </DialogHeader>
 
@@ -472,6 +474,11 @@ function FranchiseesPage() {
                     <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1" /></div>
                     <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1" /></div>
                   </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div><Label>GST</Label><Input value={form.gst_number} onChange={(e) => setForm({ ...form, gst_number: e.target.value })} className="mt-1" /></div>
+                    <div><Label>PAN</Label><Input value={form.pan_number} onChange={(e) => setForm({ ...form, pan_number: e.target.value })} className="mt-1" /></div>
+                    <div><Label>Aadhaar</Label><Input value={form.aadhaar_number} onChange={(e) => setForm({ ...form, aadhaar_number: e.target.value })} className="mt-1" /></div>
+                  </div>
                   <p className="text-xs text-muted-foreground">If email is left blank, we'll auto-generate one for the login.</p>
                 </div>
               )}
@@ -487,11 +494,57 @@ function FranchiseesPage() {
                     <div><Label>Academy %</Label><Input type="number" step="0.01" value={form.academy_pct} onChange={(e) => setForm({ ...form, academy_pct: e.target.value })} className="mt-1" /></div>
                     <div><Label>Dark store %</Label><Input type="number" step="0.01" value={form.dark_store_pct} onChange={(e) => setForm({ ...form, dark_store_pct: e.target.value })} className="mt-1" /></div>
                   </div>
-                  <p className="text-xs text-muted-foreground">Defaults: ₹5L fee · 3% fixed ROI · 10% Nail Emporium · 3% Academy · 3% Dark store.</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Agreement number</Label><Input value={form.agreement_number} onChange={(e) => setForm({ ...form, agreement_number: e.target.value })} className="mt-1" /></div>
+                    <div>
+                      <Label>Payment status</Label>
+                      <select
+                        value={form.payment_status}
+                        onChange={(e) => setForm({ ...form, payment_status: e.target.value })}
+                        className="mt-1 h-10 w-full rounded-md border border-border bg-card/40 px-2 text-sm"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="partial">Partial</option>
+                        <option value="paid">Paid</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {step === 3 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Country</Label><Input value={form.territory_country} onChange={(e) => setForm({ ...form, territory_country: e.target.value })} className="mt-1" /></div>
+                    <div><Label>State</Label><Input value={form.territory_state} onChange={(e) => setForm({ ...form, territory_state: e.target.value })} className="mt-1" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>District</Label><Input value={form.territory_district} onChange={(e) => setForm({ ...form, territory_district: e.target.value })} className="mt-1" /></div>
+                    <div><Label>City</Label><Input value={form.territory_city} onChange={(e) => setForm({ ...form, territory_city: e.target.value })} className="mt-1" /></div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div><Label>Area</Label><Input value={form.territory_area} onChange={(e) => setForm({ ...form, territory_area: e.target.value })} placeholder="e.g. Vaishali Nagar" className="mt-1" /></div>
+                    <div><Label>Pincode</Label><Input value={form.territory_pincode} onChange={(e) => setForm({ ...form, territory_pincode: e.target.value })} className="mt-1" /></div>
+                    <div><Label>Radius (km)</Label><Input type="number" step="0.1" value={form.territory_radius_km} onChange={(e) => setForm({ ...form, territory_radius_km: e.target.value })} placeholder="optional" className="mt-1" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Start date</Label><Input type="date" value={form.territory_start_date} onChange={(e) => setForm({ ...form, territory_start_date: e.target.value })} className="mt-1" /></div>
+                    <div><Label>End date</Label><Input type="date" value={form.territory_end_date} onChange={(e) => setForm({ ...form, territory_end_date: e.target.value })} className="mt-1" /></div>
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={form.territory_exclusive} onChange={(e) => setForm({ ...form, territory_exclusive: e.target.checked })} />
+                      Exclusive territory
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" checked={form.territory_approved} onChange={(e) => setForm({ ...form, territory_approved: e.target.checked })} />
+                      Territory approved
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
                 <div className="space-y-3">
                   <div><Label>Area (sq ft, min 150)</Label><Input type="number" value={form.area_sqft} onChange={(e) => setForm({ ...form, area_sqft: e.target.value })} className="mt-1" /></div>
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -504,7 +557,7 @@ function FranchiseesPage() {
                 </div>
               )}
 
-              {step === 4 && (
+              {step === 5 && (
                 <div className="space-y-3 text-center">
                   <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-400" />
                   <div className="font-display text-xl">Profile saved</div>
@@ -514,7 +567,7 @@ function FranchiseesPage() {
                 </div>
               )}
 
-              {step === 5 && creds && (
+              {step === 6 && creds && (
                 <div className="space-y-3">
                   <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-center">
                     <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-400" />
@@ -529,11 +582,11 @@ function FranchiseesPage() {
               )}
 
               <DialogFooter className="flex flex-row justify-between sm:justify-between">
-                {step > 1 && step < 4 && (
+                {step > 1 && step < 5 && (
                   <Button variant="outline" onClick={() => setStep((s) => (s - 1) as Step)}>Back</Button>
                 )}
                 <div className="ml-auto flex gap-2">
-                  {step < 3 && (
+                  {step < 4 && (
                     <Button
                       className="bg-gradient-gold text-background"
                       disabled={step === 1 && !form.full_name}
@@ -542,7 +595,7 @@ function FranchiseesPage() {
                       Next
                     </Button>
                   )}
-                  {step === 3 && (
+                  {step === 4 && (
                     <Button
                       className="bg-gradient-gold text-background"
                       disabled={create.isPending}
@@ -551,7 +604,7 @@ function FranchiseesPage() {
                       {create.isPending ? "Saving…" : "Save & continue"}
                     </Button>
                   )}
-                  {step === 4 && (
+                  {step === 5 && (
                     <>
                       <Button variant="outline" onClick={closeWizard}>Skip</Button>
                       <Button className="bg-gradient-gold text-background" disabled={saving} onClick={generateLogin}>
@@ -559,7 +612,7 @@ function FranchiseesPage() {
                       </Button>
                     </>
                   )}
-                  {step === 5 && (
+                  {step === 6 && (
                     <Button className="bg-gradient-gold text-background" onClick={closeWizard}>Done</Button>
                   )}
                 </div>
