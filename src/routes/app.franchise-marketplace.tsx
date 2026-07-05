@@ -262,7 +262,17 @@ function MarketplacePage() {
                       </a>
                     </Button>
                   )}
-                  <Button variant="default" size="sm" className="ml-auto" asChild>
+                  {canEnquire && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto"
+                      onClick={() => setEnquireFor({ id: p.id, name: p.name })}
+                    >
+                      <UserPlus className="mr-1 h-3.5 w-3.5" /> Enquire
+                    </Button>
+                  )}
+                  <Button variant="default" size="sm" className={canEnquire ? "" : "ml-auto"} asChild>
                     <Link to="/app/franchise-products/$productId" params={{ productId: p.id }}>
                       Details <ArrowRight className="ml-1 h-3.5 w-3.5" />
                     </Link>
@@ -273,6 +283,68 @@ function MarketplacePage() {
           })}
         </div>
       )}
+
+      <Dialog open={!!enquireFor} onOpenChange={(v) => !v && setEnquireFor(null)}>
+        <DialogContent className="bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">
+              Add enquiry — {enquireFor?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Full name *</Label>
+              <Input
+                className="mt-1"
+                value={enq.full_name}
+                onChange={(e) => setEnq({ ...enq, full_name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  className="mt-1"
+                  value={enq.email}
+                  onChange={(e) => setEnq({ ...enq, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  className="mt-1"
+                  value={enq.phone}
+                  onChange={(e) => setEnq({ ...enq, phone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>City</Label>
+              <Input
+                className="mt-1"
+                value={enq.city}
+                onChange={(e) => setEnq({ ...enq, city: e.target.value })}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Creates a lead tagged with this product at stage "Interested".
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEnquireFor(null)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-gradient-gold text-background"
+              onClick={submitEnquiry}
+              disabled={saving || !enq.full_name.trim()}
+            >
+              {saving ? "Saving…" : "Create lead"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
