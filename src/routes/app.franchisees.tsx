@@ -1,9 +1,10 @@
 import * as React from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, Search, Building2, Copy, CheckCircle2 } from "lucide-react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +22,18 @@ import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 import { useAuth } from "@/lib/auth-context";
 import { useMode } from "@/lib/mode-context";
 
+const franchiseesSearchSchema = z.object({
+  openOnboard: z.coerce.number().optional(),
+  productId: z.string().optional(),
+  leadId: z.string().optional(),
+  fullName: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+});
+
 export const Route = createFileRoute("/app/franchisees")({
   head: () => ({ meta: [{ title: "Franchisees — MMA Suite" }] }),
+  validateSearch: franchiseesSearchSchema,
   component: FranchiseesPage,
 });
 
