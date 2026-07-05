@@ -129,6 +129,34 @@ function FranchiseesPage() {
     },
   });
 
+  // Auto-open onboarding wizard when navigated with prefill params (from Lead → Convert)
+  React.useEffect(() => {
+    if (appliedPrefill.current) return;
+    if (!routeSearch.openOnboard) return;
+    if (products.length === 0 && routeSearch.productId) return; // wait for products to load
+    appliedPrefill.current = true;
+    const p = routeSearch.productId ? products.find((x) => x.id === routeSearch.productId) : null;
+    setForm((f) => ({
+      ...f,
+      franchise_product_id: routeSearch.productId ?? f.franchise_product_id,
+      full_name: routeSearch.fullName ?? f.full_name,
+      email: routeSearch.email ?? f.email,
+      phone: routeSearch.phone ?? f.phone,
+      ...(p
+        ? {
+            investment_amount: String(p.investment_amount ?? f.investment_amount),
+            franchise_fee: String(p.investment_amount ?? f.franchise_fee),
+            base_roi_pct:
+              p.expected_roi_percent != null ? String(p.expected_roi_percent) : f.base_roi_pct,
+          }
+        : {}),
+    }));
+    setOpen(true);
+    // clean URL so refresh doesn't re-open
+    navigate({ to: "/app/franchisees", search: {}, replace: true });
+  }, [routeSearch, products, navigate]);
+
+
   const today = new Date().toISOString().slice(0, 10);
   const agreementStatusOf = (f: any): "active" | "expired" | "expiring" | "missing" => {
     if (!f.agreement_expiry) return "missing";
