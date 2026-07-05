@@ -29,6 +29,7 @@ export const Route = createFileRoute("/app/franchisees")({
 type Step = 1 | 2 | 3 | 4 | 5;
 
 interface OnboardForm {
+  franchise_product_id: string;
   full_name: string;
   email: string;
   phone: string;
@@ -47,6 +48,7 @@ interface OnboardForm {
 }
 
 const emptyForm: OnboardForm = {
+  franchise_product_id: "",
   full_name: "",
   email: "",
   phone: "",
@@ -96,6 +98,20 @@ function FranchiseesPage() {
       const { data, error } = await q;
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["franchise_products_active"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("franchise_products")
+        .select("id,name,brand_name,investment_amount,royalty_percent,expected_roi_percent,status")
+        .eq("status", "active")
+        .order("is_featured", { ascending: false })
+        .order("name");
+      if (error) throw error;
+      return data as Array<{ id: string; name: string; brand_name: string | null; investment_amount: number; royalty_percent: number; expected_roi_percent: number | null; status: string }>;
     },
   });
 
@@ -181,6 +197,7 @@ function FranchiseesPage() {
       const { data, error } = await supabase
         .from("franchisees")
         .insert({
+          franchise_product_id: form.franchise_product_id || null,
           full_name: form.full_name,
           email: form.email || null,
           phone: form.phone || null,
@@ -302,6 +319,43 @@ function FranchiseesPage() {
 
               {step === 1 && (
                 <div className="space-y-3">
+                  <div>
+                    <Label>Franchise product</Label>
+                    <select
+                      value={form.franchise_product_id}
+                      onChange={(e) => {
+                        const id = e.target.value;
+                        const p = products.find((x) => x.id === id);
+                        setForm((f) => ({
+                          ...f,
+                          franchise_product_id: id,
+                          ...(p
+                            ? {
+                                investment_amount: String(p.investment_amount ?? f.investment_amount),
+                                franchise_fee: String(p.investment_amount ?? f.franchise_fee),
+                                base_roi_pct:
+                                  p.expected_roi_percent != null
+                                    ? String(p.expected_roi_percent)
+                                    : f.base_roi_pct,
+                              }
+                            : {}),
+                        }));
+                      }}
+                      className="mt-1 h-10 w-full rounded-md border border-border bg-card/40 px-2 text-sm"
+                    >
+                      <option value="">— Select a product —</option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.brand_name ? `${p.brand_name} · ` : ""}{p.name}
+                        </option>
+                      ))}
+                    </select>
+                    {products.length === 0 && (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        No active products yet. Create one in Franchise Products.
+                      </p>
+                    )}
+                  </div>
                   <div><Label>Full name *</Label><Input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="mt-1" /></div>
                   <div className="grid grid-cols-2 gap-3">
                     <div><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="mt-1" /></div>
