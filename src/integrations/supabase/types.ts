@@ -1051,7 +1051,7 @@ export type Database = {
       franchise_products: {
         Row: {
           agreement_template: string | null
-          brand_logo_url: string | null
+          brand_logo: string | null
           brand_name: string | null
           brochure_url: string | null
           category: string | null
@@ -1082,7 +1082,7 @@ export type Database = {
         }
         Insert: {
           agreement_template?: string | null
-          brand_logo_url?: string | null
+          brand_logo?: string | null
           brand_name?: string | null
           brochure_url?: string | null
           category?: string | null
@@ -1113,7 +1113,7 @@ export type Database = {
         }
         Update: {
           agreement_template?: string | null
-          brand_logo_url?: string | null
+          brand_logo?: string | null
           brand_name?: string | null
           brochure_url?: string | null
           category?: string | null
