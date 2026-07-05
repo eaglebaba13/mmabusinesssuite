@@ -130,7 +130,9 @@ function FranchiseeDetailPage() {
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="ledger">ROI Ledger</TabsTrigger>
           <TabsTrigger value="agreement">Agreement</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
+
 
         <TabsContent value="dashboard" className="space-y-6">
           <FranchiseeDashboard
