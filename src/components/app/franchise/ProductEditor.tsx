@@ -200,6 +200,7 @@ export function ProductEditor({
       if (initialProduct?.id) {
         qc.invalidateQueries({ queryKey: ["franchise-product", initialProduct.id] });
       }
+      clearDraft();
       onSaved(res.id);
     },
     onError: (e: Error) => toast.error(e.message),
