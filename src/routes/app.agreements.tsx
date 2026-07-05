@@ -60,8 +60,8 @@ function AgreementsPage() {
     },
   });
 
-  const productMap = new Map(products.map((p: any) => [p.id, p.name]));
-  const franchiseeMap = new Map(franchisees.map((f: any) => [f.id, f.full_name]));
+  const productMap = new Map<string, string>(products.map((p: any) => [String(p.id), String(p.name)]));
+  const franchiseeMap = new Map<string, string>(franchisees.map((f: any) => [String(f.id), String(f.full_name)]));
 
   const filtered = rows.filter((r) => {
     if (status !== "all" && r.status !== status) return false;
