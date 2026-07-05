@@ -1,7 +1,7 @@
 import * as React from "react";
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { LifeBuoy, LayoutDashboard, Users, Megaphone, Activity } from "lucide-react";
+import { LifeBuoy, LayoutDashboard, Users, Megaphone, Activity, FolderLock, FileSignature } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -9,10 +9,16 @@ import { FranchiseeDashboard } from "@/components/app/FranchiseeDashboard";
 import { FranchiseeLeadsPanel } from "@/components/app/FranchiseeLeadsPanel";
 import { FranchiseeCampaignsPanel } from "@/components/app/FranchiseeCampaignsPanel";
 import { FranchiseeTimeline } from "@/components/app/FranchiseeTimeline";
+import { DocumentVault } from "@/components/app/franchise/DocumentVault";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 const searchSchema = z.object({
-  tab: z.enum(["dashboard", "leads", "campaigns", "timeline"]).optional(),
+  tab: z
+    .enum(["dashboard", "leads", "campaigns", "timeline", "documents", "agreements"])
+    .optional(),
 });
 
 export const Route = createFileRoute("/app/my-franchise")({
@@ -69,7 +75,7 @@ function MyFranchisePage() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-8">
       <Tabs value={tab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
           <TabsTrigger value="dashboard" asChild>
             <Link to="/app/my-franchise" search={{ tab: "dashboard" }} className="flex items-center gap-1.5">
               <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
@@ -77,7 +83,7 @@ function MyFranchisePage() {
           </TabsTrigger>
           <TabsTrigger value="leads" asChild>
             <Link to="/app/my-franchise" search={{ tab: "leads" }} className="flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5" /> My Leads
+              <Users className="h-3.5 w-3.5" /> Leads
             </Link>
           </TabsTrigger>
           <TabsTrigger value="campaigns" asChild>
@@ -88,6 +94,16 @@ function MyFranchisePage() {
           <TabsTrigger value="timeline" asChild>
             <Link to="/app/my-franchise" search={{ tab: "timeline" }} className="flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5" /> Timeline
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="documents" asChild>
+            <Link to="/app/my-franchise" search={{ tab: "documents" }} className="flex items-center gap-1.5">
+              <FolderLock className="h-3.5 w-3.5" /> Documents
+            </Link>
+          </TabsTrigger>
+          <TabsTrigger value="agreements" asChild>
+            <Link to="/app/my-franchise" search={{ tab: "agreements" }} className="flex items-center gap-1.5">
+              <FileSignature className="h-3.5 w-3.5" /> Agreements
             </Link>
           </TabsTrigger>
         </TabsList>
