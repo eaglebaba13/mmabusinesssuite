@@ -114,8 +114,8 @@ function ProductDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex items-start gap-4">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 ring-1 ring-border">
-              {product.brand_logo_url ? (
-                <img src={product.brand_logo_url} alt={product.name} className="h-full w-full object-cover" />
+              {product.brand_logo ? (
+                <img src={product.brand_logo} alt={product.name} className="h-full w-full object-cover" />
               ) : (
                 <Package className="h-10 w-10 text-primary" />
               )}

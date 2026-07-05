@@ -27,7 +27,7 @@ export type FranchiseProductRow = {
   id: string;
   name: string;
   brand_name: string | null;
-  brand_logo_url: string | null;
+  brand_logo: string | null;
   category: string | null;
   type_id: string | null;
   revenue_model_id: string | null;
@@ -138,7 +138,7 @@ const ProductInput = z.object({
   id: z.string().uuid().optional(),
   name: z.string().min(1).max(120),
   brand_name: z.string().max(120).nullable().optional(),
-  brand_logo_url: z.string().nullable().optional(),
+  brand_logo: z.string().nullable().optional(),
   category: z.string().max(80).nullable().optional(),
   type_id: z.string().uuid().nullable().optional(),
   revenue_model_id: z.string().uuid().nullable().optional(),
@@ -180,7 +180,7 @@ export const listFranchiseProducts = createServerFn({ method: "GET" })
     const { data, error } = await asLoose(context.supabase)
       .from("franchise_products")
       .select(
-        "id,name,brand_name,brand_logo_url,category,type_id,revenue_model_id,investment_amount,gst_percent,security_deposit,lock_in_months,royalty_percent,revenue_share_percent,minimum_guarantee,expected_roi_percent,roi_timeline_months,profit_margin_percent,brochure_url,video_url,agreement_template,short_description,long_description,highlights,requirements,status,is_featured,created_at,updated_at",
+        "id,name,brand_name,brand_logo,category,type_id,revenue_model_id,investment_amount,gst_percent,security_deposit,lock_in_months,royalty_percent,revenue_share_percent,minimum_guarantee,expected_roi_percent,roi_timeline_months,profit_margin_percent,brochure_url,video_url,agreement_template,short_description,long_description,highlights,requirements,status,is_featured,created_at,updated_at",
       )
       .order("is_featured", { ascending: false })
       .order("created_at", { ascending: false });
@@ -282,7 +282,7 @@ export const upsertFranchiseProduct = createServerFn({ method: "POST" })
     const { id, commissions, ...rest } = data;
     const payload = {
       ...rest,
-      brand_logo_url: emptyToNull(rest.brand_logo_url),
+      brand_logo: emptyToNull(rest.brand_logo),
       brochure_url: emptyToNull(rest.brochure_url),
       video_url: emptyToNull(rest.video_url),
     };
