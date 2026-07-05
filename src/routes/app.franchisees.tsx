@@ -285,19 +285,35 @@ function FranchiseesPage() {
           full_name: form.full_name,
           email: form.email || null,
           phone: form.phone || null,
+          gst_number: form.gst_number || null,
+          pan_number: form.pan_number || null,
+          aadhaar_number: form.aadhaar_number || null,
+          agreement_number: form.agreement_number || null,
+          payment_status: form.payment_status || null,
           investment_amount: Number(form.investment_amount),
           franchise_fee: Number(form.franchise_fee),
           base_roi_pct: Number(form.base_roi_pct),
           emporium_pct: Number(form.emporium_pct),
           academy_pct: Number(form.academy_pct),
           dark_store_pct: Number(form.dark_store_pct),
+          territory_country: form.territory_country || null,
+          territory_state: form.territory_state || null,
+          territory_district: form.territory_district || null,
+          territory_city: form.territory_city || null,
+          territory_area: form.territory_area || null,
+          territory_pincode: form.territory_pincode || null,
+          territory_radius_km: form.territory_radius_km ? Number(form.territory_radius_km) : null,
+          territory_exclusive: form.territory_exclusive,
+          territory_approved: form.territory_approved,
+          territory_start_date: form.territory_start_date || null,
+          territory_end_date: form.territory_end_date || null,
           area_sqft: Number(form.area_sqft),
           chairs: Number(form.chairs),
           tables_count: Number(form.tables_count),
           cctv_count: Number(form.cctv_count),
           computer_count: Number(form.computer_count),
           printer_count: Number(form.printer_count),
-        })
+        } as any)
         .select("id")
         .single();
       if (error) throw error;
@@ -306,7 +322,7 @@ function FranchiseesPage() {
     onSuccess: (data) => {
       setCreatedId(data.id);
       toast.success("Franchisee profile saved");
-      setStep(4);
+      setStep(5);
       qc.invalidateQueries({ queryKey: ["franchisees"] });
     },
     onError: (e: any) => {
