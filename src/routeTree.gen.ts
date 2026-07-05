@@ -33,6 +33,7 @@ import { Route as AppInventoryRouteImport } from './routes/app.inventory'
 import { Route as AppImpersonationSessionsRouteImport } from './routes/app.impersonation-sessions'
 import { Route as AppHrRouteImport } from './routes/app.hr'
 import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
+import { Route as AppFranchiseProductsRouteImport } from './routes/app.franchise-products'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
 import { Route as AppDashboardsRouteImport } from './routes/app.dashboards'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
@@ -211,6 +212,11 @@ const AppHrRoute = AppHrRouteImport.update({
 const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
   id: '/franchisees',
   path: '/franchisees',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFranchiseProductsRoute = AppFranchiseProductsRouteImport.update({
+  id: '/franchise-products',
+  path: '/franchise-products',
   getParentRoute: () => AppRoute,
 } as any)
 const AppFinanceRoute = AppFinanceRouteImport.update({
@@ -523,6 +529,7 @@ export interface FileRoutesByFullPath {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
   '/app/finance': typeof AppFinanceRouteWithChildren
+  '/app/franchise-products': typeof AppFranchiseProductsRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
   '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
@@ -604,6 +611,7 @@ export interface FileRoutesByTo {
   '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
+  '/app/franchise-products': typeof AppFranchiseProductsRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
   '/app/leads': typeof AppLeadsRouteWithChildren
@@ -684,6 +692,7 @@ export interface FileRoutesById {
   '/app/dashboard': typeof AppDashboardRoute
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
   '/app/finance': typeof AppFinanceRouteWithChildren
+  '/app/franchise-products': typeof AppFranchiseProductsRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
   '/app/hr': typeof AppHrRouteWithChildren
   '/app/impersonation-sessions': typeof AppImpersonationSessionsRoute
@@ -770,6 +779,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/dashboards'
     | '/app/finance'
+    | '/app/franchise-products'
     | '/app/franchisees'
     | '/app/hr'
     | '/app/impersonation-sessions'
@@ -851,6 +861,7 @@ export interface FileRouteTypes {
     | '/app/audit-logs'
     | '/app/dashboard'
     | '/app/dashboards'
+    | '/app/franchise-products'
     | '/app/franchisees'
     | '/app/impersonation-sessions'
     | '/app/leads'
@@ -930,6 +941,7 @@ export interface FileRouteTypes {
     | '/app/dashboard'
     | '/app/dashboards'
     | '/app/finance'
+    | '/app/franchise-products'
     | '/app/franchisees'
     | '/app/hr'
     | '/app/impersonation-sessions'
@@ -1186,6 +1198,13 @@ declare module '@tanstack/react-router' {
       path: '/franchisees'
       fullPath: '/app/franchisees'
       preLoaderRoute: typeof AppFranchiseesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchise-products': {
+      id: '/app/franchise-products'
+      path: '/franchise-products'
+      fullPath: '/app/franchise-products'
+      preLoaderRoute: typeof AppFranchiseProductsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/finance': {
@@ -1831,6 +1850,7 @@ interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
   AppDashboardsRoute: typeof AppDashboardsRouteWithChildren
   AppFinanceRoute: typeof AppFinanceRouteWithChildren
+  AppFranchiseProductsRoute: typeof AppFranchiseProductsRoute
   AppFranchiseesRoute: typeof AppFranchiseesRouteWithChildren
   AppHrRoute: typeof AppHrRouteWithChildren
   AppImpersonationSessionsRoute: typeof AppImpersonationSessionsRoute
@@ -1858,6 +1878,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
   AppDashboardsRoute: AppDashboardsRouteWithChildren,
   AppFinanceRoute: AppFinanceRouteWithChildren,
+  AppFranchiseProductsRoute: AppFranchiseProductsRoute,
   AppFranchiseesRoute: AppFranchiseesRouteWithChildren,
   AppHrRoute: AppHrRouteWithChildren,
   AppImpersonationSessionsRoute: AppImpersonationSessionsRoute,
