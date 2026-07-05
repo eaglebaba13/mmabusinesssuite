@@ -251,7 +251,8 @@ export function ProductEditor({
       gst_percent: numOrZero(state.gst_percent),
       security_deposit: numOrZero(state.security_deposit),
       lock_in_months: Math.floor(numOrZero(state.lock_in_months)),
-      territory: state.territory.trim() || null,
+
+
 
       royalty_percent: numOrZero(state.royalty_percent),
       revenue_share_percent: numOrZero(state.revenue_share_percent),
