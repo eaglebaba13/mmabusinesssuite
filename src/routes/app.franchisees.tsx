@@ -29,6 +29,7 @@ export const Route = createFileRoute("/app/franchisees")({
 type Step = 1 | 2 | 3 | 4 | 5;
 
 interface OnboardForm {
+  franchise_product_id: string;
   full_name: string;
   email: string;
   phone: string;
@@ -47,6 +48,7 @@ interface OnboardForm {
 }
 
 const emptyForm: OnboardForm = {
+  franchise_product_id: "",
   full_name: "",
   email: "",
   phone: "",
