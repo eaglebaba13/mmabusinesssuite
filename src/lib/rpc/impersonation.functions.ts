@@ -115,7 +115,7 @@ export const resolveImpersonation = createServerFn({ method: "POST" })
       name = e?.full_name ?? name;
       extra = e ?? {};
     } else if (sess.entity_type === "city_franchise") {
-      const { data: e } = await supabaseAdmin.from("franchisees").select("full_name,investment_amount,base_roi_pct,emporium_pct,academy_pct,dark_store_pct").eq("id", sess.entity_id).maybeSingle();
+      const { data: e } = await supabaseAdmin.from("franchisees").select("full_name,investment_amount,mg_percent,tns_percent,academy_percent,mall_percent,royalty_percent").eq("id", sess.entity_id).maybeSingle();
       name = e?.full_name ?? name;
       extra = e ?? {};
     } else if (sess.entity_type === "salon_branch") {
