@@ -91,6 +91,7 @@ function FranchiseesPage() {
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [agreementFilter, setAgreementFilter] = React.useState<string>("all");
+  const [productFilter, setProductFilter] = React.useState<string>("all");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
   const [form, setForm] = React.useState<OnboardForm>(emptyForm);
