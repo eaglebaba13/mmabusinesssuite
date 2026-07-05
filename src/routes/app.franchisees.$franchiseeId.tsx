@@ -212,6 +212,12 @@ function FranchiseeDetailPage() {
           <AgreementAuditPanel franchiseeId={f.id} />
         </TabsContent>
 
+        <TabsContent value="documents" className="space-y-6">
+          <DocumentVault franchiseeId={f.id} />
+        </TabsContent>
+
+
+
 
         <TabsContent value="ledger" className="space-y-6">
           <div className="rounded-2xl glass p-6">
