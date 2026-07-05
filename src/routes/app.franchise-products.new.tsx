@@ -17,7 +17,7 @@ function NewProductPage() {
         </p>
       </div>
       <ProductEditor
-        onSaved={(id) => {
+        onSaved={(id: string | null) => {
           if (id) navigate({ to: "/app/franchise-products/$productId", params: { productId: id } });
           else navigate({ to: "/app/franchise-products" });
         }}
