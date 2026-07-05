@@ -92,6 +92,39 @@ function LeadDetailPage() {
     },
   });
 
+  const setInterest = useMutation({
+    mutationFn: async (patch: { franchise_product_id?: string | null; interest_stage?: string | null }) => {
+      const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Updated");
+      qc.invalidateQueries({ queryKey: ["lead", leadId] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Failed"),
+  });
+
+  const convertToFranchisee = () => {
+    if (!lead) return;
+    if (!lead.franchise_product_id) {
+      toast.error("Pick a franchise product first");
+      return;
+    }
+    setInterest.mutate({ interest_stage: "won" });
+    navigate({
+      to: "/app/franchisees",
+      search: {
+        openOnboard: 1,
+        productId: lead.franchise_product_id,
+        leadId: lead.id,
+        fullName: lead.full_name,
+        email: lead.email ?? "",
+        phone: lead.phone ?? "",
+      } as any,
+    });
+  };
+
+
   const scoreLead = async () => {
     if (!lead) return;
     setScoring(true);
