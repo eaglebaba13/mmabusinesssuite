@@ -97,7 +97,7 @@ function toFormState(
     gst_percent: String(product?.gst_percent ?? "18"),
     security_deposit: String(product?.security_deposit ?? "0"),
     lock_in_months: String(product?.lock_in_months ?? "0"),
-    territory: product?.territory ?? "",
+    
 
     royalty_percent: String(product?.royalty_percent ?? "0"),
     revenue_share_percent: String(product?.revenue_share_percent ?? "0"),
