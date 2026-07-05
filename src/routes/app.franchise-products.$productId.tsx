@@ -253,7 +253,7 @@ function ProductDetailPage() {
                     label="Profit margin"
                     value={product.profit_margin_percent != null ? `${product.profit_margin_percent}%` : "—"}
                   />
-                  <Row label="Territory" value={product.territory ?? "—"} />
+                  
                 </dl>
               </Card>
 
