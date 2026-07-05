@@ -24,6 +24,8 @@ import { useAuth } from "@/lib/auth-context";
 import { ProductEditor } from "@/components/app/franchise/ProductEditor";
 import { RoiCalculator } from "@/components/app/franchise/RoiCalculator";
 import { AgreementBuilder } from "@/components/app/franchise/AgreementBuilder";
+import { ProductPipeline } from "@/components/app/franchise/ProductPipeline";
+import { ProductPerformance } from "@/components/app/franchise/ProductPerformance";
 import {
   getFranchiseProduct,
   listFranchiseProductTypes,
@@ -187,6 +189,8 @@ function ProductDetailPage() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-card/40">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
           <TabsTrigger value="roi">ROI Calculator</TabsTrigger>
           <TabsTrigger value="agreement">Agreement</TabsTrigger>
         </TabsList>
@@ -307,6 +311,14 @@ function ProductDetailPage() {
               </div>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="pipeline">
+          <ProductPipeline productId={product.id} productName={product.name} />
+        </TabsContent>
+
+        <TabsContent value="performance">
+          <ProductPerformance productId={product.id} />
         </TabsContent>
 
         <TabsContent value="roi">

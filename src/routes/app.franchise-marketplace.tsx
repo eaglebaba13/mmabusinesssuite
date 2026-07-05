@@ -2,6 +2,7 @@ import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import {
   Search,
   Store,
@@ -12,12 +13,23 @@ import {
   Download,
   GitCompareArrows,
   ArrowRight,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -51,9 +63,37 @@ function MarketplacePage() {
   const productsQ = useQuery({ queryKey: ["franchise-products"], queryFn: () => listFn() });
   const typesQ = useQuery({ queryKey: ["franchise-product-types"], queryFn: () => listTypesFn() });
 
+  const { isAdmin, hasRole } = useAuth();
+  const canEnquire = isAdmin || hasRole("sales");
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
+  const [enquireFor, setEnquireFor] = React.useState<{ id: string; name: string } | null>(null);
+  const [enq, setEnq] = React.useState({ full_name: "", email: "", phone: "", city: "" });
+  const [saving, setSaving] = React.useState(false);
+
+  async function submitEnquiry() {
+    if (!enquireFor || !enq.full_name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.from("leads").insert({
+      full_name: enq.full_name.trim(),
+      email: enq.email.trim() || null,
+      phone: enq.phone.trim() || null,
+      city: enq.city.trim() || null,
+      source: "referral" as any,
+      stage: "new" as any,
+      franchise_product_id: enquireFor.id,
+      interest_stage: "interested",
+    });
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success(`Lead created for ${enquireFor.name}`);
+    setEnquireFor(null);
+    setEnq({ full_name: "", email: "", phone: "", city: "" });
+  }
 
   const typeLabelById = React.useMemo(() => {
     const m = new Map<string, string>();
@@ -222,7 +262,17 @@ function MarketplacePage() {
                       </a>
                     </Button>
                   )}
-                  <Button variant="default" size="sm" className="ml-auto" asChild>
+                  {canEnquire && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-auto"
+                      onClick={() => setEnquireFor({ id: p.id, name: p.name })}
+                    >
+                      <UserPlus className="mr-1 h-3.5 w-3.5" /> Enquire
+                    </Button>
+                  )}
+                  <Button variant="default" size="sm" className={canEnquire ? "" : "ml-auto"} asChild>
                     <Link to="/app/franchise-products/$productId" params={{ productId: p.id }}>
                       Details <ArrowRight className="ml-1 h-3.5 w-3.5" />
                     </Link>
@@ -233,6 +283,68 @@ function MarketplacePage() {
           })}
         </div>
       )}
+
+      <Dialog open={!!enquireFor} onOpenChange={(v) => !v && setEnquireFor(null)}>
+        <DialogContent className="bg-card">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">
+              Add enquiry — {enquireFor?.name}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label>Full name *</Label>
+              <Input
+                className="mt-1"
+                value={enq.full_name}
+                onChange={(e) => setEnq({ ...enq, full_name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  className="mt-1"
+                  value={enq.email}
+                  onChange={(e) => setEnq({ ...enq, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  className="mt-1"
+                  value={enq.phone}
+                  onChange={(e) => setEnq({ ...enq, phone: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>City</Label>
+              <Input
+                className="mt-1"
+                value={enq.city}
+                onChange={(e) => setEnq({ ...enq, city: e.target.value })}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Creates a lead tagged with this product at stage "Interested".
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEnquireFor(null)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-gradient-gold text-background"
+              onClick={submitEnquiry}
+              disabled={saving || !enq.full_name.trim()}
+            >
+              {saving ? "Saving…" : "Create lead"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

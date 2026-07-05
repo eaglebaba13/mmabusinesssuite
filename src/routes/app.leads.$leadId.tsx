@@ -1,12 +1,13 @@
 import * as React from "react";
-import { createFileRoute, Link, useParams, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams, notFound, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 
@@ -33,8 +34,22 @@ export const Route = createFileRoute("/app/leads/$leadId")({
 function LeadDetailPage() {
   const { leadId } = useParams({ from: "/app/leads/$leadId" });
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [note, setNote] = React.useState("");
   const [scoring, setScoring] = React.useState(false);
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["franchise_products_active_leads"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("franchise_products")
+        .select("id, name, brand_name")
+        .eq("status", "active")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; name: string; brand_name: string | null }>;
+    },
+  });
 
   const { data: lead, isLoading } = useQuery({
     queryKey: ["lead", leadId],
@@ -76,6 +91,39 @@ function LeadDetailPage() {
       qc.invalidateQueries({ queryKey: ["lead-activities", leadId] });
     },
   });
+
+  const setInterest = useMutation({
+    mutationFn: async (patch: { franchise_product_id?: string | null; interest_stage?: string | null }) => {
+      const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Updated");
+      qc.invalidateQueries({ queryKey: ["lead", leadId] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Failed"),
+  });
+
+  const convertToFranchisee = () => {
+    if (!lead) return;
+    if (!lead.franchise_product_id) {
+      toast.error("Pick a franchise product first");
+      return;
+    }
+    setInterest.mutate({ interest_stage: "won" });
+    navigate({
+      to: "/app/franchisees",
+      search: {
+        openOnboard: 1,
+        productId: lead.franchise_product_id,
+        leadId: lead.id,
+        fullName: lead.full_name,
+        email: lead.email ?? "",
+        phone: lead.phone ?? "",
+      } as any,
+    });
+  };
+
 
   const scoreLead = async () => {
     if (!lead) return;
@@ -138,6 +186,63 @@ function LeadDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Franchise product interest */}
+      <div className="rounded-2xl glass p-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-display text-xl">Franchise product interest</h3>
+          <Button
+            size="sm"
+            className="bg-gradient-gold text-background"
+            onClick={convertToFranchisee}
+            disabled={!lead.franchise_product_id || setInterest.isPending}
+          >
+            <Rocket className="mr-1 h-4 w-4" /> Convert to franchisee
+          </Button>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Product</Label>
+            <select
+              value={lead.franchise_product_id ?? ""}
+              onChange={(e) =>
+                setInterest.mutate({ franchise_product_id: e.target.value || null })
+              }
+              className="mt-1 h-10 w-full rounded-md border border-border bg-card/40 px-2 text-sm"
+            >
+              <option value="">— None —</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.brand_name ? `${p.brand_name} · ` : ""}{p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <Label className="text-xs">Pipeline stage</Label>
+            <select
+              value={lead.interest_stage ?? ""}
+              onChange={(e) => setInterest.mutate({ interest_stage: e.target.value || null })}
+              disabled={!lead.franchise_product_id}
+              className="mt-1 h-10 w-full rounded-md border border-border bg-card/40 px-2 text-sm disabled:opacity-50"
+            >
+              <option value="">— Not set —</option>
+              <option value="interested">Interested</option>
+              <option value="shortlisted">Shortlisted</option>
+              <option value="negotiating">Negotiating</option>
+              <option value="won">Won</option>
+              <option value="lost">Lost</option>
+            </select>
+          </div>
+        </div>
+        {lead.franchise_product_id && (
+          <p className="mt-3 text-xs text-muted-foreground">
+            This lead will appear on the Pipeline tab of the linked product.
+          </p>
+        )}
+      </div>
+
+
 
       <div className="rounded-2xl glass p-6">
         <h3 className="font-display text-xl">Activity</h3>

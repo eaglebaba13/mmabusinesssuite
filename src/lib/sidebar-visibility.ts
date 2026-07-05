@@ -105,6 +105,8 @@ export const SIDEBAR_SECTIONS: SidebarSection[] = [
       { id: "/app/my-franchise?tab=dashboard", label: "My Franchise" },
       { id: "/app/my-franchise?tab=leads", label: "My Leads" },
       { id: "/app/my-franchise?tab=campaigns", label: "My Campaigns" },
+      { id: "/app/my-franchise?tab=documents", label: "Documents" },
+      { id: "/app/my-franchise?tab=agreements", label: "Agreements" },
       { id: "/app/my-franchise?tab=timeline", label: "Timeline" },
     ],
   },

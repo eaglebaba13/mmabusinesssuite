@@ -1,9 +1,10 @@
 import * as React from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Plus, Search, Building2, Copy, CheckCircle2 } from "lucide-react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,8 +22,18 @@ import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 import { useAuth } from "@/lib/auth-context";
 import { useMode } from "@/lib/mode-context";
 
+const franchiseesSearchSchema = z.object({
+  openOnboard: z.coerce.number().optional(),
+  productId: z.string().optional(),
+  leadId: z.string().optional(),
+  fullName: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+});
+
 export const Route = createFileRoute("/app/franchisees")({
   head: () => ({ meta: [{ title: "Franchisees — MMA Suite" }] }),
+  validateSearch: franchiseesSearchSchema,
   component: FranchiseesPage,
 });
 
@@ -87,6 +98,9 @@ function FranchiseesPage() {
   const [createdId, setCreatedId] = React.useState<string | null>(null);
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
   const createUserFn = useServerFn(createFranchiseeUser);
+  const navigate = useNavigate();
+  const routeSearch = useSearch({ from: "/app/franchisees" });
+  const appliedPrefill = React.useRef(false);
 
   const { isTesting } = useMode();
 
@@ -114,6 +128,34 @@ function FranchiseesPage() {
       return data as Array<{ id: string; name: string; brand_name: string | null; investment_amount: number; royalty_percent: number; expected_roi_percent: number | null; status: string }>;
     },
   });
+
+  // Auto-open onboarding wizard when navigated with prefill params (from Lead → Convert)
+  React.useEffect(() => {
+    if (appliedPrefill.current) return;
+    if (!routeSearch.openOnboard) return;
+    if (products.length === 0 && routeSearch.productId) return; // wait for products to load
+    appliedPrefill.current = true;
+    const p = routeSearch.productId ? products.find((x) => x.id === routeSearch.productId) : null;
+    setForm((f) => ({
+      ...f,
+      franchise_product_id: routeSearch.productId ?? f.franchise_product_id,
+      full_name: routeSearch.fullName ?? f.full_name,
+      email: routeSearch.email ?? f.email,
+      phone: routeSearch.phone ?? f.phone,
+      ...(p
+        ? {
+            investment_amount: String(p.investment_amount ?? f.investment_amount),
+            franchise_fee: String(p.investment_amount ?? f.franchise_fee),
+            base_roi_pct:
+              p.expected_roi_percent != null ? String(p.expected_roi_percent) : f.base_roi_pct,
+          }
+        : {}),
+    }));
+    setOpen(true);
+    // clean URL so refresh doesn't re-open
+    navigate({ to: "/app/franchisees", search: {}, replace: true });
+  }, [routeSearch, products, navigate]);
+
 
   const today = new Date().toISOString().slice(0, 10);
   const agreementStatusOf = (f: any): "active" | "expired" | "expiring" | "missing" => {
