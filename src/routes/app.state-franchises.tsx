@@ -15,6 +15,7 @@ import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { createStateFranchiseUser } from "@/lib/rpc/state-franchise-user.functions";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/state-franchises")({
   head: () => ({ meta: [{ title: "State Franchises — MMA Suite" }] }),
