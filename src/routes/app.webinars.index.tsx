@@ -88,7 +88,8 @@ function WebinarsIndex() {
     onSuccess: () => {
       toast.success("Webinar created");
       setOpen(false);
-      setForm({ ...form, title: "", description: "", join_url: "", scheduled_at: "" });
+      setForm(emptyWebinar);
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["webinars"] });
     },
     onError: (e: any) => toast.error(e.message ?? "Couldn't create webinar"),
