@@ -158,6 +158,7 @@ function InvoicesPage() {
                   <TableCell><Badge variant="outline" className="text-xs">{inv.doc_type}</Badge></TableCell>
                   <TableCell className="text-xs">{inv.companies?.name}</TableCell>
                   <TableCell className="text-xs">{inv.bill_to_name ?? "—"}</TableCell>
+                  <TableCell className="text-xs">{inv.franchisees?.full_name ?? inv.state_franchises?.full_name ?? "—"}</TableCell>
                   <TableCell>{inv.invoice_date}</TableCell>
                   <TableCell>{formatINR(inv.grand_total)}</TableCell>
                   <TableCell>{formatINR(inv.amount_paid)}</TableCell>
