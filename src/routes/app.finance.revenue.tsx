@@ -83,7 +83,8 @@ function RevenuePage() {
     onSuccess: () => {
       toast.success("Revenue entry added");
       setOpen(false);
-      setForm({ source: "other", source_label: "", amount: "", received_on: new Date().toISOString().slice(0, 10), reference: "", notes: "" });
+      setForm({ ...emptyRevenue, received_on: new Date().toISOString().slice(0, 10) });
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["revenue-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
       qc.invalidateQueries({ queryKey: ["fin-recent"] });
