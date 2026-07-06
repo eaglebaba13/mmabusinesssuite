@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/auth-context";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/academy/students")({
   head: () => ({ meta: [{ title: "Students — Academy" }] }),
