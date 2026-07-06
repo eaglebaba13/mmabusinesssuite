@@ -74,7 +74,8 @@ function PayoutsPage() {
     onSuccess: () => {
       toast.success("Payout created");
       setOpen(false);
-      setForm({ franchisee_id: "", payout_month: new Date().toISOString().slice(0, 7) + "-01", base_roi: "", academy_incentive: "", dark_store_incentive: "", emporium_incentive: "" });
+      setForm({ ...emptyPayout, payout_month: new Date().toISOString().slice(0, 7) + "-01" });
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
     },
