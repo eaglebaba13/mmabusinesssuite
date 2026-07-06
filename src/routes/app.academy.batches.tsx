@@ -77,6 +77,8 @@ function BatchesPage() {
       toast.success("Batch created");
       qc.invalidateQueries({ queryKey: ["batches"] });
       setOpen(false);
+      setForm(emptyBatch);
+      clearFormDraft();
     },
     onError: () => toast.error("Couldn't create batch"),
   });
