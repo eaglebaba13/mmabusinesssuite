@@ -141,7 +141,9 @@ function PosTerminal() {
   const activeWarehouse = (warehouses.data ?? []).find((w: any) => w.id === warehouseId) as any;
 
   // Auto-select single outlet
+  const didMountWarehouseReset = React.useRef(false);
   React.useEffect(() => {
+    if (!didMountWarehouseReset.current) { didMountWarehouseReset.current = true; return; }
     setWarehouseId("");
   }, [franchiseeId, mappingType]);
   React.useEffect(() => {
