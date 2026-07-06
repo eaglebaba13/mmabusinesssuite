@@ -182,6 +182,9 @@ function InvoicesPage() {
                           }}><CheckCircle2 className="h-3.5 w-3.5" /></Button>
                         </>
                       )}
+                      {isSuperAdmin && inv.status !== "draft" && !inv.archived_at && (
+                        <EditDraftDialog invoiceId={inv.id} onSaved={() => qc.invalidateQueries({ queryKey: ["invoices"] })} />
+                      )}
                       {inv.status === "issued" && (
                         <>
                           <Button size="sm" variant="outline" title="Revise" onClick={async () => {
