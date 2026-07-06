@@ -269,9 +269,9 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; ex
             <Kpi label="Variable ROI" value={formatINR(variableRoi)} />
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Kpi label={`TNS @ ${tnsPct}%`} value={formatINR(tnsRoi)} />
-            <Kpi label={`Academy @ ${academyPct}%`} value={formatINR(academyRoi)} />
-            <Kpi label={`Mall of Salon @ ${mallPct}%`} value={formatINR(mallRoi)} />
+            <Kpi label={`Sale from TNS @ ${tnsPct}% incentive`} value={formatINR(tnsRoi)} />
+            <Kpi label={`Sale from Academy @ ${academyPct}% incentive`} value={formatINR(academyRoi)} />
+            <Kpi label={`Sale from Mall of Salon @ ${mallPct}% incentive`} value={formatINR(mallRoi)} />
             <Kpi label="Final Payable ROI" value={formatINR(finalPayable)} />
           </div>
         </>
