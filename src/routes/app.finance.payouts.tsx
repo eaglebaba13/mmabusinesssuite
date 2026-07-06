@@ -24,14 +24,15 @@ export const Route = createFileRoute("/app/finance/payouts")({
 function PayoutsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
+  const emptyPayout = {
     franchisee_id: "",
     payout_month: new Date().toISOString().slice(0, 7) + "-01",
     base_roi: "",
     academy_incentive: "",
     dark_store_incentive: "",
     emporium_incentive: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.payouts.new", emptyPayout);
 
   const franchisees = useQuery({
     queryKey: ["fr-active"],
