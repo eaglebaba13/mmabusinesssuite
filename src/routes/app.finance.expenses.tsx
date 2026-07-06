@@ -30,7 +30,7 @@ function ExpensesPage() {
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState<string>("all");
 
-  const [form, setForm] = React.useState({
+  const emptyExpense = {
     category_id: "",
     vendor: "",
     description: "",
@@ -40,7 +40,8 @@ function ExpensesPage() {
     reference: "",
     status: "paid" as (typeof STATUSES)[number],
     notes: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.expenses.new", emptyExpense);
 
   const cats = useQuery({
     queryKey: ["exp-cats"],
