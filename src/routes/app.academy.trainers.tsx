@@ -27,9 +27,8 @@ function TrainersPage() {
   const { isAdmin, hasRole } = useAuth();
   const canEdit = isAdmin || hasRole("academy_admin");
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
-    full_name: "", email: "", phone: "", specialization: "", bio: "",
-  });
+  const emptyTrainer = { full_name: "", email: "", phone: "", specialization: "", bio: "" };
+  const [form, setForm, clearFormDraft] = usePersistedState("academy.trainers.new", emptyTrainer);
 
   const trainers = useQuery({
     queryKey: ["trainers"],
