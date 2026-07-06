@@ -85,17 +85,8 @@ function ExpensesPage() {
     onSuccess: () => {
       toast.success("Expense recorded");
       setOpen(false);
-      setForm({
-        category_id: "",
-        vendor: "",
-        description: "",
-        amount: "",
-        payment_method: "bank_transfer",
-        expense_date: new Date().toISOString().slice(0, 10),
-        reference: "",
-        status: "paid",
-        notes: "",
-      });
+      setForm({ ...emptyExpense, expense_date: new Date().toISOString().slice(0, 10) });
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["expenses-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
       qc.invalidateQueries({ queryKey: ["fin-recent"] });
