@@ -54,7 +54,8 @@ function StudentsPage() {
       toast.success("Student added");
       qc.invalidateQueries({ queryKey: ["students"] });
       setOpen(false);
-      setForm({ full_name: "", email: "", phone: "", city: "", gender: "", guardian_name: "", guardian_phone: "" });
+      setForm(emptyStudent);
+      clearFormDraft();
     },
     onError: () => toast.error("Couldn't add student"),
   });
