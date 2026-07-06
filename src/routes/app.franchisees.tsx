@@ -21,6 +21,7 @@ import { ImportButton } from "@/components/app/ImportButton";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 import { useAuth } from "@/lib/auth-context";
 import { useMode } from "@/lib/mode-context";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 const franchiseesSearchSchema = z.object({
   openOnboard: z.coerce.number().optional(),
@@ -129,7 +130,7 @@ function FranchiseesPage() {
   const [productFilter, setProductFilter] = React.useState<string>("all");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
-  const [form, setForm] = React.useState<OnboardForm>(emptyForm);
+  const [form, setForm, clearFormDraft] = usePersistedState<OnboardForm>("franchisees.new", emptyForm);
   const [saving, setSaving] = React.useState(false);
   const [createdId, setCreatedId] = React.useState<string | null>(null);
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
@@ -267,6 +268,7 @@ function FranchiseesPage() {
   const resetWizard = () => {
     setStep(1);
     setForm(emptyForm);
+    clearFormDraft();
     setCreatedId(null);
     setCreds(null);
   };

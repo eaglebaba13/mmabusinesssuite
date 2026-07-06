@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/auth-context";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/academy/students")({
   head: () => ({ meta: [{ title: "Students — Academy" }] }),
@@ -29,9 +30,8 @@ function StudentsPage() {
   const [open, setOpen] = React.useState(false);
   const [q, setQ] = React.useState("");
   const [range, setRange] = React.useState(defaultDateRange());
-  const [form, setForm] = React.useState({
-    full_name: "", email: "", phone: "", city: "", gender: "", guardian_name: "", guardian_phone: "",
-  });
+  const emptyStudent = { full_name: "", email: "", phone: "", city: "", gender: "", guardian_name: "", guardian_phone: "" };
+  const [form, setForm, clearFormDraft] = usePersistedState("academy.students.new", emptyStudent);
 
   const students = useQuery({
     queryKey: ["students"],
@@ -54,7 +54,8 @@ function StudentsPage() {
       toast.success("Student added");
       qc.invalidateQueries({ queryKey: ["students"] });
       setOpen(false);
-      setForm({ full_name: "", email: "", phone: "", city: "", gender: "", guardian_name: "", guardian_phone: "" });
+      setForm(emptyStudent);
+      clearFormDraft();
     },
     onError: () => toast.error("Couldn't add student"),
   });

@@ -15,6 +15,7 @@ import { formatINR } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/finance/payouts")({
   component: PayoutsPage,
@@ -23,14 +24,15 @@ export const Route = createFileRoute("/app/finance/payouts")({
 function PayoutsPage() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
+  const emptyPayout = {
     franchisee_id: "",
     payout_month: new Date().toISOString().slice(0, 7) + "-01",
     base_roi: "",
     academy_incentive: "",
     dark_store_incentive: "",
     emporium_incentive: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.payouts.new", emptyPayout);
 
   const franchisees = useQuery({
     queryKey: ["fr-active"],
@@ -72,7 +74,8 @@ function PayoutsPage() {
     onSuccess: () => {
       toast.success("Payout created");
       setOpen(false);
-      setForm({ franchisee_id: "", payout_month: new Date().toISOString().slice(0, 7) + "-01", base_roi: "", academy_incentive: "", dark_store_incentive: "", emporium_incentive: "" });
+      setForm({ ...emptyPayout, payout_month: new Date().toISOString().slice(0, 7) + "-01" });
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
     },

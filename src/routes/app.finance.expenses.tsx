@@ -16,6 +16,7 @@ import { formatINR } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/finance/expenses")({
   component: ExpensesPage,
@@ -29,7 +30,7 @@ function ExpensesPage() {
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState<string>("all");
 
-  const [form, setForm] = React.useState({
+  const emptyExpense = {
     category_id: "",
     vendor: "",
     description: "",
@@ -39,7 +40,8 @@ function ExpensesPage() {
     reference: "",
     status: "paid" as (typeof STATUSES)[number],
     notes: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.expenses.new", emptyExpense);
 
   const cats = useQuery({
     queryKey: ["exp-cats"],
@@ -83,17 +85,8 @@ function ExpensesPage() {
     onSuccess: () => {
       toast.success("Expense recorded");
       setOpen(false);
-      setForm({
-        category_id: "",
-        vendor: "",
-        description: "",
-        amount: "",
-        payment_method: "bank_transfer",
-        expense_date: new Date().toISOString().slice(0, 10),
-        reference: "",
-        status: "paid",
-        notes: "",
-      });
+      setForm({ ...emptyExpense, expense_date: new Date().toISOString().slice(0, 10) });
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["expenses-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
       qc.invalidateQueries({ queryKey: ["fin-recent"] });

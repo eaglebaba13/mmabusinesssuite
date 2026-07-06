@@ -16,6 +16,7 @@ import { formatINR } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/finance/revenue")({
   component: RevenuePage,
@@ -26,14 +27,15 @@ const SOURCES = ["academy", "inventory", "franchise_fee", "consulting", "event",
 function RevenuePage() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
+  const emptyRevenue = {
     source: "other" as (typeof SOURCES)[number],
     source_label: "",
     amount: "",
     received_on: new Date().toISOString().slice(0, 10),
     reference: "",
     notes: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.revenue.new", emptyRevenue);
 
   const list = useQuery({
     queryKey: ["revenue-list"],
@@ -81,7 +83,8 @@ function RevenuePage() {
     onSuccess: () => {
       toast.success("Revenue entry added");
       setOpen(false);
-      setForm({ source: "other", source_label: "", amount: "", received_on: new Date().toISOString().slice(0, 10), reference: "", notes: "" });
+      setForm({ ...emptyRevenue, received_on: new Date().toISOString().slice(0, 10) });
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["revenue-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
       qc.invalidateQueries({ queryKey: ["fin-recent"] });

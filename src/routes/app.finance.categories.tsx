@@ -13,6 +13,7 @@ import { formatINR } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { exportToCSV, exportToPDF } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/finance/categories")({
   component: CategoriesPage,
@@ -21,7 +22,8 @@ export const Route = createFileRoute("/app/finance/categories")({
 function CategoriesPage() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({ name: "", slug: "", color: "#c9a84c", monthly_budget: "" });
+  const emptyCategory = { name: "", slug: "", color: "#c9a84c", monthly_budget: "" };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.categories.new", emptyCategory);
 
   const list = useQuery({
     queryKey: ["exp-cats-full"],
@@ -60,7 +62,8 @@ function CategoriesPage() {
     onSuccess: () => {
       toast.success("Category added");
       setOpen(false);
-      setForm({ name: "", slug: "", color: "#c9a84c", monthly_budget: "" });
+      setForm(emptyCategory);
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["exp-cats-full"] });
       qc.invalidateQueries({ queryKey: ["exp-cats"] });
     },

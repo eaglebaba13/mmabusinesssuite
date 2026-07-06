@@ -17,6 +17,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/webinars/")({
   head: () => ({ meta: [{ title: "Webinar Campaigns — MMA Suite" }] }),
@@ -38,7 +39,7 @@ function slugify(s: string) {
 function WebinarsIndex() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
+  const emptyWebinar = {
     title: "",
     description: "",
     host_name: "",
@@ -50,7 +51,8 @@ function WebinarsIndex() {
     price: "0",
     status: "scheduled",
     webhook_url: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("webinars.new", emptyWebinar);
 
   const list = useQuery({
     queryKey: ["webinars"],
@@ -86,7 +88,8 @@ function WebinarsIndex() {
     onSuccess: () => {
       toast.success("Webinar created");
       setOpen(false);
-      setForm({ ...form, title: "", description: "", join_url: "", scheduled_at: "" });
+      setForm(emptyWebinar);
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["webinars"] });
     },
     onError: (e: any) => toast.error(e.message ?? "Couldn't create webinar"),

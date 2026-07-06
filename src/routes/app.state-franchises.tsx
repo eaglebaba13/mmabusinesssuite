@@ -15,6 +15,7 @@ import { formatINRCompact } from "@/lib/format";
 import { format } from "date-fns";
 import { createStateFranchiseUser } from "@/lib/rpc/state-franchise-user.functions";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/state-franchises")({
   head: () => ({ meta: [{ title: "State Franchises — MMA Suite" }] }),
@@ -58,7 +59,7 @@ function StateFranchisesPage() {
   const [search, setSearch] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
-  const [form, setForm] = React.useState<Form>(empty);
+  const [form, setForm, clearFormDraft] = usePersistedState<Form>("state-franchises.new", empty);
   const [createdId, setCreatedId] = React.useState<string | null>(null);
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
   const [saving, setSaving] = React.useState(false);
@@ -108,6 +109,7 @@ function StateFranchisesPage() {
   const reset = () => {
     setStep(1);
     setForm(empty);
+    clearFormDraft();
     setCreatedId(null);
     setCreds(null);
   };

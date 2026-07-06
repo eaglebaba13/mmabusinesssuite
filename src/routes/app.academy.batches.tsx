@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/academy/batches")({
   head: () => ({ meta: [{ title: "Batches — Academy" }] }),
@@ -34,11 +35,12 @@ function BatchesPage() {
   const { isAdmin, hasRole } = useAuth();
   const canEdit = isAdmin || hasRole("academy_admin");
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
+  const emptyBatch = {
     course_id: "", trainer_id: "", batch_code: "", start_date: "", end_date: "",
     capacity: 25, mode: "offline" as "online" | "offline" | "hybrid", location: "Mumbai HQ",
     status: "upcoming" as "upcoming" | "ongoing" | "completed" | "cancelled",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("academy.batches.new", emptyBatch);
 
   const batches = useQuery({
     queryKey: ["batches"],
@@ -75,6 +77,8 @@ function BatchesPage() {
       toast.success("Batch created");
       qc.invalidateQueries({ queryKey: ["batches"] });
       setOpen(false);
+      setForm(emptyBatch);
+      clearFormDraft();
     },
     onError: () => toast.error("Couldn't create batch"),
   });
