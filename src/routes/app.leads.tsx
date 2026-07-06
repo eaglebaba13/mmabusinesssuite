@@ -24,6 +24,7 @@ import { formatINRCompact } from "@/lib/format";
 import { ExportBar } from "@/components/app/ExportBar";
 import { ImportButton } from "@/components/app/ImportButton";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/leads")({
   head: () => ({ meta: [{ title: "Leads — MMA Suite" }] }),
