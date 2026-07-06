@@ -59,7 +59,7 @@ function StateFranchisesPage() {
   const [search, setSearch] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
-  const [form, setForm] = React.useState<Form>(empty);
+  const [form, setForm, clearFormDraft] = usePersistedState<Form>("state-franchises.new", empty);
   const [createdId, setCreatedId] = React.useState<string | null>(null);
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
   const [saving, setSaving] = React.useState(false);
