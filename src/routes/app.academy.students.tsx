@@ -30,9 +30,8 @@ function StudentsPage() {
   const [open, setOpen] = React.useState(false);
   const [q, setQ] = React.useState("");
   const [range, setRange] = React.useState(defaultDateRange());
-  const [form, setForm] = React.useState({
-    full_name: "", email: "", phone: "", city: "", gender: "", guardian_name: "", guardian_phone: "",
-  });
+  const emptyStudent = { full_name: "", email: "", phone: "", city: "", gender: "", guardian_name: "", guardian_phone: "" };
+  const [form, setForm, clearFormDraft] = usePersistedState("academy.students.new", emptyStudent);
 
   const students = useQuery({
     queryKey: ["students"],
