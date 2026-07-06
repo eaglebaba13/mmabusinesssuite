@@ -199,7 +199,14 @@ function PosTerminal() {
   const clearCart = () => {
     setCart([]); setCustomer({ name: "", phone: "", email: "", gstin: "" }); setPaymentReference("");
     setSaleDate(new Date().toISOString().slice(0, 10));
+    clearCartStorage(); clearCustomerStorage(); clearPaymentReferenceStorage(); clearSaleDateStorage();
   };
+  const resetPosForm = () => {
+    clearCart();
+    setMappingType(""); setFranchiseeId(""); setWarehouseId(""); setCategory(""); setPaymentMethod("cash");
+    clearMappingType(); clearFranchiseeId(); clearWarehouseId(); clearCategory(); clearPaymentMethodStorage();
+  };
+  void resetPosForm;
 
   const totals = React.useMemo(() => {
     let subtotal = 0, discount = 0, gst = 0;
