@@ -76,15 +76,15 @@ function PosTerminal() {
   const primaryRole = roles[0] ?? "user";
 
   const [search, setSearch] = React.useState("");
-  const [mappingType, setMappingType] = React.useState<MappingType | "">("");
-  const [franchiseeId, setFranchiseeId] = React.useState<string>("");
-  const [warehouseId, setWarehouseId] = React.useState<string>("");
-  const [category, setCategory] = React.useState<SaleCategory | "">("");
-  const [cart, setCart] = React.useState<CartItem[]>([]);
-  const [customer, setCustomer] = React.useState({ name: "", phone: "", email: "", gstin: "" });
-  const [paymentMethod, setPaymentMethod] = React.useState<string>("cash");
-  const [paymentReference, setPaymentReference] = React.useState("");
-  const [saleDate, setSaleDate] = React.useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [mappingType, setMappingType, clearMappingType] = usePersistedState<MappingType | "">("pos.mappingType", "");
+  const [franchiseeId, setFranchiseeId, clearFranchiseeId] = usePersistedState<string>("pos.franchiseeId", "");
+  const [warehouseId, setWarehouseId, clearWarehouseId] = usePersistedState<string>("pos.warehouseId", "");
+  const [category, setCategory, clearCategory] = usePersistedState<SaleCategory | "">("pos.category", "");
+  const [cart, setCart, clearCartStorage] = usePersistedState<CartItem[]>("pos.cart", []);
+  const [customer, setCustomer, clearCustomerStorage] = usePersistedState("pos.customer", { name: "", phone: "", email: "", gstin: "" });
+  const [paymentMethod, setPaymentMethod, clearPaymentMethodStorage] = usePersistedState<string>("pos.paymentMethod", "cash");
+  const [paymentReference, setPaymentReference, clearPaymentReferenceStorage] = usePersistedState("pos.paymentReference", "");
+  const [saleDate, setSaleDate, clearSaleDateStorage] = usePersistedState<string>("pos.saleDate", () => new Date().toISOString().slice(0, 10));
   const todayIso = new Date().toISOString().slice(0, 10);
 
   const profile = useQuery({
