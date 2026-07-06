@@ -27,14 +27,15 @@ const SOURCES = ["academy", "inventory", "franchise_fee", "consulting", "event",
 function RevenuePage() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
+  const emptyRevenue = {
     source: "other" as (typeof SOURCES)[number],
     source_label: "",
     amount: "",
     received_on: new Date().toISOString().slice(0, 10),
     reference: "",
     notes: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.revenue.new", emptyRevenue);
 
   const list = useQuery({
     queryKey: ["revenue-list"],
