@@ -130,7 +130,7 @@ function FranchiseesPage() {
   const [productFilter, setProductFilter] = React.useState<string>("all");
   const [open, setOpen] = React.useState(false);
   const [step, setStep] = React.useState<Step>(1);
-  const [form, setForm] = React.useState<OnboardForm>(emptyForm);
+  const [form, setForm, clearFormDraft] = usePersistedState<OnboardForm>("franchisees.new", emptyForm);
   const [saving, setSaving] = React.useState(false);
   const [createdId, setCreatedId] = React.useState<string | null>(null);
   const [creds, setCreds] = React.useState<{ email: string; password: string } | null>(null);
