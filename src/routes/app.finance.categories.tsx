@@ -22,7 +22,8 @@ export const Route = createFileRoute("/app/finance/categories")({
 function CategoriesPage() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({ name: "", slug: "", color: "#c9a84c", monthly_budget: "" });
+  const emptyCategory = { name: "", slug: "", color: "#c9a84c", monthly_budget: "" };
+  const [form, setForm, clearFormDraft] = usePersistedState("finance.categories.new", emptyCategory);
 
   const list = useQuery({
     queryKey: ["exp-cats-full"],
