@@ -327,7 +327,8 @@ function LeadCard({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
 }
 
 function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (v: boolean) => void; onCreated: () => void }) {
-  const [form, setForm] = React.useState({ full_name: "", email: "", phone: "", city: "", source: "manual", budget: "", ad_name: "" });
+  const emptyForm = { full_name: "", email: "", phone: "", city: "", source: "manual", budget: "", ad_name: "" };
+  const [form, setForm, clearFormDraft] = usePersistedState("leads.new", emptyForm);
   const [saving, setSaving] = React.useState(false);
 
   const submit = async (e: React.FormEvent) => {
@@ -345,7 +346,8 @@ function NewLeadDialog({ open, setOpen, onCreated }: { open: boolean; setOpen: (
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success("Lead created");
-    setForm({ full_name: "", email: "", phone: "", city: "", source: "manual", budget: "", ad_name: "" });
+    setForm(emptyForm);
+    clearFormDraft();
     setOpen(false);
     onCreated();
   };
