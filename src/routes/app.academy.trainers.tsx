@@ -50,7 +50,8 @@ function TrainersPage() {
       toast.success("Trainer added");
       qc.invalidateQueries({ queryKey: ["trainers"] });
       setOpen(false);
-      setForm({ full_name: "", email: "", phone: "", specialization: "", bio: "" });
+      setForm(emptyTrainer);
+      clearFormDraft();
     },
     onError: () => toast.error("Couldn't add trainer"),
   });
