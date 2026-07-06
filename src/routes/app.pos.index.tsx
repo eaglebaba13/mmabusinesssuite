@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/pos/")({
   component: PosTerminal,
@@ -75,15 +76,15 @@ function PosTerminal() {
   const primaryRole = roles[0] ?? "user";
 
   const [search, setSearch] = React.useState("");
-  const [mappingType, setMappingType] = React.useState<MappingType | "">("");
-  const [franchiseeId, setFranchiseeId] = React.useState<string>("");
-  const [warehouseId, setWarehouseId] = React.useState<string>("");
-  const [category, setCategory] = React.useState<SaleCategory | "">("");
-  const [cart, setCart] = React.useState<CartItem[]>([]);
-  const [customer, setCustomer] = React.useState({ name: "", phone: "", email: "", gstin: "" });
-  const [paymentMethod, setPaymentMethod] = React.useState<string>("cash");
-  const [paymentReference, setPaymentReference] = React.useState("");
-  const [saleDate, setSaleDate] = React.useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [mappingType, setMappingType, clearMappingType] = usePersistedState<MappingType | "">("pos.mappingType", "");
+  const [franchiseeId, setFranchiseeId, clearFranchiseeId] = usePersistedState<string>("pos.franchiseeId", "");
+  const [warehouseId, setWarehouseId, clearWarehouseId] = usePersistedState<string>("pos.warehouseId", "");
+  const [category, setCategory, clearCategory] = usePersistedState<SaleCategory | "">("pos.category", "");
+  const [cart, setCart, clearCartStorage] = usePersistedState<CartItem[]>("pos.cart", []);
+  const [customer, setCustomer, clearCustomerStorage] = usePersistedState("pos.customer", { name: "", phone: "", email: "", gstin: "" });
+  const [paymentMethod, setPaymentMethod, clearPaymentMethodStorage] = usePersistedState<string>("pos.paymentMethod", "cash");
+  const [paymentReference, setPaymentReference, clearPaymentReferenceStorage] = usePersistedState("pos.paymentReference", "");
+  const [saleDate, setSaleDate, clearSaleDateStorage] = usePersistedState<string>("pos.saleDate", () => new Date().toISOString().slice(0, 10));
   const todayIso = new Date().toISOString().slice(0, 10);
 
   const profile = useQuery({
@@ -140,7 +141,9 @@ function PosTerminal() {
   const activeWarehouse = (warehouses.data ?? []).find((w: any) => w.id === warehouseId) as any;
 
   // Auto-select single outlet
+  const didMountWarehouseReset = React.useRef(false);
   React.useEffect(() => {
+    if (!didMountWarehouseReset.current) { didMountWarehouseReset.current = true; return; }
     setWarehouseId("");
   }, [franchiseeId, mappingType]);
   React.useEffect(() => {
@@ -198,7 +201,14 @@ function PosTerminal() {
   const clearCart = () => {
     setCart([]); setCustomer({ name: "", phone: "", email: "", gstin: "" }); setPaymentReference("");
     setSaleDate(new Date().toISOString().slice(0, 10));
+    clearCartStorage(); clearCustomerStorage(); clearPaymentReferenceStorage(); clearSaleDateStorage();
   };
+  const resetPosForm = () => {
+    clearCart();
+    setMappingType(""); setFranchiseeId(""); setWarehouseId(""); setCategory(""); setPaymentMethod("cash");
+    clearMappingType(); clearFranchiseeId(); clearWarehouseId(); clearCategory(); clearPaymentMethodStorage();
+  };
+  void resetPosForm;
 
   const totals = React.useMemo(() => {
     let subtotal = 0, discount = 0, gst = 0;
