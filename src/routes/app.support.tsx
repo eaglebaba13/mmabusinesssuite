@@ -48,7 +48,8 @@ function SupportPage() {
     onSuccess: () => {
       toast.success("Ticket created");
       setOpen(false);
-      setForm({ subject: "", description: "", priority: "medium" });
+      setForm(emptyTicket);
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["tickets"] });
     },
     onError: (e: any) => {
