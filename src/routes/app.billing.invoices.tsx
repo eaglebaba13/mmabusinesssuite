@@ -147,7 +147,7 @@ function InvoicesPage() {
         <CardContent className="overflow-x-auto p-0">
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>From</TableHead><TableHead>Bill To</TableHead>
+              <TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>From</TableHead><TableHead>Bill To</TableHead><TableHead>Franchise</TableHead>
               <TableHead>Date</TableHead><TableHead>Total</TableHead><TableHead>Paid</TableHead>
               <TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
             </TableRow></TableHeader>
