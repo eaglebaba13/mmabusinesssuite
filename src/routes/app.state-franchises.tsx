@@ -109,6 +109,7 @@ function StateFranchisesPage() {
   const reset = () => {
     setStep(1);
     setForm(empty);
+    clearFormDraft();
     setCreatedId(null);
     setCreds(null);
   };
