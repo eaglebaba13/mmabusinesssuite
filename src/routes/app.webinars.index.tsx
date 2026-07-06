@@ -39,7 +39,7 @@ function slugify(s: string) {
 function WebinarsIndex() {
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({
+  const emptyWebinar = {
     title: "",
     description: "",
     host_name: "",
@@ -51,7 +51,8 @@ function WebinarsIndex() {
     price: "0",
     status: "scheduled",
     webhook_url: "",
-  });
+  };
+  const [form, setForm, clearFormDraft] = usePersistedState("webinars.new", emptyWebinar);
 
   const list = useQuery({
     queryKey: ["webinars"],
