@@ -65,7 +65,7 @@ function InvoicesPage() {
   const invoicesQ = useQuery({
     queryKey: ["invoices", docFilter, statusFilter, companyFilter, from, to, showArchived],
     queryFn: async () => {
-      let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name)").order("invoice_date", { ascending: false }).limit(300);
+      let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name), franchisees!franchisee_id(full_name), state_franchises!state_franchise_id(full_name)").order("invoice_date", { ascending: false }).limit(300);
       if (docFilter !== "all") q = q.eq("doc_type", docFilter as any);
       if (statusFilter !== "all") q = q.eq("status", statusFilter as any);
       if (companyFilter !== "all") q = q.eq("company_id", companyFilter);
