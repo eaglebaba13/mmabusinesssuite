@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/academy/batches")({
   head: () => ({ meta: [{ title: "Batches — Academy" }] }),
