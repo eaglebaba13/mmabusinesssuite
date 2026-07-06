@@ -21,6 +21,7 @@ import { ImportButton } from "@/components/app/ImportButton";
 import { OpenDashboardButton } from "@/components/app/OpenDashboardButton";
 import { useAuth } from "@/lib/auth-context";
 import { useMode } from "@/lib/mode-context";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 const franchiseesSearchSchema = z.object({
   openOnboard: z.coerce.number().optional(),
