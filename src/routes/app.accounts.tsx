@@ -11,6 +11,22 @@ import { formatINR } from "@/lib/format";
 import { useMode } from "@/lib/mode-context";
 import { Link } from "@tanstack/react-router";
 import { exportToCSV } from "@/lib/export";
+import { useAuth } from "@/lib/auth-context";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 function ageBucket(dueDate: string | null, today: string): "current" | "1-30" | "31-60" | "61-90" | "90+" {
   if (!dueDate || dueDate >= today) return "current";
