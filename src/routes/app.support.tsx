@@ -24,7 +24,8 @@ function SupportPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = React.useState(false);
-  const [form, setForm] = React.useState({ subject: "", description: "", priority: "medium" });
+  const emptyTicket = { subject: "", description: "", priority: "medium" };
+  const [form, setForm, clearFormDraft] = usePersistedState("support.new", emptyTicket);
 
   const { data: tickets = [] } = useQuery({
     queryKey: ["tickets"],
