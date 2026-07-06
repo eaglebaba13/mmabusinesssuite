@@ -17,6 +17,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { ImportButton } from "@/components/app/ImportButton";
+import { usePersistedState } from "@/hooks/use-persisted-state";
 
 export const Route = createFileRoute("/app/webinars/")({
   head: () => ({ meta: [{ title: "Webinar Campaigns — MMA Suite" }] }),
