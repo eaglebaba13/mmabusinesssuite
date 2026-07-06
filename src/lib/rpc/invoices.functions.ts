@@ -296,7 +296,12 @@ export const updateInvoice = createServerFn({ method: "POST" })
       fullPatch.igst_total = split.igst_total;
       fullPatch.grand_total = totals.grand_total;
     }
-    const { error } = await supabaseAdmin.from("invoices").update(fullPatch as any).eq("id", id).eq("status", "draft");
+    // Super admins can edit invoices at any status; others only drafts.
+    const { data: roleRows } = await supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId);
+    const isSuperAdmin = (roleRows ?? []).some((r) => r.role === "super_admin");
+    let upd = supabaseAdmin.from("invoices").update(fullPatch as any).eq("id", id);
+    if (!isSuperAdmin) upd = upd.eq("status", "draft");
+    const { error } = await upd;
     if (error) throw new Error(error.message);
     if (items && totals) {
       await supabaseAdmin.from("invoice_items").delete().eq("invoice_id", id);

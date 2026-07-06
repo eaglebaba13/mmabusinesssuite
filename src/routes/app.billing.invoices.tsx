@@ -65,7 +65,7 @@ function InvoicesPage() {
   const invoicesQ = useQuery({
     queryKey: ["invoices", docFilter, statusFilter, companyFilter, from, to, showArchived],
     queryFn: async () => {
-      let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name)").order("invoice_date", { ascending: false }).limit(300);
+      let q = supabase.from("invoices").select("*, companies!invoices_company_id_fkey(name), franchisees!franchisee_id(full_name), state_franchises!state_franchise_id(full_name)").order("invoice_date", { ascending: false }).limit(300);
       if (docFilter !== "all") q = q.eq("doc_type", docFilter as any);
       if (statusFilter !== "all") q = q.eq("status", statusFilter as any);
       if (companyFilter !== "all") q = q.eq("company_id", companyFilter);
@@ -147,7 +147,7 @@ function InvoicesPage() {
         <CardContent className="overflow-x-auto p-0">
           <Table>
             <TableHeader><TableRow>
-              <TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>From</TableHead><TableHead>Bill To</TableHead>
+              <TableHead>Number</TableHead><TableHead>Type</TableHead><TableHead>From</TableHead><TableHead>Bill To</TableHead><TableHead>Franchise</TableHead>
               <TableHead>Date</TableHead><TableHead>Total</TableHead><TableHead>Paid</TableHead>
               <TableHead>Status</TableHead><TableHead className="text-right">Actions</TableHead>
             </TableRow></TableHeader>
@@ -158,6 +158,7 @@ function InvoicesPage() {
                   <TableCell><Badge variant="outline" className="text-xs">{inv.doc_type}</Badge></TableCell>
                   <TableCell className="text-xs">{inv.companies?.name}</TableCell>
                   <TableCell className="text-xs">{inv.bill_to_name ?? "—"}</TableCell>
+                  <TableCell className="text-xs">{inv.franchisees?.full_name ?? inv.state_franchises?.full_name ?? "—"}</TableCell>
                   <TableCell>{inv.invoice_date}</TableCell>
                   <TableCell>{formatINR(inv.grand_total)}</TableCell>
                   <TableCell>{formatINR(inv.amount_paid)}</TableCell>
@@ -181,6 +182,9 @@ function InvoicesPage() {
                           }}><CheckCircle2 className="h-3.5 w-3.5" /></Button>
                         </>
                       )}
+                      {isSuperAdmin && inv.status !== "draft" && !inv.archived_at && (
+                        <EditDraftDialog invoiceId={inv.id} onSaved={() => qc.invalidateQueries({ queryKey: ["invoices"] })} />
+                      )}
                       {inv.status === "issued" && (
                         <>
                           <Button size="sm" variant="outline" title="Revise" onClick={async () => {
@@ -199,7 +203,7 @@ function InvoicesPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {invoicesQ.data?.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No invoices</TableCell></TableRow>}
+              {invoicesQ.data?.length === 0 && <TableRow><TableCell colSpan={10} className="text-center text-muted-foreground">No invoices</TableCell></TableRow>}
             </TableBody>
           </Table>
         </CardContent>
