@@ -268,6 +268,7 @@ function FranchiseesPage() {
   const resetWizard = () => {
     setStep(1);
     setForm(emptyForm);
+    clearFormDraft();
     setCreatedId(null);
     setCreds(null);
   };
