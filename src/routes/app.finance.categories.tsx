@@ -62,7 +62,8 @@ function CategoriesPage() {
     onSuccess: () => {
       toast.success("Category added");
       setOpen(false);
-      setForm({ name: "", slug: "", color: "#c9a84c", monthly_budget: "" });
+      setForm(emptyCategory);
+      clearFormDraft();
       qc.invalidateQueries({ queryKey: ["exp-cats-full"] });
       qc.invalidateQueries({ queryKey: ["exp-cats"] });
     },
