@@ -108,9 +108,23 @@ function PaymentsTab() {
 
 function ReceivablesTab() {
   const { isTesting } = useMode();
+  const { hasRole } = useAuth();
+  const canDelete = hasRole("super_admin");
+  const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["acct-rec", isTesting],
-    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name)").eq("is_demo", isTesting).in("status", ["issued", "paid"] as any).order("due_date", { ascending: true, nullsFirst: false })).data,
+    queryFn: async () => (await supabase.from("invoices").select("id,invoice_number,invoice_date,due_date,bill_to_name,grand_total,amount_paid,payment_status,companies!company_id(name),franchisees!franchisee_id(full_name)").eq("is_demo", isTesting).in("status", ["issued", "paid"] as any).order("due_date", { ascending: true, nullsFirst: false })).data,
+  });
+  const del = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("invoices").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Invoice deleted");
+      qc.invalidateQueries({ queryKey: ["acct-rec"] });
+    },
+    onError: (e: any) => toast.error(e.message ?? "Delete failed"),
   });
   const rows = ((q.data ?? []) as any[]).filter((r) => Number(r.grand_total) > Number(r.amount_paid));
   const today = new Date().toISOString().slice(0, 10);
@@ -137,6 +151,7 @@ function ReceivablesTab() {
               { header: "due", accessor: (r: any) => r.due_date ?? "" },
               { header: "age", accessor: (r: any) => r._bucket },
               { header: "from", accessor: (r: any) => r.companies?.name ?? "" },
+              { header: "franchise", accessor: (r: any) => r.franchisees?.full_name ?? "" },
               { header: "customer", accessor: (r: any) => r.bill_to_name ?? "" },
               { header: "total", accessor: (r: any) => r.grand_total },
               { header: "paid", accessor: (r: any) => r.amount_paid },
@@ -148,7 +163,7 @@ function ReceivablesTab() {
       </div>
       <Card><CardContent className="overflow-x-auto p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Date</TableHead><TableHead>Due</TableHead><TableHead>Age</TableHead><TableHead>From</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Outstanding</TableHead></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Date</TableHead><TableHead>Due</TableHead><TableHead>Age</TableHead><TableHead>From</TableHead><TableHead>Franchise</TableHead><TableHead>Customer</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Paid</TableHead><TableHead className="text-right">Outstanding</TableHead>{canDelete && <TableHead className="w-10"></TableHead>}</TableRow></TableHeader>
           <TableBody>
             {withAge.map((r) => {
               const isOverdue = r._bucket !== "current";
@@ -159,14 +174,43 @@ function ReceivablesTab() {
                   <TableCell className={isOverdue ? "text-destructive font-semibold" : ""}>{r.due_date ?? "—"}</TableCell>
                   <TableCell><Badge variant={isOverdue ? "destructive" : "outline"} className="text-xs">{r._bucket}</Badge></TableCell>
                   <TableCell>{r.companies?.name ?? "—"}</TableCell>
+                  <TableCell>{r.franchisees?.full_name ?? "—"}</TableCell>
                   <TableCell>{r.bill_to_name ?? "—"}</TableCell>
                   <TableCell className="text-right">{formatINR(r.grand_total)}</TableCell>
                   <TableCell className="text-right">{formatINR(r.amount_paid)}</TableCell>
                   <TableCell className="text-right font-mono font-semibold">{formatINR(r._open)}</TableCell>
+                  {canDelete && (
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete invoice {r.invoice_number ?? ""}?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This permanently removes the invoice and its line items. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => del.mutate(r.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}
-            {withAge.length === 0 && <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground">No outstanding receivables</TableCell></TableRow>}
+            {withAge.length === 0 && <TableRow><TableCell colSpan={canDelete ? 11 : 10} className="text-center text-muted-foreground">No outstanding receivables</TableCell></TableRow>}
           </TableBody>
         </Table>
       </CardContent></Card>
