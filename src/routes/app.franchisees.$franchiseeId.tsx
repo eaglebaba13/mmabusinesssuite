@@ -284,7 +284,19 @@ function FranchiseeDetailPage() {
                           <Button size="sm" variant="ghost" onClick={() => setIncentiveEdit({ mode: "edit", row: p })}>
                             <Pencil className="mr-1 h-3 w-3" /> Edit
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-red-500"
+                            disabled={deletePayout.isPending}
+                            onClick={() => {
+                              if (confirm("Delete this ROI payout permanently?")) deletePayout.mutate(p.id);
+                            }}
+                          >
+                            <Trash2 className="mr-1 h-3 w-3" /> Delete
+                          </Button>
                         </td>
+
                       )}
                     </tr>
                   ))}
