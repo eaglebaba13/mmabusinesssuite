@@ -195,7 +195,7 @@ function CityContent({ fr }: { fr: any }) {
             </CardHeader>
             <CardContent className="overflow-x-auto p-0">
             <Table>
-              <TableHeader><TableRow><TableHead>Month</TableHead><TableHead>Base ROI</TableHead><TableHead>Emporium</TableHead><TableHead>Academy</TableHead><TableHead>Dark Store</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Month</TableHead><TableHead>Base ROI</TableHead><TableHead>Emporium</TableHead><TableHead>Academy</TableHead><TableHead>Dark Store</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead>{canManage && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
               <TableBody>
                 {payouts.map((p) => (
                   <TableRow key={p.id}>
@@ -206,9 +206,24 @@ function CityContent({ fr }: { fr: any }) {
                     <TableCell>{formatINR(p.dark_store_incentive)}</TableCell>
                     <TableCell className="font-semibold">{formatINR(p.total_amount)}</TableCell>
                     <TableCell><Badge variant={p.status === "paid" ? "default" : "secondary"}>{p.status}</Badge></TableCell>
+                    {canManage && (
+                      <TableCell className="text-right">
+                        <button
+                          className="rounded p-1 text-muted-foreground hover:text-red-500"
+                          title="Delete payout"
+                          disabled={deletePayout.isPending}
+                          onClick={() => {
+                            if (confirm("Delete this ROI payout permanently?")) deletePayout.mutate(p.id);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
-                {payouts.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No payouts yet</TableCell></TableRow>}
+                {payouts.length === 0 && <TableRow><TableCell colSpan={canManage ? 8 : 7} className="text-center text-muted-foreground">No payouts yet</TableCell></TableRow>}
+
               </TableBody>
             </Table>
           </CardContent></Card>
