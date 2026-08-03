@@ -1,6 +1,9 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
+import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,11 +60,29 @@ function CityPayoutsPage() {
 }
 
 function CityContent({ fr }: { fr: any }) {
+  const qc = useQueryClient();
+  const { isAdmin, hasRole } = useAuth();
+  const canManage = isAdmin || hasRole("accounts");
   const roiQ = useQuery({
     queryKey: ["roi-payouts", fr.id],
     queryFn: async () =>
       (await supabase.from("roi_payouts").select("*").eq("franchisee_id", fr.id).order("payout_month", { ascending: false })).data,
   });
+  const deletePayout = useMutation({
+    mutationFn: async (id: string) => {
+      const { error, count } = await supabase.from("roi_payouts").delete({ count: "exact" }).eq("id", id);
+      if (error) throw error;
+      if (!count) throw new Error("Not permitted to delete this payout");
+    },
+    onSuccess: () => {
+      toast.success("Payout deleted");
+      qc.invalidateQueries({ queryKey: ["roi-payouts", fr.id] });
+      qc.invalidateQueries({ queryKey: ["franchisee-payouts", fr.id] });
+      qc.invalidateQueries({ queryKey: ["roi-list"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const revQ = useQuery({
     queryKey: ["franchisee-rev", fr.id],
     queryFn: async () =>
@@ -174,7 +195,7 @@ function CityContent({ fr }: { fr: any }) {
             </CardHeader>
             <CardContent className="overflow-x-auto p-0">
             <Table>
-              <TableHeader><TableRow><TableHead>Month</TableHead><TableHead>Base ROI</TableHead><TableHead>Emporium</TableHead><TableHead>Academy</TableHead><TableHead>Dark Store</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Month</TableHead><TableHead>Base ROI</TableHead><TableHead>Emporium</TableHead><TableHead>Academy</TableHead><TableHead>Dark Store</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead>{canManage && <TableHead className="text-right">Actions</TableHead>}</TableRow></TableHeader>
               <TableBody>
                 {payouts.map((p) => (
                   <TableRow key={p.id}>
@@ -185,9 +206,24 @@ function CityContent({ fr }: { fr: any }) {
                     <TableCell>{formatINR(p.dark_store_incentive)}</TableCell>
                     <TableCell className="font-semibold">{formatINR(p.total_amount)}</TableCell>
                     <TableCell><Badge variant={p.status === "paid" ? "default" : "secondary"}>{p.status}</Badge></TableCell>
+                    {canManage && (
+                      <TableCell className="text-right">
+                        <button
+                          className="rounded p-1 text-muted-foreground hover:text-red-500"
+                          title="Delete payout"
+                          disabled={deletePayout.isPending}
+                          onClick={() => {
+                            if (confirm("Delete this ROI payout permanently?")) deletePayout.mutate(p.id);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
-                {payouts.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No payouts yet</TableCell></TableRow>}
+                {payouts.length === 0 && <TableRow><TableCell colSpan={canManage ? 8 : 7} className="text-center text-muted-foreground">No payouts yet</TableCell></TableRow>}
+
               </TableBody>
             </Table>
           </CardContent></Card>

@@ -3,7 +3,7 @@ import { createFileRoute, Link, useParams, notFound } from "@tanstack/react-rout
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, Pencil, Power, KeyRound, Building2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Pencil, Power, KeyRound, Building2, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +89,25 @@ function FranchiseeDetailPage() {
       qc.invalidateQueries({ queryKey: ["franchisee-payouts", franchiseeId] });
     },
   });
+
+  const deletePayout = useMutation({
+    mutationFn: async (id: string) => {
+      const { error, count } = await supabase
+        .from("roi_payouts")
+        .delete({ count: "exact" })
+        .eq("id", id);
+      if (error) throw error;
+      if (!count) throw new Error("Not permitted to delete this payout");
+    },
+    onSuccess: () => {
+      toast.success("Payout deleted");
+      qc.invalidateQueries({ queryKey: ["franchisee-payouts", franchiseeId] });
+      qc.invalidateQueries({ queryKey: ["roi-list"] });
+      qc.invalidateQueries({ queryKey: ["roi-payouts", franchiseeId] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
 
   if (!f) return <div className="p-12 text-center text-muted-foreground">Loading…</div>;
 
@@ -265,7 +284,19 @@ function FranchiseeDetailPage() {
                           <Button size="sm" variant="ghost" onClick={() => setIncentiveEdit({ mode: "edit", row: p })}>
                             <Pencil className="mr-1 h-3 w-3" /> Edit
                           </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-red-500"
+                            disabled={deletePayout.isPending}
+                            onClick={() => {
+                              if (confirm("Delete this ROI payout permanently?")) deletePayout.mutate(p.id);
+                            }}
+                          >
+                            <Trash2 className="mr-1 h-3 w-3" /> Delete
+                          </Button>
                         </td>
+
                       )}
                     </tr>
                   ))}
