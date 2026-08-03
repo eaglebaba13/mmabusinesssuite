@@ -57,11 +57,29 @@ function CityPayoutsPage() {
 }
 
 function CityContent({ fr }: { fr: any }) {
+  const qc = useQueryClient();
+  const { isAdmin, hasRole } = useAuth();
+  const canManage = isAdmin || hasRole("accounts");
   const roiQ = useQuery({
     queryKey: ["roi-payouts", fr.id],
     queryFn: async () =>
       (await supabase.from("roi_payouts").select("*").eq("franchisee_id", fr.id).order("payout_month", { ascending: false })).data,
   });
+  const deletePayout = useMutation({
+    mutationFn: async (id: string) => {
+      const { error, count } = await supabase.from("roi_payouts").delete({ count: "exact" }).eq("id", id);
+      if (error) throw error;
+      if (!count) throw new Error("Not permitted to delete this payout");
+    },
+    onSuccess: () => {
+      toast.success("Payout deleted");
+      qc.invalidateQueries({ queryKey: ["roi-payouts", fr.id] });
+      qc.invalidateQueries({ queryKey: ["franchisee-payouts", fr.id] });
+      qc.invalidateQueries({ queryKey: ["roi-list"] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const revQ = useQuery({
     queryKey: ["franchisee-rev", fr.id],
     queryFn: async () =>
