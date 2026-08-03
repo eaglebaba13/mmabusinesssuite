@@ -90,6 +90,25 @@ function FranchiseeDetailPage() {
     },
   });
 
+  const deletePayout = useMutation({
+    mutationFn: async (id: string) => {
+      const { error, count } = await supabase
+        .from("roi_payouts")
+        .delete({ count: "exact" })
+        .eq("id", id);
+      if (error) throw error;
+      if (!count) throw new Error("Not permitted to delete this payout");
+    },
+    onSuccess: () => {
+      toast.success("Payout deleted");
+      qc.invalidateQueries({ queryKey: ["franchisee-payouts", franchiseeId] });
+      qc.invalidateQueries({ queryKey: ["roi-list"] });
+      qc.invalidateQueries({ queryKey: ["roi-payouts", franchiseeId] });
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+
   if (!f) return <div className="p-12 text-center text-muted-foreground">Loading…</div>;
 
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
