@@ -1,0 +1,1 @@
+CREATE POLICY "roi admin delete" ON public.roi_payouts FOR DELETE TO authenticated USING (is_admin(auth.uid()) OR has_role(auth.uid(), 'accounts'::app_role));
