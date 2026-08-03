@@ -97,16 +97,20 @@ function PayoutsPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("roi_payouts").delete().eq("id", id);
+      const { error, count } = await supabase.from("roi_payouts").delete({ count: "exact" }).eq("id", id);
       if (error) throw error;
+      if (!count) throw new Error("Not permitted to delete this payout");
     },
     onSuccess: () => {
-      toast.success("Payout moved to trash");
+      toast.success("Payout deleted");
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["roi-payouts"] });
+      qc.invalidateQueries({ queryKey: ["franchisee-payouts"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
+
 
   const autoGenerate = useMutation({
     mutationFn: async () => {
