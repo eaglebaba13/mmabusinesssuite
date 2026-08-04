@@ -146,6 +146,7 @@ function FranchiseeDetailPage() {
         <TabsList className="bg-card/40">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="roi">Monthly ROI</TabsTrigger>
+          <TabsTrigger value="product">Product</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="ledger">ROI Ledger</TabsTrigger>
           <TabsTrigger value="agreement">Agreement</TabsTrigger>
@@ -166,6 +167,28 @@ function FranchiseeDetailPage() {
 
         <TabsContent value="roi" className="space-y-6">
           <MonthlyRoiPanel franchiseeId={f.id} />
+        </TabsContent>
+
+        <TabsContent value="product" className="space-y-6">
+          <div className="rounded-2xl glass p-6">
+            <ProductChangeTab
+              franchisee={{
+                id: f.id,
+                full_name: f.full_name,
+                franchise_product_id: (f as any).franchise_product_id ?? null,
+                effective_product_date: (f as any).effective_product_date ?? null,
+                investment_amount: Number(f.investment_amount ?? 0),
+                franchise_fee: Number((f as any).franchise_fee ?? 0),
+                mg_percent: Number((f as any).mg_percent ?? 0),
+                tns_percent: Number((f as any).tns_percent ?? 0),
+                academy_percent: Number((f as any).academy_percent ?? 0),
+                mall_percent: Number((f as any).mall_percent ?? 0),
+                royalty_percent: Number((f as any).royalty_percent ?? 0),
+                franchise_commission_amount: Number((f as any).franchise_commission_amount ?? 0),
+                agreement_version: (f as any).agreement_version ?? null,
+              }}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="profile" className="space-y-6">
