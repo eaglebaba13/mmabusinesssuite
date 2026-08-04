@@ -56,6 +56,8 @@ interface Franchisee {
   mall_percent?: number;
   royalty_percent?: number;
   franchise_commission_amount?: number;
+  franchise_product_id?: string | null;
+  effective_product_date?: string | null;
 }
 
 interface Props {
