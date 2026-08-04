@@ -912,6 +912,76 @@ export type Database = {
           },
         ]
       }
+      franchise_product_changes: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          created_at: string
+          effective_date: string
+          franchisee_id: string
+          id: string
+          mode: string
+          new_product_id: string | null
+          new_values_json: Json
+          old_product_id: string | null
+          old_values_json: Json
+          reason: string | null
+          remarks: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          effective_date?: string
+          franchisee_id: string
+          id?: string
+          mode?: string
+          new_product_id?: string | null
+          new_values_json?: Json
+          old_product_id?: string | null
+          old_values_json?: Json
+          reason?: string | null
+          remarks?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          effective_date?: string
+          franchisee_id?: string
+          id?: string
+          mode?: string
+          new_product_id?: string | null
+          new_values_json?: Json
+          old_product_id?: string | null
+          old_values_json?: Json
+          reason?: string | null
+          remarks?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchise_product_changes_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "franchise_product_changes_new_product_id_fkey"
+            columns: ["new_product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "franchise_product_changes_old_product_id_fkey"
+            columns: ["old_product_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       franchise_product_commissions: {
         Row: {
           amount: number | null
@@ -1442,6 +1512,7 @@ export type Database = {
           computer_count: number
           created_at: string
           dark_store_pct: number
+          effective_product_date: string | null
           email: string | null
           emporium_pct: number
           equipment_verified: boolean
@@ -1464,6 +1535,8 @@ export type Database = {
           payment_status: string | null
           phone: string | null
           printer_count: number
+          product_change_note: string | null
+          product_change_reason: string | null
           royalty_percent: number
           sales_executive_user_id: string | null
           status: Database["public"]["Enums"]["franchisee_status"]
@@ -1501,6 +1574,7 @@ export type Database = {
           computer_count?: number
           created_at?: string
           dark_store_pct?: number
+          effective_product_date?: string | null
           email?: string | null
           emporium_pct?: number
           equipment_verified?: boolean
@@ -1523,6 +1597,8 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           printer_count?: number
+          product_change_note?: string | null
+          product_change_reason?: string | null
           royalty_percent?: number
           sales_executive_user_id?: string | null
           status?: Database["public"]["Enums"]["franchisee_status"]
@@ -1560,6 +1636,7 @@ export type Database = {
           computer_count?: number
           created_at?: string
           dark_store_pct?: number
+          effective_product_date?: string | null
           email?: string | null
           emporium_pct?: number
           equipment_verified?: boolean
@@ -1582,6 +1659,8 @@ export type Database = {
           payment_status?: string | null
           phone?: string | null
           printer_count?: number
+          product_change_note?: string | null
+          product_change_reason?: string | null
           royalty_percent?: number
           sales_executive_user_id?: string | null
           status?: Database["public"]["Enums"]["franchisee_status"]
