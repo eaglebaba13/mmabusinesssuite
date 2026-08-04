@@ -165,13 +165,35 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
         </DialogHeader>
 
         <Tabs defaultValue="partner" className="mt-2">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
             <TabsTrigger value="partner">Partner</TabsTrigger>
+            <TabsTrigger value="product">Product</TabsTrigger>
             <TabsTrigger value="agreement">Agreement</TabsTrigger>
             <TabsTrigger value="roi">Legacy ROI</TabsTrigger>
             <TabsTrigger value="premises">Premises</TabsTrigger>
             <TabsTrigger value="access">Access</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="product" className="mt-4">
+            <ProductChangeTab
+              franchisee={{
+                id: form.id,
+                full_name: form.full_name,
+                franchise_product_id: form.franchise_product_id ?? null,
+                effective_product_date: form.effective_product_date ?? null,
+                investment_amount: Number(form.investment_amount ?? 0),
+                franchise_fee: Number(form.franchise_fee ?? 0),
+                mg_percent: form.mg_percent,
+                tns_percent: form.tns_percent,
+                academy_percent: form.academy_percent,
+                mall_percent: form.mall_percent,
+                royalty_percent: form.royalty_percent,
+                franchise_commission_amount: form.franchise_commission_amount,
+                agreement_version: form.agreement_version ?? null,
+              }}
+              onChanged={() => onOpenChange(false)}
+            />
+          </TabsContent>
 
           <TabsContent value="partner" className="mt-4 space-y-3">
             <div>
