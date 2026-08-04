@@ -23,6 +23,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductChangeTab } from "@/components/app/franchise/ProductChangeTab";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 import { formatINR } from "@/lib/format";
 
