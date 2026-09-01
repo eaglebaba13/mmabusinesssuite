@@ -222,7 +222,7 @@ function StateFranchiseView({ data }: { data: { roi: any[]; incentives: any[]; t
   );
 }
 
-function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; excluded_invoices?: any[]; payments: any[] }; extra: any; entityType: string }) {
+function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; excluded_invoices?: any[]; payments: any[]; roi_payouts?: any[] }; extra: any; entityType: string }) {
   const totalBilled = data.invoices.reduce((s, i) => s + Number(i.grand_total), 0);
   const totalGst = data.invoices.reduce((s, i) => s + Number(i.gst_total ?? 0), 0);
   const taxableRevenue = totalBilled - totalGst;
@@ -252,6 +252,16 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; ex
   const finalPayable = Math.max(variableRoi, mgRoi);
   const payableReason = variableRoi >= mgRoi ? "Variable ROI exceeded MG" : "Minimum Guarantee Applied";
 
+  // Settlement view: what has actually been paid out vs what is still due,
+  // taken from the monthly ROI payout ledger (not from lifetime turnover).
+  const payouts = data.roi_payouts ?? [];
+  const roiPaid = payouts
+    .filter((p) => p.status === "paid")
+    .reduce((s, p) => s + Number(p.total_amount ?? p.final_payable ?? 0), 0);
+  const roiDue = payouts
+    .filter((p) => p.status !== "paid")
+    .reduce((s, p) => s + Number(p.total_amount ?? p.final_payable ?? 0), 0);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -272,15 +282,57 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; ex
             <Kpi label={`Sale from TNS @ ${tnsPct}% incentive`} value={formatINR(tnsRoi)} />
             <Kpi label={`Sale from Academy @ ${academyPct}% incentive`} value={formatINR(academyRoi)} />
             <Kpi label={`Sale from Mall of Salon @ ${mallPct}% incentive`} value={formatINR(mallRoi)} />
-            <Kpi label="Final Payable ROI" value={formatINR(finalPayable)} />
+            <Kpi label="ROI Earned (lifetime)" value={formatINR(finalPayable)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <Kpi label="ROI Paid (settled)" value={formatINR(roiPaid)} />
+            <Kpi label="ROI Due (unsettled)" value={formatINR(roiDue)} />
           </div>
         </>
       )}
       <p className="text-xs text-muted-foreground">
-        Revenue rule: final outward tax invoices only (b2b_tax / b2c / debit_note, status issued/paid/partial, non-intercompany). Proformas, drafts, revised and intercompany flows are excluded. ROI is computed per invoice_category (TNS / Academy / Mall of Salon) using the agreement's negotiated percentages, and compared against the Minimum Guarantee — whichever is higher becomes payable. Reason: <strong>{payableReason}</strong>.
+        Revenue rule: final outward tax invoices only (b2b_tax / b2c / debit_note, status issued/paid/partial, non-intercompany). Proformas, drafts, revised and intercompany flows are excluded. ROI is computed per invoice_category (TNS / Academy / Mall of Salon) using the agreement's negotiated percentages, and compared against the Minimum Guarantee — whichever is higher becomes payable. Reason: <strong>{payableReason}</strong>. The ROI figures above are lifetime earnings; ROI Paid / ROI Due below come from the monthly payout ledger, so months already settled are not shown as pending.
       </p>
+      {entityType === "city_franchise" && payouts.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Monthly ROI payouts ({payouts.length})</CardTitle></CardHeader>
+          <CardContent className="overflow-x-auto p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Month</TableHead>
+                  <TableHead>MG</TableHead>
+                  <TableHead>Variable ROI</TableHead>
+                  <TableHead>Payable</TableHead>
+                  <TableHead>Basis</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Paid on</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payouts.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.payout_month}</TableCell>
+                    <TableCell>{formatINR(Number(p.mg_amount ?? 0))}</TableCell>
+                    <TableCell>{formatINR(Number(p.variable_roi ?? 0))}</TableCell>
+                    <TableCell>{formatINR(Number(p.total_amount ?? p.final_payable ?? 0))}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{p.payable_reason ?? "—"}</TableCell>
+                    <TableCell>
+                      <Badge variant={p.status === "paid" ? "default" : "outline"} className="capitalize">{p.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {p.paid_at ? new Date(p.paid_at).toLocaleDateString("en-IN") : "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
       {entityType === "city_franchise" && (
         <Card>
+
           <CardHeader><CardTitle className="text-base">ROI Configuration (from agreement)</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 text-sm md:grid-cols-5">
             <div>MG: <strong>{mgPct}%</strong></div>

@@ -258,7 +258,7 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
       // franchisee_id), then partition into revenue-bearing vs excluded so
       // both the entity dashboard and the franchisee self-dashboard apply
       // the SAME rule: only final outward tax invoices count as revenue.
-      const [allInvoices, payments] = await Promise.all([
+      const [allInvoices, payments, roiPayouts] = await Promise.all([
         supabaseAdmin
           .from("invoices")
           .select("id,invoice_number,doc_type,grand_total,gst_total,amount_paid,payment_status,invoice_date,status,franchisee_id,bill_to_entity_id,bill_to_entity_type,is_intercompany,parent_invoice_id,archived_at,invoice_category")
@@ -266,11 +266,19 @@ export const fetchImpersonationData = createServerFn({ method: "POST" })
           .order("invoice_date", { ascending: false })
           .limit(200),
         supabaseAdmin.from("payments").select("*").eq("counterparty_entity_id", sess.entity_id).order("payment_date", { ascending: false }).limit(50),
+        supabaseAdmin
+          .from("roi_payouts")
+          .select("id,payout_month,status,mg_amount,variable_roi,final_payable,total_amount,paid_at,payable_reason")
+          .eq("franchisee_id", sess.entity_id)
+          .order("payout_month", { ascending: false })
+          .limit(36),
       ]);
       const partitioned = partitionRevenueInvoices(allInvoices.data ?? []);
       out.invoices = partitioned.included;
       out.excluded_invoices = partitioned.excluded;
       out.payments = payments.data ?? [];
+      out.roi_payouts = roiPayouts.data ?? [];
+
     } else if (sess.entity_type === "salon_branch") {
       const { data: branch } = await supabaseAdmin.from("salon_branches").select("*").eq("id", sess.entity_id).maybeSingle();
       out.branch = branch;
