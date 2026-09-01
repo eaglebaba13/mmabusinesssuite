@@ -227,6 +227,8 @@ export function FranchiseeDashboard({
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
   const scheduledPendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
+  const roiDueTotal = payouts.filter((p) => p.status !== "paid").reduce((s, p) => s + Number(p.total_amount ?? 0), 0);
+
 
   const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
   const monthEnd = endOfMonth(new Date()).toISOString().slice(0, 10);
@@ -782,44 +784,77 @@ export function FranchiseeDashboard({
         )}
       </div>
 
-      {/* ROI payouts */}
+      {/* Monthly ROI statement */}
       <div className="rounded-2xl glass p-5">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-display text-lg">ROI payouts</h3>
-          <span className="text-xs text-muted-foreground">{payouts.length} total</span>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="font-display text-lg">Monthly ROI statement</h3>
+            <p className="text-xs text-muted-foreground">
+              Month-wise ROI computed from your billed sales vs the Minimum Guarantee, with settlement status.
+            </p>
+          </div>
+          <div className="flex gap-4 text-right text-xs">
+            <div>
+              <div className="uppercase tracking-wider text-muted-foreground">Settled</div>
+              <div className="font-display text-base text-emerald-400">{formatINRCompact(lifetimePaid)}</div>
+            </div>
+            <div>
+              <div className="uppercase tracking-wider text-muted-foreground">Due</div>
+              <div className="font-display text-base text-gold">{formatINRCompact(roiDueTotal)}</div>
+            </div>
+          </div>
         </div>
         {payouts.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">No payouts yet.</p>
+          <p className="py-6 text-center text-sm text-muted-foreground">No ROI months recorded yet.</p>
         ) : (
-          <div className="space-y-2">
-            {payouts.slice(0, 6).map((p) => (
-              <div key={p.id} className="flex items-center justify-between rounded-lg bg-background/40 px-4 py-3">
-                <div>
-                  <div className="text-sm font-semibold">{format(new Date(p.payout_month), "MMMM yyyy")}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Base {formatINRCompact(Number(p.base_roi))} · Emporium {formatINRCompact(Number(p.emporium_incentive))} · Academy{" "}
-                    {formatINRCompact(Number(p.academy_incentive))}
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Badge
-                    variant="outline"
-                    className={
-                      p.status === "paid"
-                        ? "border-emerald-500/40 text-emerald-400"
-                        : "border-amber-500/40 text-amber-400"
-                    }
-                  >
-                    {p.status === "paid" ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <Clock className="mr-1 h-3 w-3" />}
-                    {p.status}
-                  </Badge>
-                  <div className="font-display text-lg text-gold">{formatINRCompact(Number(p.total_amount))}</div>
-                </div>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[820px] text-sm">
+              <thead>
+                <tr className="border-b border-border/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
+                  <th className="py-2 pr-3">Month</th>
+                  <th className="py-2 pr-3">MG</th>
+                  <th className="py-2 pr-3">Variable ROI</th>
+                  <th className="py-2 pr-3">Payable</th>
+                  <th className="py-2 pr-3">Basis</th>
+                  <th className="py-2 pr-3">Status</th>
+                  <th className="py-2">Paid on</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payouts.map((p) => {
+                  const payable = Number((p as any).total_amount ?? (p as any).final_payable ?? 0);
+                  return (
+                    <tr key={p.id} className="border-b border-border/20 last:border-0">
+                      <td className="py-2.5 pr-3 font-medium">{format(new Date(p.payout_month), "MMMM yyyy")}</td>
+                      <td className="py-2.5 pr-3">{formatINR(Number((p as any).mg_amount ?? 0))}</td>
+                      <td className="py-2.5 pr-3">{formatINR(Number((p as any).variable_roi ?? 0))}</td>
+                      <td className="py-2.5 pr-3 font-display text-gold">{formatINR(payable)}</td>
+                      <td className="py-2.5 pr-3 text-xs text-muted-foreground">{(p as any).payable_reason ?? "—"}</td>
+                      <td className="py-2.5 pr-3">
+                        <Badge
+                          variant="outline"
+                          className={
+                            p.status === "paid"
+                              ? "border-emerald-500/40 text-emerald-400"
+                              : "border-amber-500/40 text-amber-400"
+                          }
+                        >
+                          {p.status === "paid" ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <Clock className="mr-1 h-3 w-3" />}
+                          {p.status}
+                        </Badge>
+                      </td>
+                      <td className="py-2.5 text-xs text-muted-foreground">
+                        {(p as any).paid_at ? format(new Date((p as any).paid_at), "dd MMM yyyy") : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
+
     </div>
   );
 }
