@@ -105,6 +105,20 @@ function ImpersonationPage() {
 
         {dataQ.isLoading && <p className="text-sm text-muted-foreground">Loading data…</p>}
 
+        {dataQ.error && (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Session expired</CardTitle></CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                This read-only view link is no longer valid ({(dataQ.error as Error).message}).
+                Generate a fresh view link from the franchise record to continue.
+              </p>
+              <Button size="sm" onClick={() => navigate({ to: "/app/dashboard" })}>Back to dashboard</Button>
+            </CardContent>
+          </Card>
+        )}
+
+
         {ctx.entity_type === "state_franchise" && dataQ.data && (
           <StateFranchiseView data={dataQ.data as any} />
         )}
