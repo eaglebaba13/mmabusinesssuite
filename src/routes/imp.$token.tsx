@@ -27,11 +27,14 @@ function ImpersonationPage() {
     queryKey: ["imp-data", token],
     queryFn: () => fetchData({ data: { token } }),
     enabled: !!ctxQ.data,
+    retry: false,
     refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-    refetchInterval: 20000,
+    refetchOnWindowFocus: (q) => !q.state.error,
+    // Stop polling once the session is over — otherwise it errors every 20s.
+    refetchInterval: (q) => (q.state.error ? false : 20000),
     staleTime: 0,
   });
+
 
   const [now, setNow] = React.useState(Date.now());
   React.useEffect(() => {
@@ -101,6 +104,20 @@ function ImpersonationPage() {
         </div>
 
         {dataQ.isLoading && <p className="text-sm text-muted-foreground">Loading data…</p>}
+
+        {dataQ.error && (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Session expired</CardTitle></CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                This read-only view link is no longer valid ({(dataQ.error as Error).message}).
+                Generate a fresh view link from the franchise record to continue.
+              </p>
+              <Button size="sm" onClick={() => navigate({ to: "/app/dashboard" })}>Back to dashboard</Button>
+            </CardContent>
+          </Card>
+        )}
+
 
         {ctx.entity_type === "state_franchise" && dataQ.data && (
           <StateFranchiseView data={dataQ.data as any} />
