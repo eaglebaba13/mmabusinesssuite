@@ -27,11 +27,14 @@ function ImpersonationPage() {
     queryKey: ["imp-data", token],
     queryFn: () => fetchData({ data: { token } }),
     enabled: !!ctxQ.data,
+    retry: false,
     refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-    refetchInterval: 20000,
+    refetchOnWindowFocus: (q) => !q.state.error,
+    // Stop polling once the session is over — otherwise it errors every 20s.
+    refetchInterval: (q) => (q.state.error ? false : 20000),
     staleTime: 0,
   });
+
 
   const [now, setNow] = React.useState(Date.now());
   React.useEffect(() => {
