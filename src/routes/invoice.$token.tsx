@@ -20,37 +20,26 @@ function PublicInvoicePage() {
   const tokenRow = useQuery({
     queryKey: ["invoice-token", token],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invoice_share_tokens")
-        .select("order_id, expires_at")
-        .eq("token", token)
-        .maybeSingle();
+      const { data, error } = await (supabase as any).rpc("get_public_invoice", {
+        _token: token,
+      });
       if (error) throw error;
-      return data;
+      return data as { order: any; items: any[]; payments: any[] } | null;
     },
   });
 
-  const orderId = tokenRow.data?.order_id ?? null;
-  const expired = tokenRow.data?.expires_at
-    ? new Date(tokenRow.data.expires_at).getTime() < Date.now()
-    : false;
+  const expired = false;
 
   const order = useQuery({
-    enabled: !!orderId && !expired,
-    queryKey: ["public-invoice", orderId],
-    queryFn: async () => {
-      const [o, items, payments] = await Promise.all([
-        supabase
-          .from("sales_orders")
-          .select("*, warehouses(name, address, city, state)")
-          .eq("id", orderId!)
-          .maybeSingle(),
-        supabase.from("sales_order_items").select("*").eq("order_id", orderId!).order("created_at"),
-        supabase.from("sale_payments").select("*").eq("order_id", orderId!).order("paid_at"),
-      ]);
-      return { order: o.data, items: items.data ?? [], payments: payments.data ?? [] };
-    },
+    enabled: !!tokenRow.data,
+    queryKey: ["public-invoice", token],
+    queryFn: async () => ({
+      order: tokenRow.data?.order ?? null,
+      items: tokenRow.data?.items ?? [],
+      payments: tokenRow.data?.payments ?? [],
+    }),
   });
+
 
   if (tokenRow.isLoading) {
     return <div className="p-12 text-center text-muted-foreground">Loading invoice…</div>;
