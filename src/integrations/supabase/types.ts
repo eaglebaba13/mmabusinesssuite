@@ -4420,6 +4420,7 @@ export type Database = {
           variable_roi: number
         }[]
       }
+      get_public_invoice: { Args: { _token: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
