@@ -330,8 +330,9 @@ function CityLikeView({ data, extra, entityType }: { data: { invoices: any[]; ex
           </CardContent>
         </Card>
       )}
-
+      {entityType === "city_franchise" && (
         <Card>
+
           <CardHeader><CardTitle className="text-base">ROI Configuration (from agreement)</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 gap-3 text-sm md:grid-cols-5">
             <div>MG: <strong>{mgPct}%</strong></div>
