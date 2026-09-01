@@ -227,6 +227,8 @@ export function FranchiseeDashboard({
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
   const lifetimePaid = payouts.filter((p) => p.status === "paid").reduce((s, p) => s + Number(p.total_amount), 0);
   const scheduledPendingPayout = payouts.filter((p) => p.status === "pending").reduce((s, p) => s + Number(p.total_amount), 0);
+  const roiDueTotal = payouts.filter((p) => p.status !== "paid").reduce((s, p) => s + Number(p.total_amount ?? 0), 0);
+
 
   const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
   const monthEnd = endOfMonth(new Date()).toISOString().slice(0, 10);
