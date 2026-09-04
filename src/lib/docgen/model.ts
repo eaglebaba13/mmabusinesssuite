@@ -79,7 +79,7 @@ export type DocTypeDef = {
 
 export const DOC_TYPES: DocTypeDef[] = [
   { key: "roi_claim", label: "Franchise ROI Claim", prefix: "ROI", source: "roi_payout", seal: false, folder: "roi-claims", allow: ["admin", "accounts"] },
-  { key: "franchise_agreement", label: "Franchise Agreement", prefix: "AGR", source: "agreement", seal: true, folder: "agreements", allow: ["admin"] },
+  { key: "franchise_agreement", label: "Franchise Agreement", prefix: "AGR", source: "franchisee", seal: true, folder: "agreements", allow: ["admin"] },
   { key: "invoice", label: "Invoice", prefix: "INV", source: "invoice", seal: false, folder: "invoices", allow: ["admin", "accounts"] },
   { key: "payment_receipt", label: "Payment Receipt", prefix: "REC", source: "payment", seal: true, folder: "receipts", allow: ["admin", "accounts"] },
   { key: "payout_statement", label: "Payout Statement", prefix: "PAY", source: "roi_payout", seal: true, folder: "payouts", allow: ["admin", "accounts"] },

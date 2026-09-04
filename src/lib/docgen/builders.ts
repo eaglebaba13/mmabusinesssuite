@@ -415,15 +415,38 @@ async function payoutStatement(payoutId: string, docNumber: string) {
 
 /* 2. FRANCHISE AGREEMENT -------------------------------------------------- */
 
-async function agreement(agreementId: string, docNumber: string) {
-  const { data: ag, error } = await supabase
+type AgreementRow = {
+  id: string | null;
+  product_id: string | null;
+  version: string | null;
+  status: string | null;
+  valid_from: string | null;
+  valid_till: string | null;
+  template_snapshot: string | null;
+  merged_html: string | null;
+};
+
+async function agreement(franchiseeId: string, docNumber: string) {
+  const f = await getFranchisee(franchiseeId);
+  // Use the executed agreement record when one exists; otherwise fall back to
+  // the agreement terms stored on the franchisee record itself.
+  const { data: agRow } = await supabase
     .from("franchise_agreements")
-    .select("id, franchisee_id, product_id, version, status, valid_from, valid_till, template_snapshot, merged_html, notes")
-    .eq("id", agreementId)
+    .select("id, product_id, version, status, valid_from, valid_till, template_snapshot, merged_html")
+    .eq("franchisee_id", franchiseeId)
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
-  if (error) throw error;
-  if (!ag) throw new Error("Required information missing: Agreement record");
-  const f = await getFranchisee(ag.franchisee_id!);
+  const ag: AgreementRow = agRow ?? {
+    id: null,
+    product_id: (f.franchise_product_id as string) ?? null,
+    version: (f.agreement_version as string) ?? "1",
+    status: f.agreement_number ? "signed" : "draft",
+    valid_from: (f.agreement_date as string) ?? (f.joined_at as string) ?? null,
+    valid_till: (f.agreement_expiry as string) ?? null,
+    template_snapshot: null,
+    merged_html: null,
+  };
   const { location, territory } = await resolveLocation(f);
 
   let productName = NA;
@@ -436,7 +459,11 @@ async function agreement(agreementId: string, docNumber: string) {
     if (data) productName = txt(data.name);
   }
 
-  requireFields({ "Franchisee Name": f.full_name, "Agreement Version": ag.version, "Agreement Date": ag.valid_from ?? f.agreement_date });
+  requireFields({
+    "Franchisee Name": f.full_name,
+    "Agreement Version": ag.version ?? f.agreement_version,
+    "Agreement Date": ag.valid_from ?? f.agreement_date,
+  });
 
   const clauses = (ag.merged_html || ag.template_snapshot || "")
     .replace(/<br\s*\/?>/gi, "\n")
@@ -462,7 +489,7 @@ async function agreement(agreementId: string, docNumber: string) {
         ["Franchise Product", productName],
         ["Territory", territory],
         ["Location", location],
-        ["Agreement Version", txt(ag.version)],
+        ["Agreement Version", txt(ag.version ?? f.agreement_version)],
         ["Agreement Date", formatDMY(ag.valid_from ?? (f.agreement_date as string))],
         ["Expiry Date", formatDMY(ag.valid_till ?? (f.agreement_expiry as string))],
       ],
@@ -511,13 +538,17 @@ async function agreement(agreementId: string, docNumber: string) {
       ["Franchisee Name:", franchiseeName(f)],
       ["Franchisee Code:", txt(f.franchisee_code)],
       ["Agreement No.:", txt(f.agreement_number ?? docNumber)],
-      ["Agreement Version:", txt(ag.version)],
+      ["Agreement Version:", txt(ag.version ?? f.agreement_version)],
       ["Agreement Date:", formatDMY(ag.valid_from ?? (f.agreement_date as string))],
       ["Status:", txt(ag.status)],
     ],
     blocks,
   };
-  return { model, links: { franchisee_id: f.id, agreement_id: agreementId }, sourceKey: `agreement:${agreementId}` };
+  return {
+    model,
+    links: { franchisee_id: f.id, agreement_id: ag.id },
+    sourceKey: `agreement:${ag.id ?? f.id}`,
+  };
 }
 
 /* 3. INVOICE -------------------------------------------------------------- */
