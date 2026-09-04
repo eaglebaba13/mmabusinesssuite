@@ -66,6 +66,19 @@ async function resolveLocation(f: Franchisee): Promise<{ location: string; terri
       area = area || data.city || data.name;
     }
   }
+  if (!city && !state) {
+    // Last resort: derive the city/state from the registered address, e.g.
+    // "HN 29, Colony, Ujjain, Madhya Pradesh 456010" -> "Ujjain, Madhya Pradesh".
+    const parts = (s("address") ?? "")
+      .split(",")
+      .map((x) => x.replace(/\b\d{6}\b/g, "").trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      city = parts[parts.length - 2];
+      state = parts[parts.length - 1];
+      area = area || city;
+    }
+  }
   const location = [city, state].filter(Boolean).join(", ") || NA;
   return { location, territory: area || city || state || NA };
 }
