@@ -132,11 +132,27 @@ export async function listSources(kind: SourceKind): Promise<SourceOption[]> {
         .order("payment_date", { ascending: false })
         .limit(300);
       if (error) throw error;
-      return (data ?? []).map((r) => ({
+      const ledger = (data ?? []).map((r) => ({
         id: r.id,
         label: `${r.counterparty_name ?? NA} — Rs. ${money(r.amount)}`,
         sub: `${formatDMY(r.payment_date)} • ${r.method}${r.reference ? ` • ${r.reference}` : ""}`,
       }));
+      // POS collections are stored against sales orders, so offer them too.
+      const { data: pos, error: posErr } = await supabase
+        .from("sale_payments")
+        .select("id, amount, method, reference, paid_at, sales_orders(invoice_number, customer_name)")
+        .order("paid_at", { ascending: false })
+        .limit(300);
+      if (posErr) throw posErr;
+      const posOptions = (pos ?? []).map((r) => {
+        const o = r.sales_orders as { invoice_number?: string; customer_name?: string } | null;
+        return {
+          id: `sp:${r.id}`,
+          label: `${o?.customer_name?.trim() || "Walk-in Customer"} — Rs. ${money(r.amount)}`,
+          sub: `${formatDMY(r.paid_at)} • ${r.method} • POS ${o?.invoice_number ?? ""}`.trim(),
+        };
+      });
+      return [...ledger, ...posOptions];
     }
     case "purchase_order": {
       const { data, error } = await supabase
@@ -415,15 +431,38 @@ async function payoutStatement(payoutId: string, docNumber: string) {
 
 /* 2. FRANCHISE AGREEMENT -------------------------------------------------- */
 
-async function agreement(agreementId: string, docNumber: string) {
-  const { data: ag, error } = await supabase
+type AgreementRow = {
+  id: string | null;
+  product_id: string | null;
+  version: string | null;
+  status: string | null;
+  valid_from: string | null;
+  valid_till: string | null;
+  template_snapshot: string | null;
+  merged_html: string | null;
+};
+
+async function agreement(franchiseeId: string, docNumber: string) {
+  const f = await getFranchisee(franchiseeId);
+  // Use the executed agreement record when one exists; otherwise fall back to
+  // the agreement terms stored on the franchisee record itself.
+  const { data: agRow } = await supabase
     .from("franchise_agreements")
-    .select("id, franchisee_id, product_id, version, status, valid_from, valid_till, template_snapshot, merged_html, notes")
-    .eq("id", agreementId)
+    .select("id, product_id, version, status, valid_from, valid_till, template_snapshot, merged_html")
+    .eq("franchisee_id", franchiseeId)
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
-  if (error) throw error;
-  if (!ag) throw new Error("Required information missing: Agreement record");
-  const f = await getFranchisee(ag.franchisee_id!);
+  const ag: AgreementRow = agRow ?? {
+    id: null,
+    product_id: (f.franchise_product_id as string) ?? null,
+    version: (f.agreement_version as string) ?? "1",
+    status: f.agreement_number ? "signed" : "draft",
+    valid_from: (f.agreement_date as string) ?? (f.joined_at as string) ?? null,
+    valid_till: (f.agreement_expiry as string) ?? null,
+    template_snapshot: null,
+    merged_html: null,
+  };
   const { location, territory } = await resolveLocation(f);
 
   let productName = NA;
@@ -436,7 +475,11 @@ async function agreement(agreementId: string, docNumber: string) {
     if (data) productName = txt(data.name);
   }
 
-  requireFields({ "Franchisee Name": f.full_name, "Agreement Version": ag.version, "Agreement Date": ag.valid_from ?? f.agreement_date });
+  requireFields({
+    "Franchisee Name": f.full_name,
+    "Agreement Version": ag.version ?? f.agreement_version,
+    "Agreement Date": ag.valid_from ?? f.agreement_date,
+  });
 
   const clauses = (ag.merged_html || ag.template_snapshot || "")
     .replace(/<br\s*\/?>/gi, "\n")
@@ -462,7 +505,7 @@ async function agreement(agreementId: string, docNumber: string) {
         ["Franchise Product", productName],
         ["Territory", territory],
         ["Location", location],
-        ["Agreement Version", txt(ag.version)],
+        ["Agreement Version", txt(ag.version ?? f.agreement_version)],
         ["Agreement Date", formatDMY(ag.valid_from ?? (f.agreement_date as string))],
         ["Expiry Date", formatDMY(ag.valid_till ?? (f.agreement_expiry as string))],
       ],
@@ -511,13 +554,17 @@ async function agreement(agreementId: string, docNumber: string) {
       ["Franchisee Name:", franchiseeName(f)],
       ["Franchisee Code:", txt(f.franchisee_code)],
       ["Agreement No.:", txt(f.agreement_number ?? docNumber)],
-      ["Agreement Version:", txt(ag.version)],
+      ["Agreement Version:", txt(ag.version ?? f.agreement_version)],
       ["Agreement Date:", formatDMY(ag.valid_from ?? (f.agreement_date as string))],
       ["Status:", txt(ag.status)],
     ],
     blocks,
   };
-  return { model, links: { franchisee_id: f.id, agreement_id: agreementId }, sourceKey: `agreement:${agreementId}` };
+  return {
+    model,
+    links: { franchisee_id: f.id, agreement_id: ag.id },
+    sourceKey: `agreement:${ag.id ?? f.id}`,
+  };
 }
 
 /* 3. INVOICE -------------------------------------------------------------- */
@@ -620,10 +667,52 @@ async function invoice(invoiceId: string, docNumber: string) {
 
 /* 4. PAYMENT RECEIPT ------------------------------------------------------ */
 
+type ReceiptSource = {
+  amount: unknown;
+  payment_date: unknown;
+  method: unknown;
+  reference: unknown;
+  status: unknown;
+  counterparty_name: unknown;
+  counterparty_entity_type?: string | null;
+  counterparty_entity_id?: string | null;
+  invoice_id?: string | null;
+};
+
 async function receipt(paymentId: string, docNumber: string, extras: Extras) {
-  const { data: p, error } = await supabase.from("payments").select("*").eq("id", paymentId).maybeSingle();
-  if (error) throw error;
-  if (!p) throw new Error("Required information missing: Payment record");
+  const isPos = paymentId.startsWith("sp:");
+  let p: ReceiptSource;
+  let posInvoiceNumber: string | null = null;
+  let posFranchiseeId: string | null = null;
+
+  if (isPos) {
+    const { data, error } = await supabase
+      .from("sale_payments")
+      .select("id, amount, method, reference, paid_at, sales_orders(invoice_number, customer_name, franchisee_id, payment_status)")
+      .eq("id", paymentId.slice(3))
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("Required information missing: Payment record");
+    const o = data.sales_orders as
+      | { invoice_number?: string; customer_name?: string; franchisee_id?: string; payment_status?: string }
+      | null;
+    posInvoiceNumber = o?.invoice_number ?? null;
+    posFranchiseeId = o?.franchisee_id ?? null;
+    p = {
+      amount: data.amount,
+      payment_date: data.paid_at,
+      method: data.method,
+      reference: data.reference,
+      status: o?.payment_status ?? "paid",
+      counterparty_name: o?.customer_name?.trim() || "Walk-in Customer",
+      invoice_id: null,
+    };
+  } else {
+    const { data, error } = await supabase.from("payments").select("*").eq("id", paymentId).maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("Required information missing: Payment record");
+    p = data as unknown as ReceiptSource;
+  }
 
   let against = extras.paymentAgainst?.trim() || NA;
   let franchiseeCode = NA;
@@ -639,6 +728,8 @@ async function receipt(paymentId: string, docNumber: string, extras: Extras) {
       franchiseeId = inv.franchisee_id ?? null;
     }
   }
+  if (posInvoiceNumber) against = extras.paymentAgainst?.trim() || `POS Invoice ${posInvoiceNumber}`;
+  if (!franchiseeId) franchiseeId = posFranchiseeId;
   if (!franchiseeId && p.counterparty_entity_type === "city_franchise") franchiseeId = p.counterparty_entity_id ?? null;
   if (franchiseeId) {
     const { data } = await supabase.from("franchisees").select("franchisee_code").eq("id", franchiseeId).maybeSingle();
@@ -655,7 +746,7 @@ async function receipt(paymentId: string, docNumber: string, extras: Extras) {
     meta: [
       ["Receipt No.:", docNumber],
       ["Receipt Date:", formatDMY(new Date())],
-      ["Payment Date:", formatDMY(p.payment_date)],
+      ["Payment Date:", formatDMY(p.payment_date as string | null)],
     ],
     blocks: [
       {
@@ -677,7 +768,11 @@ async function receipt(paymentId: string, docNumber: string, extras: Extras) {
       { kind: "signature", caption: "Authorized Signatory", name: COMPANY_NAME, seal: true, line: false },
     ],
   };
-  return { model, links: { payment_id: paymentId, franchisee_id: franchiseeId }, sourceKey: `payment:${paymentId}` };
+  return {
+    model,
+    links: { payment_id: isPos ? null : paymentId, franchisee_id: franchiseeId },
+    sourceKey: `payment:${paymentId}`,
+  };
 }
 
 /* 6. PURCHASE ORDER ------------------------------------------------------- */
