@@ -39,6 +39,8 @@ export type DocModel = {
   fileBase: string;
   meta: [string, string][];
   blocks: DocBlock[];
+  /** Optional footer line replacing the document number in running footer. */
+  footerLabel?: string;
 };
 
 export type DocTypeKey =
