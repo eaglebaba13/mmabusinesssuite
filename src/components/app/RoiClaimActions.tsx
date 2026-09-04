@@ -135,12 +135,28 @@ export function RoiClaimDialog({
     claimRefNo: String(claim.claim_ref_no),
   });
 
-  const previewQ = useQuery({
-    queryKey: ["roi-claim-preview", claim.id, claim.version, claim.pdf_path],
-    queryFn: () => (claim.pdf_path ? signedClaimUrl(claim.pdf_path) : null),
-    enabled: open && !!claim.pdf_path,
-    staleTime: 60_000,
-  });
+  // Embed the PDF from a blob object URL: signed storage URLs are not always
+  // allowed to render inside an iframe, which showed as a blank/broken frame.
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!open || !claim.pdf_path) return;
+    let url: string | null = null;
+    let cancelled = false;
+    setPreviewError(null);
+    claimObjectUrl(claim.pdf_path)
+      .then((u) => {
+        url = u;
+        if (cancelled) URL.revokeObjectURL(u);
+        else setObjectUrl(u);
+      })
+      .catch((e: unknown) => setPreviewError(e instanceof Error ? e.message : "Could not load document"));
+    return () => {
+      cancelled = true;
+      setObjectUrl(null);
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [open, claim.pdf_path, claim.version]);
 
   const setStatus = useMutation({
     mutationFn: (s: string) => updateClaimStatus(claim.id, s),
