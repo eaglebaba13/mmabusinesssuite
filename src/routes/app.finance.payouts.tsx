@@ -61,25 +61,39 @@ function PayoutsPage() {
       const ai = Number(form.academy_incentive) || 0;
       const ds = Number(form.dark_store_incentive) || 0;
       const em = Number(form.emporium_incentive) || 0;
-      const { error } = await supabase.from("roi_payouts").insert({
-        franchisee_id: form.franchisee_id,
-        payout_month: form.payout_month,
-        base_roi: base,
-        academy_incentive: ai,
-        dark_store_incentive: ds,
-        emporium_incentive: em,
-        total_amount: base + ai + ds + em,
-        status: "pending",
-      });
+      const { data: inserted, error } = await supabase
+        .from("roi_payouts")
+        .insert({
+          franchisee_id: form.franchisee_id,
+          payout_month: form.payout_month,
+          base_roi: base,
+          academy_incentive: ai,
+          dark_store_incentive: ds,
+          emporium_incentive: em,
+          total_amount: base + ai + ds + em,
+          status: "pending",
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      // Auto-generate the ROI Claim letter for the new payout (best effort).
+      let claimWarning: string | null = null;
+      try {
+        await generateClaimForPayout({ payoutId: inserted.id });
+      } catch (e) {
+        claimWarning = e instanceof Error ? e.message : "ROI Claim could not be generated";
+      }
+      return { claimWarning };
     },
-    onSuccess: () => {
+    onSuccess: (r) => {
       toast.success("Payout created");
+      if (r?.claimWarning) toast.warning(`ROI Claim not generated: ${r.claimWarning}`);
       setOpen(false);
       setForm({ ...emptyPayout, payout_month: new Date().toISOString().slice(0, 7) + "-01" });
       clearFormDraft();
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["roi-claims"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
