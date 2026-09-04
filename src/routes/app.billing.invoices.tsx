@@ -610,7 +610,7 @@ function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUp
         <p className="text-[11px] text-muted-foreground">
           {name && <>Uploaded: <strong>{name}</strong> · </>}
           {currentUrl && (
-            <button type="button" onClick={() => openSourceDoc(currentUrl)} className="text-gold underline-offset-2 hover:underline">
+            <button type="button" onClick={() => openInvoiceSourceDoc(currentUrl)} className="text-gold underline-offset-2 hover:underline">
               Open file
             </button>
           )}
