@@ -265,6 +265,13 @@ export async function signedClaimUrl(path: string, download?: string) {
   return data.signedUrl;
 }
 
+/** Download the stored PDF as a blob object URL so it can be embedded reliably. */
+export async function claimObjectUrl(path: string) {
+  const { data, error } = await supabase.storage.from(BUCKET).download(path);
+  if (error) throw error;
+  return URL.createObjectURL(new Blob([await data.arrayBuffer()], { type: "application/pdf" }));
+}
+
 export async function downloadClaimFile(path: string, filename: string) {
   const url = await signedClaimUrl(path, filename);
   const a = document.createElement("a");
