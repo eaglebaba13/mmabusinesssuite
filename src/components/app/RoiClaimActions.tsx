@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Download, Printer, RefreshCw, Loader2 } from "lucide-react";
+import { FileText, Download, Printer, RefreshCw, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -138,6 +138,7 @@ export function RoiClaimDialog({
   // Embed the PDF from a blob object URL: signed storage URLs are not always
   // allowed to render inside an iframe, which showed as a blank/broken frame.
   const [objectUrl, setObjectUrl] = React.useState<string | null>(null);
+  const [pdfData, setPdfData] = React.useState<ArrayBuffer | null>(null);
   const [previewError, setPreviewError] = React.useState<string | null>(null);
   const [retryTick, setRetryTick] = React.useState(0);
   React.useEffect(() => {
@@ -146,10 +147,13 @@ export function RoiClaimDialog({
     let cancelled = false;
     setPreviewError(null);
     claimObjectUrl(claim.pdf_path)
-      .then((u) => {
+      .then(({ url: u, data }) => {
         url = u;
         if (cancelled) URL.revokeObjectURL(u);
-        else setObjectUrl(u);
+        else {
+          setObjectUrl(u);
+          setPdfData(data);
+        }
       })
       .catch((e: unknown) => {
         const message = e instanceof Error ? e.message : "Could not load document";
@@ -158,6 +162,7 @@ export function RoiClaimDialog({
     return () => {
       cancelled = true;
       setObjectUrl(null);
+      setPdfData(null);
       if (url) URL.revokeObjectURL(url);
     };
   }, [open, claim.pdf_path, claim.version, retryTick]);
@@ -220,8 +225,8 @@ export function RoiClaimDialog({
         </div>
 
         <div className="h-[45vh] overflow-hidden rounded-lg border border-border/60 bg-muted/20">
-          {objectUrl ? (
-            <iframe title="ROI Claim preview" src={objectUrl} className="h-full w-full" />
+          {pdfData ? (
+            <PdfCanvasPreview data={pdfData} />
           ) : previewError ? (
             <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
               <div className="text-sm">
@@ -273,6 +278,67 @@ export function RoiClaimDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function PdfCanvasPreview({ data }: { data: ArrayBuffer }) {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const [page, setPage] = React.useState(1);
+  const [pages, setPages] = React.useState(1);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    let task: { destroy: () => Promise<void> } | null = null;
+    const render = async () => {
+      try {
+        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+        const loadingTask = pdfjs.getDocument({ data: data.slice(0), disableWorker: true });
+        task = loadingTask;
+        const pdf = await loadingTask.promise;
+        if (cancelled) return;
+        setPages(pdf.numPages);
+        const pdfPage = await pdf.getPage(Math.min(page, pdf.numPages));
+        const canvas = canvasRef.current;
+        if (!canvas || cancelled) return;
+        const parentWidth = canvas.parentElement?.clientWidth ?? 700;
+        const initial = pdfPage.getViewport({ scale: 1 });
+        const viewport = pdfPage.getViewport({ scale: Math.max(1, (parentWidth - 32) / initial.width) });
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = viewport.width * ratio;
+        canvas.height = viewport.height * ratio;
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Preview canvas is unavailable");
+        await pdfPage.render({ canvas, canvasContext: context, viewport, transform: [ratio, 0, 0, ratio, 0, 0] }).promise;
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Could not render PDF preview");
+      }
+    };
+    void render();
+    return () => {
+      cancelled = true;
+      void task?.destroy();
+    };
+  }, [data, page]);
+
+  if (error) return <div className="flex h-full items-center justify-center px-6 text-sm text-destructive">{error}</div>;
+  return (
+    <div className="relative h-full overflow-auto bg-muted/30 p-4">
+      <canvas ref={canvasRef} className="mx-auto shadow-sm" aria-label={`ROI Claim PDF page ${page}`} />
+      {pages > 1 && (
+        <div className="sticky bottom-2 mx-auto mt-2 flex w-fit items-center gap-2 rounded-md border bg-background p-1 shadow-sm">
+          <Button size="icon" variant="ghost" disabled={page === 1} onClick={() => setPage((p) => p - 1)} title="Previous page">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="min-w-16 text-center text-xs">{page} / {pages}</span>
+          <Button size="icon" variant="ghost" disabled={page === pages} onClick={() => setPage((p) => p + 1)} title="Next page">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 

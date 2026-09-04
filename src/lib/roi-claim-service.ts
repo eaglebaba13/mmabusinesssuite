@@ -269,7 +269,11 @@ export async function signedClaimUrl(path: string, download?: string) {
 export async function claimObjectUrl(path: string) {
   const { data, error } = await supabase.storage.from(BUCKET).download(path);
   if (error) throw error;
-  return URL.createObjectURL(new Blob([await data.arrayBuffer()], { type: "application/pdf" }));
+  const bytes = await data.arrayBuffer();
+  return {
+    url: URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })),
+    data: bytes,
+  };
 }
 
 export async function downloadClaimFile(path: string, filename: string) {
