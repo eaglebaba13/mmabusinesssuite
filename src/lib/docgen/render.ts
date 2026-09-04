@@ -33,7 +33,17 @@ export async function renderDocPdf(model: DocModel, opts?: { sealAllowed?: boole
   const right = pageW - CONTENT_LEFT;
   const contentW = right - left;
 
+  // The letterhead is a full-page background image, so it must be stamped
+  // exactly once per page BEFORE any content is drawn on that page —
+  // stamping again would paint over the content already written.
+  const stampedPages = new Set<number>();
+  const currentPage = () =>
+    (doc as unknown as { internal: { getCurrentPageInfo: () => { pageNumber: number } } }).internal.getCurrentPageInfo()
+      .pageNumber;
   const stamp = () => {
+    const page = currentPage();
+    if (stampedPages.has(page)) return;
+    stampedPages.add(page);
     doc.addImage(letterhead.dataUrl, "JPEG", 0, 0, pageW, pageH, undefined, "FAST");
   };
   stamp();
@@ -89,7 +99,7 @@ export async function renderDocPdf(model: DocModel, opts?: { sealAllowed?: boole
     headStyles: { fillColor: GOLD, textColor: [20, 20, 20] as [number, number, number], fontStyle: "bold" as const },
     margin: { left, right: CONTENT_LEFT, top: CONTENT_TOP, bottom: pageH - CONTENT_BOTTOM + 10 },
     rowPageBreak: "avoid" as const,
-    didDrawPage: stamp,
+    willDrawPage: stamp,
   };
 
   const drawBlock = (b: DocBlock) => {
