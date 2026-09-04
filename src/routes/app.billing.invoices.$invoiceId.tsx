@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatINR } from "@/lib/format";
+import { openInvoiceSourceDoc } from "@/lib/invoice-source-doc";
 import { ArrowLeft, Printer } from "lucide-react";
 
 export const Route = createFileRoute("/app/billing/invoices/$invoiceId")({
@@ -98,16 +99,25 @@ function InvoicePrintPage() {
               <>
                 <p className="font-medium">
                   {inv.source_document_url ? (
-                    <a href={inv.source_document_url} target="_blank" rel="noreferrer" className="text-gold underline-offset-2 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => openInvoiceSourceDoc(inv.source_document_url!)}
+                      className="text-gold underline-offset-2 hover:underline"
+                    >
                       {inv.source_document_ref ?? "Open uploaded file"}
-                    </a>
+                    </button>
                   ) : (
                     <span className="font-mono text-xs">{inv.source_document_ref}</span>
                   )}
                 </p>
                 {inv.source_document_url && (
-                  <Button asChild size="sm" variant="outline" className="mt-2 print:hidden">
-                    <a href={inv.source_document_url} target="_blank" rel="noreferrer">Preview / Open file</a>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-2 print:hidden"
+                    onClick={() => openInvoiceSourceDoc(inv.source_document_url!)}
+                  >
+                    Preview / Open file
                   </Button>
                 )}
                 <p className="mt-1 text-[11px] text-muted-foreground">Read-only originating reference</p>
@@ -115,6 +125,7 @@ function InvoicePrintPage() {
             ) : (
               <p className="text-xs text-muted-foreground">No source document linked</p>
             )}
+
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Revenue Attribution</p>

@@ -36,6 +36,7 @@ import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
 import { Route as AppFranchiseMarketplaceRouteImport } from './routes/app.franchise-marketplace'
 import { Route as AppFranchiseCompareRouteImport } from './routes/app.franchise-compare'
 import { Route as AppFinanceRouteImport } from './routes/app.finance'
+import { Route as AppDocumentsRouteImport } from './routes/app.documents'
 import { Route as AppDashboardsRouteImport } from './routes/app.dashboards'
 import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
 import { Route as AppAuditLogsRouteImport } from './routes/app.audit-logs'
@@ -232,6 +233,11 @@ const AppFranchiseCompareRoute = AppFranchiseCompareRouteImport.update({
 const AppFinanceRoute = AppFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDocumentsRoute = AppDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardsRoute = AppDashboardsRouteImport.update({
@@ -561,6 +567,7 @@ export interface FileRoutesByFullPath {
   '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
+  '/app/documents': typeof AppDocumentsRoute
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchise-compare': typeof AppFranchiseCompareRoute
   '/app/franchise-marketplace': typeof AppFranchiseMarketplaceRoute
@@ -649,6 +656,7 @@ export interface FileRoutesByTo {
   '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
+  '/app/documents': typeof AppDocumentsRoute
   '/app/franchise-compare': typeof AppFranchiseCompareRoute
   '/app/franchise-marketplace': typeof AppFranchiseMarketplaceRoute
   '/app/franchisees': typeof AppFranchiseesRouteWithChildren
@@ -734,6 +742,7 @@ export interface FileRoutesById {
   '/app/audit-logs': typeof AppAuditLogsRoute
   '/app/dashboard': typeof AppDashboardRoute
   '/app/dashboards': typeof AppDashboardsRouteWithChildren
+  '/app/documents': typeof AppDocumentsRoute
   '/app/finance': typeof AppFinanceRouteWithChildren
   '/app/franchise-compare': typeof AppFranchiseCompareRoute
   '/app/franchise-marketplace': typeof AppFranchiseMarketplaceRoute
@@ -826,6 +835,7 @@ export interface FileRouteTypes {
     | '/app/audit-logs'
     | '/app/dashboard'
     | '/app/dashboards'
+    | '/app/documents'
     | '/app/finance'
     | '/app/franchise-compare'
     | '/app/franchise-marketplace'
@@ -914,6 +924,7 @@ export interface FileRouteTypes {
     | '/app/audit-logs'
     | '/app/dashboard'
     | '/app/dashboards'
+    | '/app/documents'
     | '/app/franchise-compare'
     | '/app/franchise-marketplace'
     | '/app/franchisees'
@@ -998,6 +1009,7 @@ export interface FileRouteTypes {
     | '/app/audit-logs'
     | '/app/dashboard'
     | '/app/dashboards'
+    | '/app/documents'
     | '/app/finance'
     | '/app/franchise-compare'
     | '/app/franchise-marketplace'
@@ -1281,6 +1293,13 @@ declare module '@tanstack/react-router' {
       path: '/finance'
       fullPath: '/app/finance'
       preLoaderRoute: typeof AppFinanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/documents': {
+      id: '/app/documents'
+      path: '/documents'
+      fullPath: '/app/documents'
+      preLoaderRoute: typeof AppDocumentsRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/dashboards': {
@@ -1947,6 +1966,7 @@ interface AppRouteChildren {
   AppAuditLogsRoute: typeof AppAuditLogsRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppDashboardsRoute: typeof AppDashboardsRouteWithChildren
+  AppDocumentsRoute: typeof AppDocumentsRoute
   AppFinanceRoute: typeof AppFinanceRouteWithChildren
   AppFranchiseCompareRoute: typeof AppFranchiseCompareRoute
   AppFranchiseMarketplaceRoute: typeof AppFranchiseMarketplaceRoute
@@ -1980,6 +2000,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAuditLogsRoute: AppAuditLogsRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppDashboardsRoute: AppDashboardsRouteWithChildren,
+  AppDocumentsRoute: AppDocumentsRoute,
   AppFinanceRoute: AppFinanceRouteWithChildren,
   AppFranchiseCompareRoute: AppFranchiseCompareRoute,
   AppFranchiseMarketplaceRoute: AppFranchiseMarketplaceRoute,

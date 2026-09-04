@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from "@/components/ui/textarea";
 import { issueInvoice, cancelInvoice, reviseInvoice, createInvoice, updateInvoice, deleteInvoice } from "@/lib/rpc/invoices.functions";
 import { formatINR } from "@/lib/format";
+import { openInvoiceSourceDoc } from "@/lib/invoice-source-doc";
 import { toast } from "sonner";
 import { Plus, FileText, Ban, RefreshCw, CheckCircle2, Pencil, X, Trash2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
@@ -570,6 +571,13 @@ function NumberingRulesTable() {
   );
 }
 
+/**
+ * Source documents live in the PRIVATE `invoice-sources` bucket. We persist the
+ * storage path (not a public URL) and open files through short-lived signed
+ * URLs so financial attachments are never fetchable without authorization.
+ */
+
+
 function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUploaded: (url: string, name: string) => void }) {
   const [uploading, setUploading] = React.useState(false);
   const [name, setName] = React.useState<string | null>(null);
@@ -585,9 +593,8 @@ function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUp
       const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("invoice-sources").upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw error;
-      const { data } = supabase.storage.from("invoice-sources").getPublicUrl(path);
       setName(file.name);
-      onUploaded(data.publicUrl, file.name);
+      onUploaded(path, file.name);
       toast.success("Source document uploaded");
     } catch (e) {
       toast.error((e as Error).message);
@@ -603,12 +610,17 @@ function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUp
       {(name || currentUrl) && (
         <p className="text-[11px] text-muted-foreground">
           {name && <>Uploaded: <strong>{name}</strong> · </>}
-          {currentUrl && <a href={currentUrl} target="_blank" rel="noreferrer" className="text-gold underline-offset-2 hover:underline">Open file</a>}
+          {currentUrl && (
+            <button type="button" onClick={() => openInvoiceSourceDoc(currentUrl)} className="text-gold underline-offset-2 hover:underline">
+              Open file
+            </button>
+          )}
         </p>
       )}
     </div>
   );
 }
+
 
 const DELETE_REASONS = [
   { value: "duplicate", label: "Duplicate invoice" },
