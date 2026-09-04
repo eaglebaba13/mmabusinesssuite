@@ -175,19 +175,27 @@ function PayoutsPage() {
         });
       }
 
-      if (!toInsert.length) return { inserted: 0 };
-      const { error } = await supabase.from("roi_payouts").insert(toInsert);
+      if (!toInsert.length) return { inserted: 0, claims: null as Awaited<ReturnType<typeof generateClaimsForPayouts>> | null };
+      const { data: rows, error } = await supabase.from("roi_payouts").insert(toInsert).select("id");
       if (error) throw error;
-      return { inserted: toInsert.length };
+      // Each new payout gets its ROI Claim letter automatically.
+      const claims = await generateClaimsForPayouts((rows ?? []).map((r) => r.id));
+      return { inserted: toInsert.length, claims };
     },
     onSuccess: (r) => {
       if (!r || r.inserted === 0) {
         toast.info("No new payouts — all active franchisees with sales this month already have payouts.");
       } else {
         toast.success(`Generated ${r.inserted} payout${r.inserted > 1 ? "s" : ""} from this month's sales`);
+        if (r.claims) {
+          if (r.claims.created) toast.success(`${r.claims.created} ROI Claim letter${r.claims.created > 1 ? "s" : ""} generated`);
+          if (r.claims.failed.length)
+            toast.warning(`${r.claims.failed.length} ROI Claim(s) not generated: ${r.claims.failed[0].message}`);
+        }
       }
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["roi-claims"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
