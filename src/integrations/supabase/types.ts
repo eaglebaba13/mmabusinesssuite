@@ -1500,12 +1500,19 @@ export type Database = {
           aadhaar_number: string | null
           academy_pct: number
           academy_percent: number
+          address: string | null
           agreement_date: string | null
           agreement_expiry: string | null
           agreement_number: string | null
           agreement_url: string | null
           agreement_version: string | null
           area_sqft: number | null
+          auth_name: string | null
+          bank_account_holder: string | null
+          bank_account_number: string | null
+          bank_branch: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
           base_roi_pct: number
           cctv_count: number
           chairs: number
@@ -1521,6 +1528,7 @@ export type Database = {
           franchise_fee: number
           franchise_product_id: string | null
           franchise_type: string
+          franchisee_code: string | null
           full_name: string
           gst_number: string | null
           id: string
@@ -1562,12 +1570,19 @@ export type Database = {
           aadhaar_number?: string | null
           academy_pct?: number
           academy_percent?: number
+          address?: string | null
           agreement_date?: string | null
           agreement_expiry?: string | null
           agreement_number?: string | null
           agreement_url?: string | null
           agreement_version?: string | null
           area_sqft?: number | null
+          auth_name?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
           base_roi_pct?: number
           cctv_count?: number
           chairs?: number
@@ -1583,6 +1598,7 @@ export type Database = {
           franchise_fee?: number
           franchise_product_id?: string | null
           franchise_type?: string
+          franchisee_code?: string | null
           full_name: string
           gst_number?: string | null
           id?: string
@@ -1624,12 +1640,19 @@ export type Database = {
           aadhaar_number?: string | null
           academy_pct?: number
           academy_percent?: number
+          address?: string | null
           agreement_date?: string | null
           agreement_expiry?: string | null
           agreement_number?: string | null
           agreement_url?: string | null
           agreement_version?: string | null
           area_sqft?: number | null
+          auth_name?: string | null
+          bank_account_holder?: string | null
+          bank_account_number?: string | null
+          bank_branch?: string | null
+          bank_ifsc?: string | null
+          bank_name?: string | null
           base_roi_pct?: number
           cctv_count?: number
           chairs?: number
@@ -1645,6 +1668,7 @@ export type Database = {
           franchise_fee?: number
           franchise_product_id?: string | null
           franchise_type?: string
+          franchisee_code?: string | null
           full_name?: string
           gst_number?: string | null
           id?: string
@@ -3039,6 +3063,140 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      roi_claim_versions: {
+        Row: {
+          action: string
+          actor: string | null
+          claim_id: string
+          created_at: string
+          docx_path: string | null
+          id: string
+          pdf_path: string | null
+          reason: string | null
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          action?: string
+          actor?: string | null
+          claim_id: string
+          created_at?: string
+          docx_path?: string | null
+          id?: string
+          pdf_path?: string | null
+          reason?: string | null
+          snapshot?: Json
+          version: number
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          claim_id?: string
+          created_at?: string
+          docx_path?: string | null
+          id?: string
+          pdf_path?: string | null
+          reason?: string | null
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roi_claim_versions_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "roi_claims"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roi_claims: {
+        Row: {
+          activity_type: string
+          claim_period: string
+          claim_ref_no: number
+          created_at: string
+          description: string | null
+          docx_path: string | null
+          fix_roi_amount: number
+          franchisee_id: string
+          generated_by: string | null
+          id: string
+          net_payable: number
+          payout_id: string
+          pdf_path: string | null
+          shopify_amount: number
+          snapshot: Json
+          status: Database["public"]["Enums"]["roi_claim_status"]
+          submitted_on: string
+          tns_amount: number
+          total_claimed: number
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          activity_type?: string
+          claim_period: string
+          claim_ref_no?: number
+          created_at?: string
+          description?: string | null
+          docx_path?: string | null
+          fix_roi_amount?: number
+          franchisee_id: string
+          generated_by?: string | null
+          id?: string
+          net_payable?: number
+          payout_id: string
+          pdf_path?: string | null
+          shopify_amount?: number
+          snapshot?: Json
+          status?: Database["public"]["Enums"]["roi_claim_status"]
+          submitted_on?: string
+          tns_amount?: number
+          total_claimed?: number
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          activity_type?: string
+          claim_period?: string
+          claim_ref_no?: number
+          created_at?: string
+          description?: string | null
+          docx_path?: string | null
+          fix_roi_amount?: number
+          franchisee_id?: string
+          generated_by?: string | null
+          id?: string
+          net_payable?: number
+          payout_id?: string
+          pdf_path?: string | null
+          shopify_amount?: number
+          snapshot?: Json
+          status?: Database["public"]["Enums"]["roi_claim_status"]
+          submitted_on?: string
+          tns_amount?: number
+          total_claimed?: number
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roi_claims_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "roi_claims_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: true
+            referencedRelation: "roi_payouts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       roi_payouts: {
         Row: {
@@ -4618,6 +4776,13 @@ export type Database = {
         | "consulting"
         | "event"
         | "other"
+      roi_claim_status:
+        | "draft"
+        | "generated"
+        | "submitted"
+        | "approved"
+        | "rejected"
+        | "paid"
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       warehouse_type: "dark_store" | "central_warehouse" | "outlet"
@@ -4638,12 +4803,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4667,11 +4832,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4692,11 +4857,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4717,11 +4882,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4734,11 +4899,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -4915,6 +5080,14 @@ export const Constants = {
         "consulting",
         "event",
         "other",
+      ],
+      roi_claim_status: [
+        "draft",
+        "generated",
+        "submitted",
+        "approved",
+        "rejected",
+        "paid",
       ],
       ticket_priority: ["low", "medium", "high", "urgent"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
