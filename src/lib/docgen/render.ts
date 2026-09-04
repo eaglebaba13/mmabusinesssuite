@@ -425,7 +425,7 @@ export async function renderDocDocx(model: DocModel, opts?: { sealAllowed?: bool
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 children: [
-                  run(`${model.docNumber}  •  Page `, { size: 16, color: "888888" }),
+                  run(`${model.footerLabel ?? model.docNumber}  •  Page `, { size: 16, color: "888888" }),
                   new TextRun({ children: [PageNumber.CURRENT], font: "Arial", size: 16, color: "888888" }),
                 ],
               }),
