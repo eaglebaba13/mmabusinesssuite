@@ -139,6 +139,7 @@ export function RoiClaimDialog({
   // allowed to render inside an iframe, which showed as a blank/broken frame.
   const [objectUrl, setObjectUrl] = React.useState<string | null>(null);
   const [previewError, setPreviewError] = React.useState<string | null>(null);
+  const [retryTick, setRetryTick] = React.useState(0);
   React.useEffect(() => {
     if (!open || !claim.pdf_path) return;
     let url: string | null = null;
@@ -150,13 +151,17 @@ export function RoiClaimDialog({
         if (cancelled) URL.revokeObjectURL(u);
         else setObjectUrl(u);
       })
-      .catch((e: unknown) => setPreviewError(e instanceof Error ? e.message : "Could not load document"));
+      .catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : "Could not load document";
+        setPreviewError(message);
+      });
     return () => {
       cancelled = true;
       setObjectUrl(null);
       if (url) URL.revokeObjectURL(url);
     };
-  }, [open, claim.pdf_path, claim.version]);
+  }, [open, claim.pdf_path, claim.version, retryTick]);
+
 
   const setStatus = useMutation({
     mutationFn: (s: string) => updateClaimStatus(claim.id, s),
