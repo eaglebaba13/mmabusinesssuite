@@ -746,7 +746,7 @@ async function receipt(paymentId: string, docNumber: string, extras: Extras) {
     meta: [
       ["Receipt No.:", docNumber],
       ["Receipt Date:", formatDMY(new Date())],
-      ["Payment Date:", formatDMY(p.payment_date)],
+      ["Payment Date:", formatDMY(p.payment_date as string | null)],
     ],
     blocks: [
       {
