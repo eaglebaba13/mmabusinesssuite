@@ -698,7 +698,13 @@ function FranchiseeCard({ franchisee: f, isInactive }: { franchisee: any; isInac
         </div>
       </div>
       <h3 className="mt-4 font-display text-xl">{f.full_name}</h3>
-      <p className="text-xs text-muted-foreground">{f.email ?? f.phone ?? "—"}</p>
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        <span className="rounded-md border border-gold/30 bg-gold/10 px-2 py-0.5 font-mono text-[11px] tracking-wider text-gold">
+          {f.franchisee_code || "Code pending"}
+        </span>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">{f.email ?? f.phone ?? "—"}</p>
+
       <div className="mt-4 flex items-end justify-between">
         <div>
           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Investment</div>

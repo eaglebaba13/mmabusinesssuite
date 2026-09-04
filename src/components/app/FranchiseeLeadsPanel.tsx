@@ -36,12 +36,12 @@ export function FranchiseeLeadsPanel({ territoryId, franchiseeName = "franchisee
     queryKey: ["fr-last-sync", territoryId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("social_integrations")
+        .from("social_integrations_meta" as any)
         .select("last_sync_at")
         .order("last_sync_at", { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle();
-      return data?.last_sync_at ?? null;
+      return ((data as any)?.last_sync_at as string | null) ?? null;
     },
   });
 
