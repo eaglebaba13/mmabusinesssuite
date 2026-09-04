@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Textarea } from "@/components/ui/textarea";
 import { issueInvoice, cancelInvoice, reviseInvoice, createInvoice, updateInvoice, deleteInvoice } from "@/lib/rpc/invoices.functions";
 import { formatINR } from "@/lib/format";
+import { openInvoiceSourceDoc } from "@/lib/invoice-source-doc";
 import { toast } from "sonner";
 import { Plus, FileText, Ban, RefreshCw, CheckCircle2, Pencil, X, Trash2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
