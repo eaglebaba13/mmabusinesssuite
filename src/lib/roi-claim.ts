@@ -474,6 +474,7 @@ export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
 /* --------------------------------- DOCX --------------------------------- */
 
 export async function generateClaimDocx(data: ClaimData): Promise<Blob> {
+  assertClaimComplete(data);
   const {
     Document,
     Packer,
@@ -500,13 +501,17 @@ export async function generateClaimDocx(data: ClaimData): Promise<Blob> {
       margins,
       width: { size: width, type: WidthType.DXA },
       shading: opts?.fill ? { fill: opts.fill, type: ShadingType.CLEAR } : undefined,
-      children: [
-        new Paragraph({
-          alignment: opts?.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
-          children: [new TextRun({ text, bold: opts?.bold, font: "Arial", size: 20 })],
-        }),
-      ],
+      children: String(text)
+        .split("\n")
+        .map(
+          (line) =>
+            new Paragraph({
+              alignment: opts?.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
+              children: [new TextRun({ text: line, bold: opts?.bold, font: "Arial", size: 20 })],
+            }),
+        ),
     });
+
 
   const kv = (label: string, value: string) =>
     new Paragraph({
