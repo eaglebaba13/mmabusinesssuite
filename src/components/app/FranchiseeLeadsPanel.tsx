@@ -41,7 +41,7 @@ export function FranchiseeLeadsPanel({ territoryId, franchiseeName = "franchisee
         .order("last_sync_at", { ascending: false, nullsFirst: false })
         .limit(1)
         .maybeSingle();
-      return data?.last_sync_at ?? null;
+      return ((data as any)?.last_sync_at as string | null) ?? null;
     },
   });
 
