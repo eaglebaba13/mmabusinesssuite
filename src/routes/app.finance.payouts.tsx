@@ -327,8 +327,9 @@ function PayoutsPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <span className="font-mono text-sm font-medium">{formatINR(p.total_amount)}</span>
+                <RoiClaimActions payoutId={p.id} />
                 <Badge variant="outline" className={p.status === "paid" ? "border-emerald-500/40 text-emerald-500" : p.status === "overdue" ? "border-red-500/40 text-red-500" : "border-amber-500/40 text-amber-500"}>
                   {p.status}
                 </Badge>
