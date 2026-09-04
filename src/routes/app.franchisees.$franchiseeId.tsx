@@ -19,6 +19,7 @@ import { useAuth } from "@/lib/auth-context";
 import { FranchiseeDashboard } from "@/components/app/FranchiseeDashboard";
 import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
+import { RoiClaimsPanel } from "@/components/app/RoiClaimsPanel";
 import { MonthlyRoiPanel } from "@/components/app/MonthlyRoiPanel";
 import { AgreementAuditPanel } from "@/components/app/AgreementAuditPanel";
 import { DocumentVault } from "@/components/app/franchise/DocumentVault";
@@ -150,6 +151,7 @@ function FranchiseeDetailPage() {
           <TabsTrigger value="product">Product</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="ledger">ROI Ledger</TabsTrigger>
+          <TabsTrigger value="claims">ROI Claims</TabsTrigger>
           <TabsTrigger value="agreement">Agreement</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
@@ -168,6 +170,10 @@ function FranchiseeDetailPage() {
 
         <TabsContent value="roi" className="space-y-6">
           <MonthlyRoiPanel franchiseeId={f.id} />
+        </TabsContent>
+
+        <TabsContent value="claims" className="space-y-6">
+          <RoiClaimsPanel franchiseeId={f.id} />
         </TabsContent>
 
         <TabsContent value="product" className="space-y-6">
