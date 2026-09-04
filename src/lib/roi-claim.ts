@@ -301,9 +301,17 @@ export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
   const right = pageW - 56;
   const contentW = right - left;
 
+  const stampedPages = new Set<number>();
+  const stampLetterhead = () => {
+    const page = (doc as unknown as { internal: { getCurrentPageInfo: () => { pageNumber: number } } }).internal.getCurrentPageInfo()
+      .pageNumber;
+    if (stampedPages.has(page)) return;
+    stampedPages.add(page);
+    drawPortraitLetterheadSync(doc, full);
+  };
   const newPage = (first = false) => {
     if (!first) doc.addPage();
-    drawPortraitLetterheadSync(doc, full);
+    stampLetterhead();
   };
   newPage(true);
 
@@ -349,7 +357,7 @@ export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
     headStyles: { fillColor: [201, 168, 76] as [number, number, number], textColor: [20, 20, 20] as [number, number, number], fontStyle: "bold" as const },
     margin: { left, right: 56, top: PORTRAIT_CONTENT_TOP, bottom: doc.internal.pageSize.getHeight() - PORTRAIT_CONTENT_BOTTOM + 10 },
     rowPageBreak: "avoid" as const,
-    didDrawPage: () => drawPortraitLetterheadSync(doc, full),
+    willDrawPage: stampLetterhead,
   };
   const afterTable = () => {
     y = ((doc as unknown as { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY ?? y) + 22;
