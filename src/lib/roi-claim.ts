@@ -81,6 +81,8 @@ export type ClaimData = {
   territory: string;
   activityType: string;
   description: string;
+  activities: ClaimActivity[];
+
   fixRoi: number;
   shopifyClaim: number;
   tnsClaim: number;
@@ -96,6 +98,38 @@ export type ClaimData = {
 
 const n = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const t = (v?: string | null) => (v && String(v).trim() ? String(v).trim() : NA);
+const clean = (v?: string | null) => (v && String(v).trim() ? String(v).trim() : null);
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan",
+  "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry", "Chandigarh",
+];
+
+/**
+ * Best-effort derivation of city / state from a free-text franchisee address.
+ * Only extracts text that is actually present in the record — nothing is invented.
+ */
+export function deriveFromAddress(address?: string | null): { city: string | null; state: string | null } {
+  const a = clean(address);
+  if (!a) return { city: null, state: null };
+  const state = INDIAN_STATES.find((s) => new RegExp(`\\b${s}\\b`, "i").test(a)) ?? null;
+  let city: string | null = null;
+  const parts = a
+    .split(/[,\n]/)
+    .map((s) => s.replace(/\b\d{6}\b/g, "").replace(/[–-]\s*$/, "").trim())
+    .filter(Boolean);
+  if (state) {
+    const idx = parts.findIndex((s) => new RegExp(`\\b${state}\\b`, "i").test(s));
+    if (idx > 0) city = parts[idx - 1] || null;
+  }
+  if (!city && parts.length >= 2) city = parts[parts.length - 2] || null;
+  return { city, state };
+}
+
+export type ClaimActivity = { activityType: string; description: string };
 
 export function formatClaimPeriod(monthIso: string): string {
   return new Date(monthIso).toLocaleString("en-IN", { month: "long", year: "numeric" });
@@ -118,12 +152,36 @@ export function buildClaimData(opts: {
   submittedOn?: string | Date;
   activityType?: string | null;
   description?: string | null;
+  activities?: ClaimActivity[] | null;
+  /** Resolved from related records (territory / warehouse / state franchise) when the franchisee row is blank. */
+  locationFallback?: string | null;
+  territoryFallback?: string | null;
 }): ClaimData {
   const { franchisee: f, payout: p } = opts;
   const fixRoi = n(p.base_roi ?? p.mg_amount);
   const shopifyClaim = n(p.academy_incentive) + n(p.dark_store_incentive);
   const tnsClaim = n(p.emporium_incentive);
   const approved = n(p.total_amount ?? p.final_payable);
+
+  const derived = deriveFromAddress(f.address);
+  const cityLike =
+    clean(f.territory_city) || clean(f.territory_district) || clean(opts.locationFallback) || derived.city;
+  const stateLike = clean(f.territory_state) || derived.state;
+  const location = [cityLike, stateLike].filter(Boolean).join(", ") || NA;
+  const territory =
+    clean(f.territory_area) ||
+    clean(opts.territoryFallback) ||
+    cityLike ||
+    stateLike ||
+    NA;
+
+  const activityType = opts.activityType?.trim() || CLAIM_ACTIVITY_TYPES[0];
+  const description = opts.description?.trim() || DEFAULT_CLAIM_DESCRIPTION;
+  const activities =
+    opts.activities?.filter((a) => a.activityType?.trim() || a.description?.trim()).map((a) => ({
+      activityType: a.activityType?.trim() || activityType,
+      description: a.description?.trim() || description,
+    })) ?? [];
 
   return {
     companyName: CLAIM_COMPANY_NAME,
@@ -137,10 +195,11 @@ export function buildClaimData(opts: {
     claimRefNo: String(opts.claimRefNo),
     address: t(f.address),
     email: t(f.email),
-    location: t(f.territory_city || f.territory_district || f.territory_state),
-    territory: t(f.territory_area || f.territory_city || f.territory_district || f.territory_state),
-    activityType: opts.activityType?.trim() || CLAIM_ACTIVITY_TYPES[0],
-    description: opts.description?.trim() || DEFAULT_CLAIM_DESCRIPTION,
+    location,
+    territory,
+    activityType,
+    description,
+    activities: activities.length ? activities : [{ activityType, description }],
     fixRoi,
     shopifyClaim,
     tnsClaim,
@@ -157,6 +216,53 @@ export function buildClaimData(opts: {
   };
 }
 
+/**
+ * Content-completeness gate: every mandatory field of the master template must
+ * carry a real value (or the explicit "Not Available" marker) before we render
+ * an official claim. Throws listing the missing fields.
+ */
+export function assertClaimComplete(data: ClaimData): void {
+  const bad = (v: unknown) =>
+    v === null ||
+    v === undefined ||
+    (typeof v === "number" && !Number.isFinite(v)) ||
+    (typeof v === "string" && (!v.trim() || /\{\{|undefined|null|NaN/.test(v)));
+
+  const required: Record<string, unknown> = {
+    "Company Name": data.companyName,
+    "City Franchisee Name": data.cityFranchiseeName,
+    "Franchisee Auth. Name": data.authName,
+    "Franchisee Code": data.franchiseeCode,
+    "Claim Period": data.claimPeriod,
+    "Date of Submission": data.submissionDate,
+    "Claim Reference No.": data.claimRefNo,
+    "Franchisee Address": data.address,
+    "Email ID": data.email,
+    Location: data.location,
+    Territory: data.territory,
+    "Activity Type": data.activities[0]?.activityType,
+    Description: data.activities[0]?.description,
+    "Total Claimed Amount": data.totalClaimed,
+    "Fix 3% ROI Claimed": data.fixRoi,
+    "Shopify Claim / Approved": data.shopifyClaim,
+    "TNS Turnover Claim": data.tnsClaim,
+    "NET PAYABLE AMOUNT": data.netPayable,
+    "Bank Name": data.bankName,
+    "Account Holder Name": data.accountHolder,
+    "Account Number": data.accountNumber,
+    "IFSC Code": data.ifsc,
+    Branch: data.branch,
+  };
+
+  const missing = Object.entries(required)
+    .filter(([, v]) => bad(v))
+    .map(([k]) => k);
+  if (missing.length) {
+    throw new Error(`ROI Claim is incomplete — missing field(s): ${missing.join(", ")}.`);
+  }
+}
+
+
 /** Returns a list of human-readable problems; empty list means safe to generate. */
 export function validateClaim(f: FranchiseeForClaim | null | undefined, p: PayoutForClaim | null | undefined): string[] {
   const errors: string[] = [];
@@ -166,8 +272,9 @@ export function validateClaim(f: FranchiseeForClaim | null | undefined, p: Payou
   if (!p.payout_month) errors.push("Claim period (payout month) is missing on the ROI payout.");
   if (n(p.total_amount ?? p.final_payable) <= 0)
     errors.push("Approved ROI amount is zero — nothing to claim for this period.");
-  if (!f.bank_name?.trim() || !f.bank_account_number?.trim() || !f.bank_ifsc?.trim())
-    errors.push("ROI Claim cannot be generated because verified bank details are missing for this franchisee.");
+  // Bank details are never a hard blocker: the document keeps all five bank
+  // fields visible and shows "Not Available" where the record is blank.
+
   return errors;
 }
 
@@ -183,8 +290,10 @@ export function claimStoragePrefix(franchiseeId: string, claimRefNo: number | st
 /* ---------------------------------- PDF ---------------------------------- */
 
 export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
+  assertClaimComplete(data);
   await preloadLetterhead();
   const { full } = await requirePreloaded();
+
 
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -269,7 +378,7 @@ export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
     ...tableOpts,
     startY: y,
     head: [["Sr. No.", "Activity Type / Description"]],
-    body: [["1.", `${data.activityType}\n${data.description}`]],
+    body: data.activities.map((a, i) => [`${i + 1}.`, `${a.activityType}\n${a.description}`]),
     columnStyles: { 0: { cellWidth: 55 } },
   });
   afterTable();
@@ -365,6 +474,7 @@ export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
 /* --------------------------------- DOCX --------------------------------- */
 
 export async function generateClaimDocx(data: ClaimData): Promise<Blob> {
+  assertClaimComplete(data);
   const {
     Document,
     Packer,
@@ -391,13 +501,17 @@ export async function generateClaimDocx(data: ClaimData): Promise<Blob> {
       margins,
       width: { size: width, type: WidthType.DXA },
       shading: opts?.fill ? { fill: opts.fill, type: ShadingType.CLEAR } : undefined,
-      children: [
-        new Paragraph({
-          alignment: opts?.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
-          children: [new TextRun({ text, bold: opts?.bold, font: "Arial", size: 20 })],
-        }),
-      ],
+      children: String(text)
+        .split("\n")
+        .map(
+          (line) =>
+            new Paragraph({
+              alignment: opts?.right ? AlignmentType.RIGHT : AlignmentType.LEFT,
+              children: [new TextRun({ text: line, bold: opts?.bold, font: "Arial", size: 20 })],
+            }),
+        ),
     });
+
 
   const kv = (label: string, value: string) =>
     new Paragraph({
@@ -482,9 +596,13 @@ export async function generateClaimDocx(data: ClaimData): Promise<Blob> {
               new TableRow({
                 children: [cell("Sr. No.", 1200, { bold: true, fill: "EFE6C9" }), cell("Activity Type / Description", 8160, { bold: true, fill: "EFE6C9" })],
               }),
-              new TableRow({
-                children: [cell("1.", 1200), cell(`${data.activityType}\n${data.description}`, 8160)],
-              }),
+              ...data.activities.map(
+                (a, i) =>
+                  new TableRow({
+                    children: [cell(`${i + 1}.`, 1200), cell(`${a.activityType}\n${a.description}`, 8160)],
+                  }),
+              ),
+
             ],
           }),
           new Paragraph({

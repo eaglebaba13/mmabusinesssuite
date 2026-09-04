@@ -21,7 +21,45 @@ type ClaimStatus = Database["public"]["Enums"]["roi_claim_status"];
 const BUCKET = "roi-claims";
 
 const FRANCHISEE_FIELDS =
-  "id, full_name, auth_name, franchisee_code, address, email, phone, territory_city, territory_district, territory_state, territory_area, bank_name, bank_account_holder, bank_account_number, bank_ifsc, bank_branch, investment_amount, mg_percent";
+  "id, full_name, auth_name, franchisee_code, address, email, phone, territory_city, territory_district, territory_state, territory_area, territory_id, warehouse_id, bank_name, bank_account_holder, bank_account_number, bank_ifsc, bank_branch, investment_amount, mg_percent";
+
+type FranchiseeRecord = FranchiseeForClaim & { territory_id?: string | null; warehouse_id?: string | null };
+
+/**
+ * Resolves Location / Territory from related records when the franchisee row has
+ * no territory columns: territory mapping → own warehouse → state franchise.
+ * Never invents values; returns nulls when nothing exists.
+ */
+async function resolveTerritoryContext(f: FranchiseeRecord) {
+  let location: string | null = null;
+  let territory: string | null = null;
+
+  if (f.territory_id) {
+    const { data } = await supabase
+      .from("territories")
+      .select("name, region, state")
+      .eq("id", f.territory_id)
+      .maybeSingle();
+    if (data) {
+      territory = data.name || data.region || null;
+      location = [data.region || data.name, data.state].filter(Boolean).join(", ") || null;
+    }
+  }
+
+  if (!location) {
+    const wq = supabase.from("warehouses").select("name, city, state").limit(1);
+    const { data } = f.warehouse_id
+      ? await wq.eq("id", f.warehouse_id).maybeSingle()
+      : await wq.eq("franchisee_id", f.id).maybeSingle();
+    if (data && (data.city || data.state)) {
+      location = [data.city, data.state].filter(Boolean).join(", ") || null;
+      territory = territory || data.city || data.name || null;
+    }
+  }
+
+  return { location, territory };
+}
+
 
 export type RoiClaimRow = {
   id: string;
@@ -95,11 +133,13 @@ export async function generateClaimForPayout(opts: {
     .maybeSingle();
   if (fErr) throw fErr;
 
-  const f = franchisee as FranchiseeForClaim | null;
+  const f = franchisee as FranchiseeRecord | null;
   const p = payout as PayoutForClaim;
 
   const problems = validateClaim(f, p);
   if (problems.length) throw new Error(problems.join(" "));
+
+  const ctx = await resolveTerritoryContext(f!);
 
   const existing = await fetchClaimForPayout(opts.payoutId);
   if (existing && !opts.regenerate) {
@@ -110,6 +150,8 @@ export async function generateClaimForPayout(opts: {
       submittedOn: existing.submitted_on,
       activityType: existing.activity_type,
       description: existing.description,
+      locationFallback: ctx.location,
+      territoryFallback: ctx.territory,
     });
     return { claim: existing, data, skipped: true };
   }
@@ -139,7 +181,10 @@ export async function generateClaimForPayout(opts: {
     submittedOn: claim.submitted_on,
     activityType: opts.activityType ?? claim.activity_type,
     description: opts.description ?? claim.description,
+    locationFallback: ctx.location,
+    territoryFallback: ctx.territory,
   });
+
 
   const [pdf, docx] = await Promise.all([generateClaimPdf(data), generateClaimDocx(data)]);
   const base = claimFileBase(data);
