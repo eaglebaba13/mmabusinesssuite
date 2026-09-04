@@ -290,8 +290,10 @@ export function claimStoragePrefix(franchiseeId: string, claimRefNo: number | st
 /* ---------------------------------- PDF ---------------------------------- */
 
 export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
+  assertClaimComplete(data);
   await preloadLetterhead();
   const { full } = await requirePreloaded();
+
 
   const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
