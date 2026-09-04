@@ -132,11 +132,27 @@ export async function listSources(kind: SourceKind): Promise<SourceOption[]> {
         .order("payment_date", { ascending: false })
         .limit(300);
       if (error) throw error;
-      return (data ?? []).map((r) => ({
+      const ledger = (data ?? []).map((r) => ({
         id: r.id,
         label: `${r.counterparty_name ?? NA} — Rs. ${money(r.amount)}`,
         sub: `${formatDMY(r.payment_date)} • ${r.method}${r.reference ? ` • ${r.reference}` : ""}`,
       }));
+      // POS collections are stored against sales orders, so offer them too.
+      const { data: pos, error: posErr } = await supabase
+        .from("sale_payments")
+        .select("id, amount, method, reference, paid_at, sales_orders(invoice_number, customer_name)")
+        .order("paid_at", { ascending: false })
+        .limit(300);
+      if (posErr) throw posErr;
+      const posOptions = (pos ?? []).map((r) => {
+        const o = r.sales_orders as { invoice_number?: string; customer_name?: string } | null;
+        return {
+          id: `sp:${r.id}`,
+          label: `${o?.customer_name?.trim() || "Walk-in Customer"} — Rs. ${money(r.amount)}`,
+          sub: `${formatDMY(r.paid_at)} • ${r.method} • POS ${o?.invoice_number ?? ""}`.trim(),
+        };
+      });
+      return [...ledger, ...posOptions];
     }
     case "purchase_order": {
       const { data, error } = await supabase
@@ -651,10 +667,52 @@ async function invoice(invoiceId: string, docNumber: string) {
 
 /* 4. PAYMENT RECEIPT ------------------------------------------------------ */
 
+type ReceiptSource = {
+  amount: unknown;
+  payment_date: unknown;
+  method: unknown;
+  reference: unknown;
+  status: unknown;
+  counterparty_name: unknown;
+  counterparty_entity_type?: string | null;
+  counterparty_entity_id?: string | null;
+  invoice_id?: string | null;
+};
+
 async function receipt(paymentId: string, docNumber: string, extras: Extras) {
-  const { data: p, error } = await supabase.from("payments").select("*").eq("id", paymentId).maybeSingle();
-  if (error) throw error;
-  if (!p) throw new Error("Required information missing: Payment record");
+  const isPos = paymentId.startsWith("sp:");
+  let p: ReceiptSource;
+  let posInvoiceNumber: string | null = null;
+  let posFranchiseeId: string | null = null;
+
+  if (isPos) {
+    const { data, error } = await supabase
+      .from("sale_payments")
+      .select("id, amount, method, reference, paid_at, sales_orders(invoice_number, customer_name, franchisee_id, payment_status)")
+      .eq("id", paymentId.slice(3))
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("Required information missing: Payment record");
+    const o = data.sales_orders as
+      | { invoice_number?: string; customer_name?: string; franchisee_id?: string; payment_status?: string }
+      | null;
+    posInvoiceNumber = o?.invoice_number ?? null;
+    posFranchiseeId = o?.franchisee_id ?? null;
+    p = {
+      amount: data.amount,
+      payment_date: data.paid_at,
+      method: data.method,
+      reference: data.reference,
+      status: o?.payment_status ?? "paid",
+      counterparty_name: o?.customer_name?.trim() || "Walk-in Customer",
+      invoice_id: null,
+    };
+  } else {
+    const { data, error } = await supabase.from("payments").select("*").eq("id", paymentId).maybeSingle();
+    if (error) throw error;
+    if (!data) throw new Error("Required information missing: Payment record");
+    p = data as unknown as ReceiptSource;
+  }
 
   let against = extras.paymentAgainst?.trim() || NA;
   let franchiseeCode = NA;
@@ -670,6 +728,8 @@ async function receipt(paymentId: string, docNumber: string, extras: Extras) {
       franchiseeId = inv.franchisee_id ?? null;
     }
   }
+  if (posInvoiceNumber) against = extras.paymentAgainst?.trim() || `POS Invoice ${posInvoiceNumber}`;
+  if (!franchiseeId) franchiseeId = posFranchiseeId;
   if (!franchiseeId && p.counterparty_entity_type === "city_franchise") franchiseeId = p.counterparty_entity_id ?? null;
   if (franchiseeId) {
     const { data } = await supabase.from("franchisees").select("franchisee_code").eq("id", franchiseeId).maybeSingle();
@@ -708,7 +768,11 @@ async function receipt(paymentId: string, docNumber: string, extras: Extras) {
       { kind: "signature", caption: "Authorized Signatory", name: COMPANY_NAME, seal: true, line: false },
     ],
   };
-  return { model, links: { payment_id: paymentId, franchisee_id: franchiseeId }, sourceKey: `payment:${paymentId}` };
+  return {
+    model,
+    links: { payment_id: isPos ? null : paymentId, franchisee_id: franchiseeId },
+    sourceKey: `payment:${paymentId}`,
+  };
 }
 
 /* 6. PURCHASE ORDER ------------------------------------------------------- */
