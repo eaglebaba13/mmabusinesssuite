@@ -270,8 +270,9 @@ export function validateClaim(f: FranchiseeForClaim | null | undefined, p: Payou
   if (!p.payout_month) errors.push("Claim period (payout month) is missing on the ROI payout.");
   if (n(p.total_amount ?? p.final_payable) <= 0)
     errors.push("Approved ROI amount is zero — nothing to claim for this period.");
-  if (!f.bank_name?.trim() || !f.bank_account_number?.trim() || !f.bank_ifsc?.trim())
-    errors.push("ROI Claim cannot be generated because verified bank details are missing for this franchisee.");
+  // Bank details are never a hard blocker: the document keeps all five bank
+  // fields visible and shows "Not Available" where the record is blank.
+
   return errors;
 }
 
