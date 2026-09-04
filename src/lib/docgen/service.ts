@@ -119,7 +119,7 @@ export async function generateDocument(opts: {
     version,
     status: "generated",
     source_key: sourceKey,
-    payload: model as unknown as Record<string, unknown>,
+    payload: { ...(model as unknown as Record<string, unknown>), extras: opts.extras ?? {} },
     pdf_path: pdfPath,
     docx_path: docxPath,
     franchisee_id: links.franchisee_id ?? null,
