@@ -222,16 +222,27 @@ export function RoiClaimDialog({
         <div className="h-[45vh] overflow-hidden rounded-lg border border-border/60 bg-muted/20">
           {objectUrl ? (
             <iframe title="ROI Claim preview" src={objectUrl} className="h-full w-full" />
+          ) : previewError ? (
+            <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+              <div className="text-sm">
+                <p className="font-medium text-foreground">Preview failed to load</p>
+                <p className="mt-1 text-muted-foreground">{previewError}</p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  The document could not be fetched. Retrying will request it again without affecting Print.
+                </p>
+              </div>
+              <Button size="sm" variant="outline" onClick={() => setRetryTick((t) => t + 1)}>
+                <RefreshCw className="mr-1 h-3 w-3" />
+                Retry preview
+              </Button>
+            </div>
           ) : (
             <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
-              {previewError
-                ? previewError
-                : claim.pdf_path
-                  ? "Loading document…"
-                  : "No stored document — regenerate the claim."}
+              {claim.pdf_path ? "Loading document…" : "No stored document — regenerate the claim."}
             </div>
           )}
         </div>
+
 
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => download("pdf")}>
