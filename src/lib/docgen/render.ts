@@ -216,13 +216,14 @@ export async function renderDocPdf(model: DocModel, opts?: { sealAllowed?: boole
   model.blocks.forEach(drawBlock);
 
   const total = doc.getNumberOfPages();
+  const footerText = model.footerLabel ?? model.docNumber;
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(120, 120, 120);
     doc.text(`GSTIN - ${COMPANY_GSTIN}`, left, CONTENT_BOTTOM + 14);
-    doc.text(`${model.docNumber}  •  Page ${i} of ${total}`, right, CONTENT_BOTTOM + 14, { align: "right" });
+    doc.text(`${footerText}  •  Page ${i} of ${total}`, right, CONTENT_BOTTOM + 14, { align: "right" });
   }
 
   return doc.output("blob");
@@ -424,7 +425,7 @@ export async function renderDocDocx(model: DocModel, opts?: { sealAllowed?: bool
               new Paragraph({
                 alignment: AlignmentType.RIGHT,
                 children: [
-                  run(`${model.docNumber}  •  Page `, { size: 16, color: "888888" }),
+                  run(`${model.footerLabel ?? model.docNumber}  •  Page `, { size: 16, color: "888888" }),
                   new TextRun({ children: [PageNumber.CURRENT], font: "Arial", size: 16, color: "888888" }),
                 ],
               }),
