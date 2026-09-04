@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatINR } from "@/lib/format";
+import { openInvoiceSourceDoc } from "@/lib/invoice-source-doc";
 import { ArrowLeft, Printer } from "lucide-react";
 
 export const Route = createFileRoute("/app/billing/invoices/$invoiceId")({
