@@ -66,6 +66,19 @@ async function resolveLocation(f: Franchisee): Promise<{ location: string; terri
       area = area || data.city || data.name;
     }
   }
+  if (!city && !state) {
+    // Last resort: derive the city/state from the registered address, e.g.
+    // "HN 29, Colony, Ujjain, Madhya Pradesh 456010" -> "Ujjain, Madhya Pradesh".
+    const parts = (s("address") ?? "")
+      .split(",")
+      .map((x) => x.replace(/\b\d{6}\b/g, "").trim())
+      .filter(Boolean);
+    if (parts.length >= 2) {
+      city = parts[parts.length - 2];
+      state = parts[parts.length - 1];
+      area = area || city;
+    }
+  }
   const location = [city, state].filter(Boolean).join(", ") || NA;
   return { location, territory: area || city || state || NA };
 }
@@ -253,13 +266,20 @@ async function roiClaim(payoutId: string, docNumber: string, extras: Extras) {
   const f = await getFranchisee(payout.franchisee_id);
   const { location, territory } = await resolveLocation(f);
 
-  const fixRoi = num(payout.base_roi ?? payout.mg_amount);
-  const tns = num(payout.tns_amount ?? payout.emporium_incentive);
-  const academy = num(payout.academy_amount ?? payout.academy_incentive);
-  const mall = num(payout.mall_amount ?? payout.dark_store_incentive);
+  // *_amount columns hold the TURNOVER for each revenue head; the claimable
+  // component is that turnover x the agreed percentage from the agreement.
+  const tnsTurnover = num(payout.tns_amount);
+  const academyTurnover = num(payout.academy_amount);
+  const mallTurnover = num(payout.mall_amount);
+  const share = (turnover: number, percent: unknown) => (turnover * num(percent)) / 100;
+  const tns = share(tnsTurnover, f.tns_percent);
+  const academy = share(academyTurnover, f.academy_percent);
+  const mall = share(mallTurnover, f.mall_percent);
+  const variableRoi = num(payout.variable_roi) || tns + academy + mall;
+  const mg = num(payout.mg_amount ?? payout.base_roi);
   const royaltyPct = num(f.royalty_percent);
   const royalty = 0; // no approved royalty component exists on the payout record
-  const netPayable = num(payout.total_amount ?? payout.final_payable);
+  const netPayable = num(payout.total_amount ?? payout.final_payable) || Math.max(variableRoi, mg);
 
   requireFields({
     "City Franchisee Name": f.full_name,
@@ -309,12 +329,13 @@ async function roiClaim(payoutId: string, docNumber: string, extras: Extras) {
       rightAlignFrom: 1,
       boldLastRow: true,
       rows: [
-        [`Fix ${pct(f.mg_percent)} ROI Claimed`, money(fixRoi)],
-        [`TNS Turnover Claim (${pct(f.tns_percent)})`, money(tns)],
-        [`Academy (${pct(f.academy_percent)})`, money(academy)],
-        [`Mall of Salon / Online (${pct(f.mall_percent)})`, money(mall)],
+        [`TNS Turnover Claim (${pct(f.tns_percent)} of Rs. ${money(tnsTurnover)})`, money(tns)],
+        [`Academy Sales (${pct(f.academy_percent)} of Rs. ${money(academyTurnover)})`, money(academy)],
+        [`Mall of Salon / Online (${pct(f.mall_percent)} of Rs. ${money(mallTurnover)})`, money(mall)],
         [`Royalty (${pct(f.royalty_percent)})`, money(royalty)],
-        ["NET PAYABLE AMOUNT (Rs.)", money(netPayable)],
+        ["Total Variable ROI (Rs.)", money(variableRoi)],
+        [`Minimum Guarantee (${pct(f.mg_percent)} of investment)`, money(mg)],
+        [`NET PAYABLE AMOUNT (Rs.) — ${txt(payout.payable_reason)}`, money(netPayable)],
       ],
     },
     { kind: "paragraph", text: `Amount in words: ${amountInWords(netPayable)}` },
