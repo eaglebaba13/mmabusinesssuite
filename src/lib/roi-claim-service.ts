@@ -4,9 +4,6 @@
 // partners read their own folder only).
 import { supabase } from "@/integrations/supabase/client";
 import {
-import type { Database, Json } from "@/integrations/supabase/types";
-
-type ClaimStatus = Database["public"]["Enums"]["roi_claim_status"];
   buildClaimData,
   claimFileBase,
   claimStoragePrefix,
@@ -17,6 +14,9 @@ type ClaimStatus = Database["public"]["Enums"]["roi_claim_status"];
   type FranchiseeForClaim,
   type PayoutForClaim,
 } from "./roi-claim";
+import type { Database, Json } from "@/integrations/supabase/types";
+
+type ClaimStatus = Database["public"]["Enums"]["roi_claim_status"];
 
 const BUCKET = "roi-claims";
 
