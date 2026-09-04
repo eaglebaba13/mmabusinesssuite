@@ -591,9 +591,13 @@ export async function generateClaimDocx(data: ClaimData): Promise<Blob> {
               new TableRow({
                 children: [cell("Sr. No.", 1200, { bold: true, fill: "EFE6C9" }), cell("Activity Type / Description", 8160, { bold: true, fill: "EFE6C9" })],
               }),
-              new TableRow({
-                children: [cell("1.", 1200), cell(`${data.activityType}\n${data.description}`, 8160)],
-              }),
+              ...data.activities.map(
+                (a, i) =>
+                  new TableRow({
+                    children: [cell(`${i + 1}.`, 1200), cell(`${a.activityType}\n${a.description}`, 8160)],
+                  }),
+              ),
+
             ],
           }),
           new Paragraph({
