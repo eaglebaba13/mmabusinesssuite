@@ -4,6 +4,9 @@
 // partners read their own folder only).
 import { supabase } from "@/integrations/supabase/client";
 import {
+import type { Database, Json } from "@/integrations/supabase/types";
+
+type ClaimStatus = Database["public"]["Enums"]["roi_claim_status"];
   buildClaimData,
   claimFileBase,
   claimStoragePrefix,
@@ -171,8 +174,8 @@ export async function generateClaimForPayout(opts: {
       pdf_path: pdfPath,
       docx_path: docxPath,
       version: nextVersion,
-      status: claim.status === "draft" ? "generated" : claim.status,
-      snapshot: data as unknown as Record<string, unknown>,
+      status: (claim.status === "draft" ? "generated" : claim.status) as ClaimStatus,
+      snapshot: data as unknown as Json,
       generated_by: user?.id ?? null,
     })
     .eq("id", claim.id)
@@ -180,16 +183,16 @@ export async function generateClaimForPayout(opts: {
     .single();
   if (uErr) throw uErr;
 
-  await supabase.from("roi_claim_versions").insert({
+  await supabase.from("roi_claim_versions").insert([{
     claim_id: claim.id,
     version: nextVersion,
     action: existing && opts.regenerate ? "regenerated" : "generated",
     reason: opts.reason ?? null,
-    snapshot: data as unknown as Record<string, unknown>,
+    snapshot: data as unknown as Json,
     pdf_path: pdfPath,
     docx_path: docxPath,
     actor: user?.id ?? null,
-  });
+  }]);
 
   return { claim: updated as RoiClaimRow, data };
 }
@@ -229,6 +232,6 @@ export async function downloadClaimFile(path: string, filename: string) {
 }
 
 export async function updateClaimStatus(claimId: string, status: string) {
-  const { error } = await supabase.from("roi_claims").update({ status }).eq("id", claimId);
+  const { error } = await supabase.from("roi_claims").update({ status: status as ClaimStatus }).eq("id", claimId);
   if (error) throw error;
 }
