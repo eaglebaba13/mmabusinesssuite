@@ -376,7 +376,7 @@ export async function generateClaimPdf(data: ClaimData): Promise<Blob> {
     ...tableOpts,
     startY: y,
     head: [["Sr. No.", "Activity Type / Description"]],
-    body: [["1.", `${data.activityType}\n${data.description}`]],
+    body: data.activities.map((a, i) => [`${i + 1}.`, `${a.activityType}\n${a.description}`]),
     columnStyles: { 0: { cellWidth: 55 } },
   });
   afterTable();
