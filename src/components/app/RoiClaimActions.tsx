@@ -12,7 +12,7 @@ import {
   downloadClaimFile,
   fetchClaimForPayout,
   generateClaimForPayout,
-  signedClaimUrl,
+  claimObjectUrl,
   updateClaimStatus,
   type RoiClaimRow,
 } from "@/lib/roi-claim-service";
@@ -137,9 +137,9 @@ export function RoiClaimDialog({
 
   // Embed the PDF from a blob object URL: signed storage URLs are not always
   // allowed to render inside an iframe, which showed as a blank/broken frame.
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  useEffect(() => {
+  const [objectUrl, setObjectUrl] = React.useState<string | null>(null);
+  const [previewError, setPreviewError] = React.useState<string | null>(null);
+  React.useEffect(() => {
     if (!open || !claim.pdf_path) return;
     let url: string | null = null;
     let cancelled = false;
@@ -215,11 +215,15 @@ export function RoiClaimDialog({
         </div>
 
         <div className="h-[45vh] overflow-hidden rounded-lg border border-border/60 bg-muted/20">
-          {previewQ.data ? (
-            <iframe title="ROI Claim preview" src={previewQ.data} className="h-full w-full" />
+          {objectUrl ? (
+            <iframe title="ROI Claim preview" src={objectUrl} className="h-full w-full" />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {previewQ.isLoading ? "Loading document…" : "No stored document — regenerate the claim."}
+            <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+              {previewError
+                ? previewError
+                : claim.pdf_path
+                  ? "Loading document…"
+                  : "No stored document — regenerate the claim."}
             </div>
           )}
         </div>
@@ -238,8 +242,8 @@ export function RoiClaimDialog({
           <Button
             size="sm"
             variant="outline"
-            disabled={!previewQ.data}
-            onClick={() => previewQ.data && window.open(previewQ.data, "_blank", "noopener")}
+            disabled={!objectUrl}
+            onClick={() => objectUrl && window.open(objectUrl, "_blank", "noopener")}
           >
             <Printer className="mr-1 h-3 w-3" />
             Print
