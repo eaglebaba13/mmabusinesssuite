@@ -16,6 +16,8 @@ import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { RoiClaimActions } from "@/components/app/RoiClaimActions";
+import { generateClaimForPayout, generateClaimsForPayouts } from "@/lib/roi-claim-service";
 
 export const Route = createFileRoute("/app/finance/payouts")({
   component: PayoutsPage,
