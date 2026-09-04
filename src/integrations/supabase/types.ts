@@ -426,6 +426,24 @@ export type Database = {
         }
         Relationships: []
       }
+      document_number_counters: {
+        Row: {
+          last_seq: number
+          prefix: string
+          year: number
+        }
+        Insert: {
+          last_seq?: number
+          prefix: string
+          year: number
+        }
+        Update: {
+          last_seq?: number
+          prefix?: string
+          year?: number
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string
@@ -2415,6 +2433,175 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      official_document_versions: {
+        Row: {
+          action: string
+          actor: string | null
+          created_at: string
+          document_id: string
+          docx_path: string | null
+          id: string
+          payload: Json | null
+          pdf_path: string | null
+          reason: string | null
+          version: number
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          created_at?: string
+          document_id: string
+          docx_path?: string | null
+          id?: string
+          payload?: Json | null
+          pdf_path?: string | null
+          reason?: string | null
+          version: number
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          created_at?: string
+          document_id?: string
+          docx_path?: string | null
+          id?: string
+          payload?: Json | null
+          pdf_path?: string | null
+          reason?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "official_document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "official_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      official_documents: {
+        Row: {
+          agreement_id: string | null
+          created_at: string
+          created_by: string | null
+          doc_number: string
+          doc_type: string
+          docx_path: string | null
+          employee_id: string | null
+          franchisee_id: string | null
+          id: string
+          invoice_id: string | null
+          payload: Json
+          payment_id: string | null
+          payout_id: string | null
+          pdf_path: string | null
+          purchase_order_id: string | null
+          source_key: string | null
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          agreement_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_number: string
+          doc_type: string
+          docx_path?: string | null
+          employee_id?: string | null
+          franchisee_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          payload?: Json
+          payment_id?: string | null
+          payout_id?: string | null
+          pdf_path?: string | null
+          purchase_order_id?: string | null
+          source_key?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          agreement_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_number?: string
+          doc_type?: string
+          docx_path?: string | null
+          employee_id?: string | null
+          franchisee_id?: string | null
+          id?: string
+          invoice_id?: string | null
+          payload?: Json
+          payment_id?: string | null
+          payout_id?: string | null
+          pdf_path?: string | null
+          purchase_order_id?: string | null
+          source_key?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "official_documents_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "franchise_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "official_documents_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "official_documents_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "official_documents_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "official_documents_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "official_documents_payout_id_fkey"
+            columns: ["payout_id"]
+            isOneToOne: false
+            referencedRelation: "roi_payouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "official_documents_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       org_roi_settings: {
         Row: {
@@ -4587,6 +4774,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      next_document_number: { Args: { _prefix: string }; Returns: string }
       recalc_invoice_payment_state: {
         Args: { _invoice_id: string }
         Returns: undefined
