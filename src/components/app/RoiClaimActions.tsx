@@ -293,7 +293,11 @@ function PdfCanvasPreview({ data }: { data: ArrayBuffer }) {
     const render = async () => {
       try {
         const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-        const loadingTask = pdfjs.getDocument({ data: data.slice(0), disableWorker: true });
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+          "pdfjs-dist/legacy/build/pdf.worker.mjs",
+          import.meta.url,
+        ).toString();
+        const loadingTask = pdfjs.getDocument({ data: data.slice(0) });
         task = loadingTask;
         const pdf = await loadingTask.promise;
         if (cancelled) return;
