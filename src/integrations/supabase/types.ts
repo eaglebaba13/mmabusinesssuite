@@ -4716,7 +4716,53 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      social_integrations_meta: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          display_name: string | null
+          franchisee_id: string | null
+          id: string | null
+          last_sync_at: string | null
+          last_sync_status: string | null
+          source: string | null
+          territory_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          display_name?: string | null
+          franchisee_id?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          source?: string | null
+          territory_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          display_name?: string | null
+          franchisee_id?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          last_sync_status?: string | null
+          source?: string | null
+          territory_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_integrations_franchisee_id_fkey"
+            columns: ["franchisee_id"]
+            isOneToOne: false
+            referencedRelation: "franchisees"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_delete_user: { Args: { _user_id: string }; Returns: undefined }
