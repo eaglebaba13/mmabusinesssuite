@@ -374,6 +374,7 @@ async function roiClaim(payoutId: string, docNumber: string, extras: Extras) {
     docNumber,
     title: "FRANCHISEE ROI CLAIM",
     fileBase: safeFileName(`ROI Claim - ${franchiseeName(f)} - ${claimPeriod} - ${docNumber}`),
+    footerLabel: `ROI Claim - ${franchiseeName(f)} - ${claimPeriod}`,
     meta: [
       ["City Franchisee Name:", franchiseeName(f)],
       ["Franchisee Auth. Name:", txt(f.auth_name ?? f.full_name)],
