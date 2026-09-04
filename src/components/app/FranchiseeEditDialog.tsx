@@ -59,6 +59,15 @@ interface Franchisee {
   franchise_commission_amount?: number;
   franchise_product_id?: string | null;
   effective_product_date?: string | null;
+  // identity + banking (used by ROI Claim letters)
+  franchisee_code?: string | null;
+  auth_name?: string | null;
+  address?: string | null;
+  bank_name?: string | null;
+  bank_account_holder?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  bank_branch?: string | null;
 }
 
 interface Props {
@@ -113,6 +122,14 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
           agreement_date: form.agreement_date ?? null,
           agreement_expiry: form.agreement_expiry ?? null,
           franchise_type: form.franchise_type ?? "city",
+          franchisee_code: form.franchisee_code || null,
+          auth_name: form.auth_name || null,
+          address: form.address || null,
+          bank_name: form.bank_name || null,
+          bank_account_holder: form.bank_account_holder || null,
+          bank_account_number: form.bank_account_number || null,
+          bank_ifsc: form.bank_ifsc || null,
+          bank_branch: form.bank_branch || null,
           mg_percent: Number(form.mg_percent ?? 3),
           tns_percent: Number(form.tns_percent ?? 10),
           academy_percent: Number(form.academy_percent ?? 10),
@@ -171,6 +188,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
             <TabsTrigger value="product">Product</TabsTrigger>
             <TabsTrigger value="agreement">Agreement</TabsTrigger>
             <TabsTrigger value="roi">Legacy ROI</TabsTrigger>
+            <TabsTrigger value="banking">Banking</TabsTrigger>
             <TabsTrigger value="premises">Premises</TabsTrigger>
             <TabsTrigger value="access">Access</TabsTrigger>
           </TabsList>
@@ -317,6 +335,48 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
               <PctField label="Nail Emporium %" value={Number(form.emporium_pct)} onChange={(v) => setForm({ ...form, emporium_pct: v })} />
               <PctField label="Academy % (legacy)" value={Number(form.academy_pct)} onChange={(v) => setForm({ ...form, academy_pct: v })} />
               <PctField label="Dark store %" value={Number(form.dark_store_pct)} onChange={(v) => setForm({ ...form, dark_store_pct: v })} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="banking" className="mt-4 space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Used to populate Dealer Details and BANK DETAILS (for Reimbursement) on ROI Claim letters.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Franchisee code</Label>
+                <Input value={form.franchisee_code ?? ""} onChange={(e) => setForm({ ...form, franchisee_code: e.target.value })} className="mt-1" placeholder="MMA-CF-001" />
+              </div>
+              <div>
+                <Label>Authorised signatory</Label>
+                <Input value={form.auth_name ?? ""} onChange={(e) => setForm({ ...form, auth_name: e.target.value })} className="mt-1" />
+              </div>
+            </div>
+            <div>
+              <Label>Address</Label>
+              <Textarea value={form.address ?? ""} onChange={(e) => setForm({ ...form, address: e.target.value })} className="mt-1" rows={2} />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label>Bank name</Label>
+                <Input value={form.bank_name ?? ""} onChange={(e) => setForm({ ...form, bank_name: e.target.value })} className="mt-1" />
+              </div>
+              <div>
+                <Label>Account holder name</Label>
+                <Input value={form.bank_account_holder ?? ""} onChange={(e) => setForm({ ...form, bank_account_holder: e.target.value })} className="mt-1" />
+              </div>
+              <div>
+                <Label>Account number</Label>
+                <Input value={form.bank_account_number ?? ""} onChange={(e) => setForm({ ...form, bank_account_number: e.target.value })} className="mt-1" />
+              </div>
+              <div>
+                <Label>IFSC code</Label>
+                <Input value={form.bank_ifsc ?? ""} onChange={(e) => setForm({ ...form, bank_ifsc: e.target.value.toUpperCase() })} className="mt-1" />
+              </div>
+              <div>
+                <Label>Branch</Label>
+                <Input value={form.bank_branch ?? ""} onChange={(e) => setForm({ ...form, bank_branch: e.target.value })} className="mt-1" />
+              </div>
             </div>
           </TabsContent>
 
