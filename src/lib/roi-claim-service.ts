@@ -133,11 +133,13 @@ export async function generateClaimForPayout(opts: {
     .maybeSingle();
   if (fErr) throw fErr;
 
-  const f = franchisee as FranchiseeForClaim | null;
+  const f = franchisee as FranchiseeRecord | null;
   const p = payout as PayoutForClaim;
 
   const problems = validateClaim(f, p);
   if (problems.length) throw new Error(problems.join(" "));
+
+  const ctx = await resolveTerritoryContext(f!);
 
   const existing = await fetchClaimForPayout(opts.payoutId);
   if (existing && !opts.regenerate) {
@@ -148,6 +150,8 @@ export async function generateClaimForPayout(opts: {
       submittedOn: existing.submitted_on,
       activityType: existing.activity_type,
       description: existing.description,
+      locationFallback: ctx.location,
+      territoryFallback: ctx.territory,
     });
     return { claim: existing, data, skipped: true };
   }
@@ -177,7 +181,10 @@ export async function generateClaimForPayout(opts: {
     submittedOn: claim.submitted_on,
     activityType: opts.activityType ?? claim.activity_type,
     description: opts.description ?? claim.description,
+    locationFallback: ctx.location,
+    territoryFallback: ctx.territory,
   });
+
 
   const [pdf, docx] = await Promise.all([generateClaimPdf(data), generateClaimDocx(data)]);
   const base = claimFileBase(data);
