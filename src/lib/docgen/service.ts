@@ -158,7 +158,7 @@ export async function generateDocument(opts: {
       version,
       action: existing ? "regenerated" : "generated",
       reason: opts.reason ?? null,
-      payload: model as unknown as Record<string, unknown>,
+      payload: JSON.parse(JSON.stringify(model)),
       pdf_path: pdfPath,
       docx_path: docxPath,
       actor: user?.id ?? null,
