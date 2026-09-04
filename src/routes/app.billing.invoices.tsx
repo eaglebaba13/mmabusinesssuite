@@ -575,19 +575,7 @@ function NumberingRulesTable() {
  * storage path (not a public URL) and open files through short-lived signed
  * URLs so financial attachments are never fetchable without authorization.
  */
-function sourceDocPath(stored: string) {
-  const marker = "/invoice-sources/";
-  const i = stored.indexOf(marker);
-  return i >= 0 ? stored.slice(i + marker.length) : stored;
-}
 
-async function openSourceDoc(stored: string) {
-  const { data, error } = await supabase.storage
-    .from("invoice-sources")
-    .createSignedUrl(sourceDocPath(stored), 300);
-  if (error) { toast.error(error.message); return; }
-  window.open(data.signedUrl, "_blank", "noopener");
-}
 
 function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUploaded: (url: string, name: string) => void }) {
   const [uploading, setUploading] = React.useState(false);
