@@ -81,6 +81,8 @@ export type ClaimData = {
   territory: string;
   activityType: string;
   description: string;
+  activities: ClaimActivity[];
+
   fixRoi: number;
   shopifyClaim: number;
   tnsClaim: number;
