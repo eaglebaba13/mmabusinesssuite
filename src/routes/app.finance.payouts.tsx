@@ -16,6 +16,8 @@ import { ExportBar } from "@/components/app/ExportBar";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { ImportButton } from "@/components/app/ImportButton";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { RoiClaimActions } from "@/components/app/RoiClaimActions";
+import { generateClaimForPayout, generateClaimsForPayouts } from "@/lib/roi-claim-service";
 
 export const Route = createFileRoute("/app/finance/payouts")({
   component: PayoutsPage,
@@ -59,25 +61,39 @@ function PayoutsPage() {
       const ai = Number(form.academy_incentive) || 0;
       const ds = Number(form.dark_store_incentive) || 0;
       const em = Number(form.emporium_incentive) || 0;
-      const { error } = await supabase.from("roi_payouts").insert({
-        franchisee_id: form.franchisee_id,
-        payout_month: form.payout_month,
-        base_roi: base,
-        academy_incentive: ai,
-        dark_store_incentive: ds,
-        emporium_incentive: em,
-        total_amount: base + ai + ds + em,
-        status: "pending",
-      });
+      const { data: inserted, error } = await supabase
+        .from("roi_payouts")
+        .insert({
+          franchisee_id: form.franchisee_id,
+          payout_month: form.payout_month,
+          base_roi: base,
+          academy_incentive: ai,
+          dark_store_incentive: ds,
+          emporium_incentive: em,
+          total_amount: base + ai + ds + em,
+          status: "pending",
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+      // Auto-generate the ROI Claim letter for the new payout (best effort).
+      let claimWarning: string | null = null;
+      try {
+        await generateClaimForPayout({ payoutId: inserted.id });
+      } catch (e) {
+        claimWarning = e instanceof Error ? e.message : "ROI Claim could not be generated";
+      }
+      return { claimWarning };
     },
-    onSuccess: () => {
+    onSuccess: (r) => {
       toast.success("Payout created");
+      if (r?.claimWarning) toast.warning(`ROI Claim not generated: ${r.claimWarning}`);
       setOpen(false);
       setForm({ ...emptyPayout, payout_month: new Date().toISOString().slice(0, 7) + "-01" });
       clearFormDraft();
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["roi-claims"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -159,19 +175,27 @@ function PayoutsPage() {
         });
       }
 
-      if (!toInsert.length) return { inserted: 0 };
-      const { error } = await supabase.from("roi_payouts").insert(toInsert);
+      if (!toInsert.length) return { inserted: 0, claims: null as Awaited<ReturnType<typeof generateClaimsForPayouts>> | null };
+      const { data: rows, error } = await supabase.from("roi_payouts").insert(toInsert).select("id");
       if (error) throw error;
-      return { inserted: toInsert.length };
+      // Each new payout gets its ROI Claim letter automatically.
+      const claims = await generateClaimsForPayouts((rows ?? []).map((r) => r.id));
+      return { inserted: toInsert.length, claims };
     },
     onSuccess: (r) => {
       if (!r || r.inserted === 0) {
         toast.info("No new payouts — all active franchisees with sales this month already have payouts.");
       } else {
         toast.success(`Generated ${r.inserted} payout${r.inserted > 1 ? "s" : ""} from this month's sales`);
+        if (r.claims) {
+          if (r.claims.created) toast.success(`${r.claims.created} ROI Claim letter${r.claims.created > 1 ? "s" : ""} generated`);
+          if (r.claims.failed.length)
+            toast.warning(`${r.claims.failed.length} ROI Claim(s) not generated: ${r.claims.failed[0].message}`);
+        }
       }
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
+      qc.invalidateQueries({ queryKey: ["roi-claims"] });
     },
     onError: (e: any) => toast.error(e.message),
   });
@@ -303,8 +327,9 @@ function PayoutsPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <span className="font-mono text-sm font-medium">{formatINR(p.total_amount)}</span>
+                <RoiClaimActions payoutId={p.id} />
                 <Badge variant="outline" className={p.status === "paid" ? "border-emerald-500/40 text-emerald-500" : p.status === "overdue" ? "border-red-500/40 text-red-500" : "border-amber-500/40 text-amber-500"}>
                   {p.status}
                 </Badge>
