@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { formatINRCompact } from "@/lib/format";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { ExportBar } from "@/components/app/ExportBar";
 import { exportToCSV, exportToPDF } from "@/lib/export";
 import { createFranchiseeUser } from "@/lib/rpc/franchisee-user.functions";
@@ -219,9 +219,7 @@ function FranchiseesPage() {
   });
 
   // Current month ROI summary
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  const monthKey = monthStart.toISOString().slice(0, 10);
+  const monthKey = format(startOfMonth(new Date()), "yyyy-MM-dd");
   const { data: currentPayouts = [] } = useQuery({
     queryKey: ["current-month-payouts", monthKey],
     queryFn: async () => {

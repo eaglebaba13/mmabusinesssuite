@@ -50,7 +50,7 @@ export function FranchiseeDashboard({
 }: Props) {
   const qc = useQueryClient();
   const since = React.useMemo(() => subMonths(new Date(), 5), []);
-  const since6mStart = startOfMonth(since).toISOString().slice(0, 10);
+  const since6mStart = format(startOfMonth(since), "yyyy-MM-dd");
 
   // Realtime: invalidate franchisee-scoped queries when admins record changes
   React.useEffect(() => {
@@ -230,8 +230,8 @@ export function FranchiseeDashboard({
   const roiDueTotal = payouts.filter((p) => p.status !== "paid").reduce((s, p) => s + Number(p.total_amount ?? 0), 0);
 
 
-  const monthStart = startOfMonth(new Date()).toISOString().slice(0, 10);
-  const monthEnd = endOfMonth(new Date()).toISOString().slice(0, 10);
+  const monthStart = format(startOfMonth(new Date()), "yyyy-MM-dd");
+  const monthEnd = format(endOfMonth(new Date()), "yyyy-MM-dd");
   const monthRevenue = revenue
     .filter((r) => r.received_on >= monthStart && r.received_on <= monthEnd)
     .reduce((s, r) => s + Number(r.amount), 0);
