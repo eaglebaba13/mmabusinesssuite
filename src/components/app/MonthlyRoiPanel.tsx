@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatINR } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { format, startOfMonth } from "date-fns";
 
 interface Props {
   franchiseeId: string;
@@ -13,9 +14,8 @@ interface Props {
  * Fixed MG, A/B/C incentives, Variable ROI, Final Payable + reason.
  */
 export function MonthlyRoiPanel({ franchiseeId }: Props) {
-  const monthStart = new Date();
-  monthStart.setDate(1);
-  const monthKey = monthStart.toISOString().slice(0, 10);
+  const monthStart = startOfMonth(new Date());
+  const monthKey = format(monthStart, "yyyy-MM-dd");
   const monthLabel = monthStart.toLocaleString("en-IN", { month: "long", year: "numeric" });
 
   const { data, isLoading } = useQuery({
