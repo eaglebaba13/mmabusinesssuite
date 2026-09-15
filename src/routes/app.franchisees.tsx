@@ -166,6 +166,69 @@ function FranchiseesPage() {
     },
   });
 
+  const { data: exportFinancials, isLoading: exportFinancialsLoading } = useQuery({
+    queryKey: ["franchisees-export-financials"],
+    queryFn: async () => {
+      const pageSize = 1000;
+
+      const loadAllSales = async () => {
+        const rows: Array<{ franchisee_id: string | null; grand_total: number }> = [];
+        for (let from = 0; ; from += pageSize) {
+          const { data, error } = await supabase
+            .from("sales_orders")
+            .select("franchisee_id, grand_total")
+            .eq("status", "completed")
+            .range(from, from + pageSize - 1);
+          if (error) throw error;
+          rows.push(...(data ?? []));
+          if (!data || data.length < pageSize) break;
+        }
+        return rows;
+      };
+
+      const loadAllPayouts = async () => {
+        const rows: Array<{
+          franchisee_id: string;
+          final_payable: number;
+          total_amount: number;
+          status: "pending" | "paid" | "overdue";
+        }> = [];
+        for (let from = 0; ; from += pageSize) {
+          const { data, error } = await supabase
+            .from("roi_payouts")
+            .select("franchisee_id, final_payable, total_amount, status")
+            .range(from, from + pageSize - 1);
+          if (error) throw error;
+          rows.push(...(data ?? []));
+          if (!data || data.length < pageSize) break;
+        }
+        return rows;
+      };
+
+      const loadAllProducts = async () => {
+        const rows: Array<{ id: string; name: string; brand_name: string | null }> = [];
+        for (let from = 0; ; from += pageSize) {
+          const { data, error } = await (supabase as any)
+            .from("franchise_products")
+            .select("id, name, brand_name")
+            .range(from, from + pageSize - 1);
+          if (error) throw error;
+          rows.push(...(data ?? []));
+          if (!data || data.length < pageSize) break;
+        }
+        return rows;
+      };
+
+      const [sales, payouts, allProducts] = await Promise.all([
+        loadAllSales(),
+        loadAllPayouts(),
+        loadAllProducts(),
+      ]);
+
+      return { sales, payouts, products: allProducts };
+    },
+  });
+
   // Auto-open onboarding wizard when navigated with prefill params (from Lead → Convert)
   React.useEffect(() => {
     if (appliedPrefill.current) return;
@@ -241,16 +304,70 @@ function FranchiseesPage() {
   }, [filtered, currentPayouts]);
 
 
+  const exportSummary = React.useMemo(() => {
+    const byFranchise = new Map<string, { totalSale: number; totalRoi: number; totalRoiPaid: number; totalRoiDue: number }>();
+    const get = (id: string) => {
+      const existing = byFranchise.get(id);
+      if (existing) return existing;
+      const fresh = { totalSale: 0, totalRoi: 0, totalRoiPaid: 0, totalRoiDue: 0 };
+      byFranchise.set(id, fresh);
+      return fresh;
+    };
+
+    exportFinancials?.sales.forEach((sale) => {
+      if (!sale.franchisee_id) return;
+      get(sale.franchisee_id).totalSale += Number(sale.grand_total ?? 0);
+    });
+    exportFinancials?.payouts.forEach((payout) => {
+      const summary = get(payout.franchisee_id);
+      const payable = Number(payout.total_amount ?? payout.final_payable ?? 0);
+      summary.totalRoi += payable;
+      if (payout.status === "paid") summary.totalRoiPaid += payable;
+      else summary.totalRoiDue += payable;
+    });
+    return byFranchise;
+  }, [exportFinancials]);
+
+  const exportProductNames = React.useMemo(
+    () => new Map(
+      (exportFinancials?.products ?? []).map((p) => [
+        p.id,
+        p.brand_name ? `${p.brand_name} · ${p.name}` : p.name,
+      ]),
+    ),
+    [exportFinancials],
+  );
+
   const exportCols = [
-    { header: "Name", accessor: (f: any) => f.full_name },
-    { header: "Email", accessor: (f: any) => f.email ?? "" },
-    { header: "Phone", accessor: (f: any) => f.phone ?? "" },
-    { header: "Status", accessor: (f: any) => f.status },
-    { header: "Investment", accessor: (f: any) => Number(f.investment_amount ?? 0) },
-    { header: "Joined", accessor: (f: any) => f.joined_at ?? "" },
+    { header: "Franchise Code", accessor: (f: any) => f.franchisee_code ?? "" },
+    { header: "Franchise Name", accessor: (f: any) => f.full_name },
+    { header: "City", accessor: (f: any) => f.territory_city ?? "" },
+    { header: "District", accessor: (f: any) => f.territory_district ?? "" },
+    { header: "State", accessor: (f: any) => f.territory_state ?? "" },
+    { header: "Area", accessor: (f: any) => f.territory_area ?? "" },
+    { header: "Pincode", accessor: (f: any) => f.territory_pincode ?? "" },
+    { header: "Phone Number", accessor: (f: any) => f.phone ?? "" },
+    { header: "Email ID", accessor: (f: any) => f.email ?? "" },
+    { header: "Franchise Product", accessor: (f: any) => exportProductNames.get(f.franchise_product_id) ?? "" },
+    { header: "Franchise Type", accessor: (f: any) => f.franchise_type ?? "" },
+    { header: "Status", accessor: (f: any) => f.status ?? "" },
+    { header: "Investment (INR)", accessor: (f: any) => Number(f.investment_amount ?? 0) },
+    { header: "Total Sale (INR)", accessor: (f: any) => exportSummary.get(f.id)?.totalSale ?? 0 },
+    { header: "Total ROI (INR)", accessor: (f: any) => exportSummary.get(f.id)?.totalRoi ?? 0 },
+    { header: "Total ROI Paid (INR)", accessor: (f: any) => exportSummary.get(f.id)?.totalRoiPaid ?? 0 },
+    { header: "Total ROI Dues (INR)", accessor: (f: any) => exportSummary.get(f.id)?.totalRoiDue ?? 0 },
+    { header: "Payment Status", accessor: (f: any) => f.payment_status ?? "" },
+    { header: "Agreement Number", accessor: (f: any) => f.agreement_number ?? "" },
+    { header: "Joined Date", accessor: (f: any) => f.joined_at ?? "" },
   ];
   const fileBase = `franchisees_roster`;
-  const onCSV = () => exportToCSV(fileBase, filtered, exportCols);
+  const onCSV = () => {
+    if (exportFinancialsLoading) {
+      toast.info("Preparing complete franchise data. Please try again in a moment.");
+      return;
+    }
+    exportToCSV(fileBase, filtered, exportCols);
+  };
   const onPDF = () =>
     exportToPDF({
       filename: fileBase,
