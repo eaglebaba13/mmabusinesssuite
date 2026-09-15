@@ -338,7 +338,7 @@ function FranchiseesPage() {
     [exportFinancials],
   );
 
-  const exportCols = [
+  const csvExportCols = [
     { header: "Franchise Code", accessor: (f: any) => f.franchisee_code ?? "" },
     { header: "Franchise Name", accessor: (f: any) => f.full_name },
     { header: "City", accessor: (f: any) => f.territory_city ?? "" },
@@ -360,20 +360,28 @@ function FranchiseesPage() {
     { header: "Agreement Number", accessor: (f: any) => f.agreement_number ?? "" },
     { header: "Joined Date", accessor: (f: any) => f.joined_at ?? "" },
   ];
+  const pdfExportCols = [
+    { header: "Name", accessor: (f: any) => f.full_name },
+    { header: "Email", accessor: (f: any) => f.email ?? "" },
+    { header: "Phone", accessor: (f: any) => f.phone ?? "" },
+    { header: "Status", accessor: (f: any) => f.status },
+    { header: "Investment", accessor: (f: any) => Number(f.investment_amount ?? 0) },
+    { header: "Joined", accessor: (f: any) => f.joined_at ?? "" },
+  ];
   const fileBase = `franchisees_roster`;
   const onCSV = () => {
     if (exportFinancialsLoading) {
       toast.info("Preparing complete franchise data. Please try again in a moment.");
       return;
     }
-    exportToCSV(fileBase, filtered, exportCols);
+    exportToCSV(fileBase, filtered, csvExportCols);
   };
   const onPDF = () =>
     exportToPDF({
       filename: fileBase,
       title: "Franchisees Roster",
       rows: filtered,
-      columns: exportCols,
+      columns: pdfExportCols,
       totals: [
         { label: "Total franchisees", value: String(filtered.length) },
         { label: "Total invested", value: formatINRCompact(filtered.reduce((s, f) => s + Number(f.investment_amount ?? 0), 0)) },
