@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { getFranchiseCatalog } from "@/lib/rpc/franchise-catalog.functions";
 
 export const Route = createFileRoute("/app/inventory/movements")({
   component: MovementsPage,
@@ -27,7 +28,8 @@ const TYPE_LABELS: Record<string, string> = {
 
 function MovementsPage() {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, hasAnyRole } = useAuth();
+  const readOnlyFranchise = hasAnyRole(["franchisee", "state_franchisee"]) && !hasAnyRole(["super_admin", "founder", "inventory", "nail_emporium"]);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState<any>({
     movement_type: "adjustment", product_id: "", source_warehouse_id: "", destination_warehouse_id: "",
@@ -35,8 +37,10 @@ function MovementsPage() {
   });
 
   const products = useQuery({
-    queryKey: ["products"],
-    queryFn: async () => (await supabase.from("products").select("id, name, sku").order("name")).data ?? [],
+    queryKey: ["movement-products", readOnlyFranchise],
+    queryFn: async () => readOnlyFranchise
+      ? (await getFranchiseCatalog()).map(({ id, name, sku }) => ({ id, name, sku }))
+      : (await supabase.from("products").select("id, name, sku").order("name")).data ?? [],
   });
   const warehouses = useQuery({
     queryKey: ["warehouses"],
