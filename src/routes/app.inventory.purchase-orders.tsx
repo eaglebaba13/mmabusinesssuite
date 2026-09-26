@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
 import { ImportButton } from "@/components/app/ImportButton";
+import { getFranchiseCatalog } from "@/lib/rpc/franchise-catalog.functions";
 
 export const Route = createFileRoute("/app/inventory/purchase-orders")({
   component: PurchaseOrdersPage,
@@ -30,7 +31,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 function PurchaseOrdersPage() {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, hasAnyRole } = useAuth();
+  const readOnlyFranchise = hasAnyRole(["franchisee", "state_franchisee"]) && !hasAnyRole(["super_admin", "founder", "inventory", "nail_emporium"]);
   const [open, setOpen] = React.useState(false);
   const [form, setForm] = React.useState<any>({
     po_number: `PO-${Date.now().toString().slice(-6)}`,
@@ -40,7 +42,9 @@ function PurchaseOrdersPage() {
 
   const suppliers = useQuery({ queryKey: ["suppliers"], queryFn: async () => (await supabase.from("suppliers").select("*").eq("active", true).order("name")).data ?? [] });
   const warehouses = useQuery({ queryKey: ["warehouses"], queryFn: async () => (await supabase.from("warehouses").select("*").eq("active", true).order("name")).data ?? [] });
-  const products = useQuery({ queryKey: ["products"], queryFn: async () => (await supabase.from("products").select("id, name, sku, cost_price").eq("active", true).order("name")).data ?? [] });
+  const products = useQuery({ queryKey: ["po-products", readOnlyFranchise], queryFn: async () => readOnlyFranchise
+    ? (await getFranchiseCatalog()).map(({ id, name, sku }) => ({ id, name, sku, cost_price: 0 }))
+    : (await supabase.from("products").select("id, name, sku, cost_price").eq("active", true).order("name")).data ?? [] });
 
   const orders = useQuery({
     queryKey: ["purchase-orders"],
