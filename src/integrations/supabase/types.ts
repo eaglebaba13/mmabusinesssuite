@@ -4811,6 +4811,23 @@ export type Database = {
           variable_roi: number
         }[]
       }
+      franchise_product_catalog: {
+        Args: never
+        Returns: {
+          active: boolean
+          category_id: string
+          description: string
+          hsn_code: string
+          id: string
+          image_url: string
+          low_stock_threshold: number
+          mrp: number
+          name: string
+          sale_price: number
+          sku: string
+          unit: string
+        }[]
+      }
       get_public_invoice: { Args: { _token: string }; Returns: Json }
       has_role: {
         Args: {
@@ -4828,6 +4845,17 @@ export type Database = {
       recompute_roi_payout: {
         Args: { _franchisee_id: string; _month: string }
         Returns: undefined
+      }
+      sales_claim_lead: { Args: { p_lead_id: string }; Returns: boolean }
+      sales_unassigned_lead_queue: {
+        Args: never
+        Returns: {
+          city: string
+          created_at: string
+          id: string
+          source: Database["public"]["Enums"]["lead_source"]
+          stage: Database["public"]["Enums"]["lead_stage"]
+        }[]
       }
       state_franchise_owns_franchisee: {
         Args: { _franchisee_id: string; _user_id: string }
