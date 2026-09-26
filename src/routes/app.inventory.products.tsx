@@ -15,6 +15,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
 import { ImportButton } from "@/components/app/ImportButton";
+import { useAuth } from "@/lib/auth-context";
+import { getFranchiseCatalog } from "@/lib/rpc/franchise-catalog.functions";
 
 export const Route = createFileRoute("/app/inventory/products")({
   component: ProductsPage,
@@ -22,13 +24,16 @@ export const Route = createFileRoute("/app/inventory/products")({
 
 function ProductsPage() {
   const qc = useQueryClient();
+  const { hasAnyRole } = useAuth();
+  const readOnlyFranchise = hasAnyRole(["franchisee", "state_franchisee"]) && !hasAnyRole(["super_admin", "founder", "inventory", "nail_emporium"]);
   const [search, setSearch] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<any>(null);
 
   const products = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", readOnlyFranchise],
     queryFn: async () => {
+      if (readOnlyFranchise) return getFranchiseCatalog();
       const { data } = await supabase
         .from("products")
         .select("*, product_categories(name)")
@@ -102,13 +107,15 @@ function ProductsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Search by name or SKU…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <ImportButton configKey="products" />
+        {!readOnlyFranchise && <ImportButton configKey="products" />}
+        {!readOnlyFranchise && (
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-background hover:opacity-90"><Plus className="mr-1 h-4 w-4" /> Add Product</Button>
           </DialogTrigger>
           <ProductDialog editing={editing} categories={categories.data ?? []} onSubmit={(v) => save.mutate(v)} loading={save.isPending} />
         </Dialog>
+        )}
       </div>
 
       <Card className="glass overflow-hidden">
@@ -118,11 +125,11 @@ function ProductsPage() {
               <TableHead>SKU</TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead className="text-right">Cost</TableHead>
+              {!readOnlyFranchise && <TableHead className="text-right">Cost</TableHead>}
               <TableHead className="text-right">Sale</TableHead>
               <TableHead className="text-right">MRP</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              {!readOnlyFranchise && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,20 +138,20 @@ function ProductsPage() {
                 <TableCell className="font-mono text-xs">{p.sku}</TableCell>
                 <TableCell className="font-medium">{p.name}</TableCell>
                 <TableCell><span className="text-muted-foreground">{p.product_categories?.name ?? "—"}</span></TableCell>
-                <TableCell className="text-right">{formatINR(p.cost_price)}</TableCell>
+                {!readOnlyFranchise && <TableCell className="text-right">{formatINR(p.cost_price)}</TableCell>}
                 <TableCell className="text-right">{formatINR(p.sale_price)}</TableCell>
                 <TableCell className="text-right">{formatINR(p.mrp)}</TableCell>
                 <TableCell>
                   {p.active ? <Badge className="bg-emerald-500/20 text-emerald-400">Active</Badge> : <Badge variant="outline">Inactive</Badge>}
                 </TableCell>
-                <TableCell className="text-right">
+                {!readOnlyFranchise && <TableCell className="text-right">
                   <Button variant="ghost" size="icon" onClick={() => { setEditing(p); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                   <Button variant="ghost" size="icon" onClick={() => { if (confirm("Delete this product?")) remove.mutate(p.id); }}><Trash2 className="h-4 w-4" /></Button>
-                </TableCell>
+                </TableCell>}
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={8} className="py-8 text-center text-muted-foreground">No products found.</TableCell></TableRow>
+               <TableRow><TableCell colSpan={readOnlyFranchise ? 6 : 8} className="py-8 text-center text-muted-foreground">No products found.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>

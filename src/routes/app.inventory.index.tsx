@@ -6,15 +6,39 @@ import { KpiCard } from "@/components/app/KpiCard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatINR } from "@/lib/format";
+import { useAuth } from "@/lib/auth-context";
+import { getFranchiseCatalog } from "@/lib/rpc/franchise-catalog.functions";
 
 export const Route = createFileRoute("/app/inventory/")({
   component: InventoryOverview,
 });
 
 function InventoryOverview() {
+  const { hasAnyRole } = useAuth();
+  const readOnlyFranchise = hasAnyRole(["franchisee", "state_franchisee"]) && !hasAnyRole(["super_admin", "founder", "inventory", "nail_emporium"]);
   const stats = useQuery({
-    queryKey: ["inv-stats"],
+    queryKey: ["inv-stats", readOnlyFranchise],
     queryFn: async () => {
+      if (readOnlyFranchise) {
+        const [catalog, warehouses, suppliers, pos, stock] = await Promise.all([
+          getFranchiseCatalog(),
+          supabase.from("warehouses").select("id, active"),
+          supabase.from("suppliers").select("id, active"),
+          supabase.from("purchase_orders").select("id, status, total_amount"),
+          supabase.from("stock_levels").select("product_id, quantity"),
+        ]);
+        const thresholds = new Map(catalog.map((p) => [p.id, p.low_stock_threshold]));
+        const openPOs = (pos.data ?? []).filter((p) => ["draft", "sent", "partially_received"].includes(p.status));
+        return {
+          products: catalog.length,
+          warehouses: (warehouses.data ?? []).filter((w) => w.active).length,
+          suppliers: (suppliers.data ?? []).filter((s) => s.active).length,
+          inventoryValue: 0,
+          lowStock: (stock.data ?? []).filter((row) => Number(row.quantity) <= (thresholds.get(row.product_id) ?? 0)).length,
+          openPOs: openPOs.length,
+          openPOValue: openPOs.reduce((sum, po) => sum + Number(po.total_amount ?? 0), 0),
+        };
+      }
       const [products, warehouses, suppliers, pos, stock] = await Promise.all([
         supabase.from("products").select("id, cost_price, low_stock_threshold, active"),
         supabase.from("warehouses").select("id, active"),
@@ -56,7 +80,7 @@ function InventoryOverview() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Active Products" value={String(stats.data?.products ?? 0)} icon={Package} delay={0} />
         <KpiCard label="Warehouses" value={String(stats.data?.warehouses ?? 0)} icon={Warehouse} delay={0.05} />
-        <KpiCard label="Inventory Value" value={formatINR(stats.data?.inventoryValue ?? 0)} icon={TrendingUp} delay={0.1} />
+        {!readOnlyFranchise && <KpiCard label="Inventory Value" value={formatINR(stats.data?.inventoryValue ?? 0)} icon={TrendingUp} delay={0.1} />}
         <KpiCard label="Low Stock Items" value={String(stats.data?.lowStock ?? 0)} icon={AlertTriangle} delay={0.15} />
         <KpiCard label="Suppliers" value={String(stats.data?.suppliers ?? 0)} icon={Truck} delay={0.2} />
         <KpiCard label="Open POs" value={String(stats.data?.openPOs ?? 0)} icon={FileText} delay={0.25} />

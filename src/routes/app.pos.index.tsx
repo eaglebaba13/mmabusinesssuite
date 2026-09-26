@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatINR } from "@/lib/format";
 import { useAuth } from "@/lib/auth-context";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { getFranchiseCatalog } from "@/lib/rpc/franchise-catalog.functions";
 
 export const Route = createFileRoute("/app/pos/")({
   component: PosTerminal,
@@ -168,8 +169,13 @@ function PosTerminal() {
   }, [mappingType, category]);
 
   const products = useQuery({
-    queryKey: ["pos-products", search],
+    queryKey: ["pos-products", search, isFranchisee, isAdmin],
     queryFn: async () => {
+      if (isFranchisee && !isAdmin) {
+        const all = await getFranchiseCatalog();
+        const term = search.trim().toLowerCase();
+        return all.filter((p) => !term || p.name.toLowerCase().includes(term) || p.sku.toLowerCase().includes(term)).slice(0, 60);
+      }
       let q = supabase
         .from("products")
         .select("id, name, sku, sale_price, hsn_code, image_url")

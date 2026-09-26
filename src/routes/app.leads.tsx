@@ -25,6 +25,8 @@ import { ExportBar } from "@/components/app/ExportBar";
 import { ImportButton } from "@/components/app/ImportButton";
 import { defaultDateRange, exportToCSV, exportToPDF, inDateRange } from "@/lib/export";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { useAuth } from "@/lib/auth-context";
+import { getUnassignedLeads, claimUnassignedLead } from "@/lib/rpc/sales-queue.functions";
 
 export const Route = createFileRoute("/app/leads")({
   head: () => ({ meta: [{ title: "Leads — MMA Suite" }] }),
@@ -59,6 +61,8 @@ interface Lead {
 
 function LeadsPage() {
   const qc = useQueryClient();
+  const { hasRole } = useAuth();
+  const isSales = hasRole("sales");
   const [view, setView] = React.useState<"kanban" | "table">("kanban");
   const [search, setSearch] = React.useState("");
   const [activeId, setActiveId] = React.useState<string | null>(null);
@@ -73,6 +77,27 @@ function LeadsPage() {
       const { data, error } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
       if (error) throw error;
       return data as Lead[];
+    },
+  });
+
+  const unassigned = useQuery({
+    queryKey: ["unassigned-lead-queue"],
+    queryFn: () => getUnassignedLeads(),
+    enabled: isSales,
+  });
+  const claimLead = useMutation({
+    mutationFn: async (id: string) => {
+      const result = await claimUnassignedLead({ data: { id } });
+      if (!result.claimed) throw new Error("This lead was already claimed");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["unassigned-lead-queue"] });
+      qc.invalidateQueries({ queryKey: ["leads"] });
+      toast.success("Lead claimed");
+    },
+    onError: (error: Error) => {
+      qc.invalidateQueries({ queryKey: ["unassigned-lead-queue"] });
+      toast.error(error.message);
     },
   });
 
@@ -202,6 +227,28 @@ function LeadsPage() {
         onPDF={onPDF}
         count={filtered.length}
       />
+
+      {isSales && (
+        <section className="space-y-3" aria-label="Unassigned leads">
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-lg">Unassigned leads</h2>
+            <Badge variant="outline">{unassigned.data?.length ?? 0}</Badge>
+          </div>
+          {unassigned.isError ? <p className="text-sm text-destructive">Could not load unassigned leads.</p> : null}
+          {unassigned.data?.length === 0 ? <p className="text-sm text-muted-foreground">No unassigned leads.</p> : null}
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {(unassigned.data ?? []).map((lead) => (
+              <div key={lead.id} className="flex items-center justify-between gap-3 rounded-md border border-border bg-card p-3">
+                <div className="min-w-0 text-sm">
+                  <p className="font-medium">{lead.city || "Location not provided"}</p>
+                  <p className="text-muted-foreground capitalize">{lead.source} · {new Date(lead.created_at).toLocaleDateString()}</p>
+                </div>
+                <Button size="sm" disabled={claimLead.isPending} onClick={() => claimLead.mutate(lead.id)}>Claim</Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {view === "kanban" ? (
         <DndContext
