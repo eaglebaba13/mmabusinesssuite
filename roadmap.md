@@ -3,6 +3,7 @@
 ## Project monitoring: sales lead queue and franchise catalog
 - [x] Restore a safe way for sales staff to claim unassigned incoming leads (QA 94ef2f7f)
 - [x] Restore franchise product discovery without broadening cost-price access (QA f7e84229)
+- [x] Allow registered state franchise partners to use the safe product catalog (QA 0c3ff32a)
 
 ## ROI Claim Letter workflow (Finance → ROI Payouts)
 - [x] DB: franchisee code/auth name/address/bank fields, `roi_claims`, `roi_claim_versions`, claim ref sequence
