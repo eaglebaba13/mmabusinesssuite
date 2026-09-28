@@ -116,10 +116,10 @@ export function AppSidebar() {
   const isFranchiseeOnly = (isFranchisee || isStateFranchisee) && !isAdmin;
   const isTrainer = hasRole("trainer");
   const isAcademyStaff = !isFranchiseeOnly && (isAdmin || hasRole("academy_admin") || hasRole("accounts"));
-  const isInventoryStaff = !isFranchiseeOnly && (isAdmin || hasRole("inventory"));
+  const isInventoryStaff = isFranchiseeOnly || isAdmin || hasRole("inventory");
   const isFinanceStaff = !isFranchiseeOnly && (isAdmin || hasRole("accounts"));
   const isWebinarStaff = !isFranchiseeOnly && (isAdmin || hasRole("webinar") || hasRole("sales"));
-  const isPosStaff = !isFranchiseeOnly && (isAdmin || hasRole("package_sales") || hasRole("accounts") || hasRole("inventory"));
+  const isPosStaff = isFranchiseeOnly || isAdmin || hasRole("package_sales") || hasRole("accounts") || hasRole("inventory");
   const showOps = !isFranchiseeOnly && (isAdmin || hasRole("sales"));
   const navMainFiltered = NAV_MAIN.filter((item) => isAdmin || item.url !== "/app/dashboard");
 

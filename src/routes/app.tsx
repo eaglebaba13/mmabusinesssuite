@@ -13,8 +13,8 @@ const FRANCHISEE_BLOCKED = [
   "/app/dashboard", "/app/leads", "/app/franchisees", "/app/state-franchises",
   "/app/franchise-products", "/app/agreements",
   "/app/finance", "/app/billing", "/app/payouts", "/app/accounts", "/app/reports",
-  "/app/dashboards", "/app/audit-logs", "/app/impersonation-sessions", "/app/hr", "/app/academy", "/app/inventory",
-  "/app/webinars", "/app/pos", "/app/settings", "/app/trainer",
+  "/app/dashboards", "/app/audit-logs", "/app/impersonation-sessions", "/app/hr", "/app/academy",
+  "/app/webinars", "/app/settings", "/app/trainer",
 ];
 const ADMIN_ONLY = ["/app/audit-logs", "/app/impersonation-sessions", "/app/state-franchises", "/app/settings", "/app/dashboard"];
 const ACCOUNTS_OR_ADMIN = ["/app/billing", "/app/finance", "/app/payouts", "/app/accounts", "/app/reports", "/app/dashboards"];
@@ -47,7 +47,7 @@ function AppLayout() {
     }
     // State franchisee (no admin) → only my-state
     if (hasRole("state_franchisee") && !isAdmin) {
-      const allowed = ["/app/my-state", "/app/my-franchise"];
+      const allowed = ["/app/my-state", "/app/my-franchise", "/app/inventory", "/app/pos"];
       if (!allowed.some((p) => path === p || path.startsWith(p + "/")) && path.startsWith("/app/")) {
         navigate({ to: "/app/my-state", replace: true });
         return;
