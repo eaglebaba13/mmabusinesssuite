@@ -1,8 +1,8 @@
 # Roadmap
 
 ## Project monitoring: sales lead queue and franchise catalog
-- [ ] Restore a safe way for sales staff to claim unassigned incoming leads (QA 94ef2f7f; plan awaits approval)
-- [ ] Restore franchise product discovery without broadening cost-price access (QA f7e84229; plan awaits approval)
+- [x] Restore a safe way for sales staff to claim unassigned incoming leads (QA 94ef2f7f)
+- [x] Restore franchise product discovery without broadening cost-price access (QA f7e84229)
 
 ## ROI Claim Letter workflow (Finance → ROI Payouts)
 - [x] DB: franchisee code/auth name/address/bank fields, `roi_claims`, `roi_claim_versions`, claim ref sequence
