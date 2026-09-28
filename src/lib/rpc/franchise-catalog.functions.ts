@@ -10,9 +10,18 @@ const forwardAuth = createMiddleware({ type: "function" }).client(async ({ next 
 export const getFranchiseCatalog = createServerFn({ method: "GET" })
   .middleware([forwardAuth, requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data: franchisee, error: accessError } = await context.supabase.from("franchisees")
-      .select("id").eq("user_id", context.userId).limit(1).maybeSingle();
-    if (accessError || !franchisee) throw new Error("Franchise access required");
+    const [franchiseResult, stateFranchiseResult] = await Promise.all([
+      context.supabase.from("franchisees")
+        .select("id").eq("user_id", context.userId).limit(1).maybeSingle(),
+      context.supabase.from("state_franchises")
+        .select("id").eq("user_id", context.userId).limit(1).maybeSingle(),
+    ]);
+    if (franchiseResult.error || stateFranchiseResult.error) {
+      throw new Error("Unable to verify franchise access");
+    }
+    if (!franchiseResult.data && !stateFranchiseResult.data) {
+      throw new Error("Franchise access required");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin.from("products")
       .select("id, name, sku, description, category_id, unit, hsn_code, sale_price, mrp, image_url, low_stock_threshold, active")
