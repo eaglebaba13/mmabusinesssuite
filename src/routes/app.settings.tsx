@@ -8,7 +8,7 @@ export const Route = createFileRoute("/app/settings")({
 });
 
 function SettingsLayout() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, hasRole } = useAuth();
   const location = useLocation();
   const path = location.pathname.replace(/\/$/, "");
 
@@ -20,6 +20,9 @@ function SettingsLayout() {
           { to: "/app/settings/team", label: "Team & Roles", match: (p: string) => p === "/app/settings/team" },
           { to: "/app/settings/social", label: "Social & Integrations", match: (p: string) => p === "/app/settings/social" },
           { to: "/app/settings/lead-routing", label: "Lead Routing", match: (p: string) => p === "/app/settings/lead-routing" },
+          ...(hasRole("super_admin")
+            ? [{ to: "/app/settings/storage-export", label: "Storage Export", match: (p: string) => p === "/app/settings/storage-export" }]
+            : []),
         ]
       : []),
   ] as const;
