@@ -1,5 +1,11 @@
 # Roadmap
 
+## Complete private storage ZIP export
+- [x] Add a Super Admin-only export endpoint for all seven private storage areas
+- [x] Preserve bucket names and nested folder paths in one ZIP archive
+- [x] Add a confirmed one-click download under Settings → Storage Export
+- [x] Verify the ZIP contents against live private storage with a Super Admin session
+
 ## Project monitoring: sales lead queue and franchise catalog
 - [x] Restore a safe way for sales staff to claim unassigned incoming leads (QA 94ef2f7f)
 - [x] Restore franchise product discovery without broadening cost-price access (QA f7e84229)
