@@ -43,6 +43,7 @@ import { Route as AppAuditLogsRouteImport } from './routes/app.audit-logs'
 import { Route as AppAgreementsRouteImport } from './routes/app.agreements'
 import { Route as AppAccountsRouteImport } from './routes/app.accounts'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
+import { Route as ApiStorageExportRouteImport } from './routes/api/storage-export'
 import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
 import { Route as AppPosIndexRouteImport } from './routes/app.pos.index'
@@ -55,6 +56,7 @@ import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.
 import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
 import { Route as AppStateFranchisesStateFranchiseIdRouteImport } from './routes/app.state-franchises.$stateFranchiseId'
 import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
+import { Route as AppSettingsStorageExportRouteImport } from './routes/app.settings.storage-export'
 import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.social'
 import { Route as AppSettingsSidebarRouteImport } from './routes/app.settings.sidebar'
 import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.settings.lead-routing'
@@ -270,6 +272,11 @@ const AppAcademyRoute = AppAcademyRouteImport.update({
   path: '/academy',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiStorageExportRoute = ApiStorageExportRouteImport.update({
+  id: '/api/storage-export',
+  path: '/api/storage-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppWebinarsIndexRoute = AppWebinarsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -332,6 +339,12 @@ const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
   path: '/team',
   getParentRoute: () => AppSettingsRoute,
 } as any)
+const AppSettingsStorageExportRoute =
+  AppSettingsStorageExportRouteImport.update({
+    id: '/storage-export',
+    path: '/storage-export',
+    getParentRoute: () => AppSettingsRoute,
+  } as any)
 const AppSettingsSocialRoute = AppSettingsSocialRouteImport.update({
   id: '/social',
   path: '/social',
@@ -561,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/api/storage-export': typeof ApiStorageExportRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/accounts': typeof AppAccountsRoute
   '/app/agreements': typeof AppAgreementsRoute
@@ -630,6 +644,7 @@ export interface FileRoutesByFullPath {
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/sidebar': typeof AppSettingsSidebarRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
+  '/app/settings/storage-export': typeof AppSettingsStorageExportRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
@@ -651,6 +666,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/api/storage-export': typeof ApiStorageExportRoute
   '/app/accounts': typeof AppAccountsRoute
   '/app/agreements': typeof AppAgreementsRoute
   '/app/audit-logs': typeof AppAuditLogsRoute
@@ -713,6 +729,7 @@ export interface FileRoutesByTo {
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/sidebar': typeof AppSettingsSidebarRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
+  '/app/settings/storage-export': typeof AppSettingsStorageExportRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
@@ -736,6 +753,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/api/storage-export': typeof ApiStorageExportRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/accounts': typeof AppAccountsRoute
   '/app/agreements': typeof AppAgreementsRoute
@@ -805,6 +823,7 @@ export interface FileRoutesById {
   '/app/settings/lead-routing': typeof AppSettingsLeadRoutingRoute
   '/app/settings/sidebar': typeof AppSettingsSidebarRoute
   '/app/settings/social': typeof AppSettingsSocialRoute
+  '/app/settings/storage-export': typeof AppSettingsStorageExportRoute
   '/app/settings/team': typeof AppSettingsTeamRoute
   '/app/state-franchises/$stateFranchiseId': typeof AppStateFranchisesStateFranchiseIdRoute
   '/app/webinars/$webinarId': typeof AppWebinarsWebinarIdRoute
@@ -829,6 +848,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/api/storage-export'
     | '/app/academy'
     | '/app/accounts'
     | '/app/agreements'
@@ -898,6 +918,7 @@ export interface FileRouteTypes {
     | '/app/settings/lead-routing'
     | '/app/settings/sidebar'
     | '/app/settings/social'
+    | '/app/settings/storage-export'
     | '/app/settings/team'
     | '/app/state-franchises/$stateFranchiseId'
     | '/app/webinars/$webinarId'
@@ -919,6 +940,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/api/storage-export'
     | '/app/accounts'
     | '/app/agreements'
     | '/app/audit-logs'
@@ -981,6 +1003,7 @@ export interface FileRouteTypes {
     | '/app/settings/lead-routing'
     | '/app/settings/sidebar'
     | '/app/settings/social'
+    | '/app/settings/storage-export'
     | '/app/settings/team'
     | '/app/state-franchises/$stateFranchiseId'
     | '/app/webinars/$webinarId'
@@ -1003,6 +1026,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/api/storage-export'
     | '/app/academy'
     | '/app/accounts'
     | '/app/agreements'
@@ -1072,6 +1096,7 @@ export interface FileRouteTypes {
     | '/app/settings/lead-routing'
     | '/app/settings/sidebar'
     | '/app/settings/social'
+    | '/app/settings/storage-export'
     | '/app/settings/team'
     | '/app/state-franchises/$stateFranchiseId'
     | '/app/webinars/$webinarId'
@@ -1095,6 +1120,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  ApiStorageExportRoute: typeof ApiStorageExportRoute
   ImpTokenRoute: typeof ImpTokenRoute
   InvoiceTokenRoute: typeof InvoiceTokenRoute
   VerifyCodeRoute: typeof VerifyCodeRoute
@@ -1344,6 +1370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAcademyRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/storage-export': {
+      id: '/api/storage-export'
+      path: '/api/storage-export'
+      fullPath: '/api/storage-export'
+      preLoaderRoute: typeof ApiStorageExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/webinars/': {
       id: '/app/webinars/'
       path: '/'
@@ -1426,6 +1459,13 @@ declare module '@tanstack/react-router' {
       path: '/team'
       fullPath: '/app/settings/team'
       preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/storage-export': {
+      id: '/app/settings/storage-export'
+      path: '/storage-export'
+      fullPath: '/app/settings/storage-export'
+      preLoaderRoute: typeof AppSettingsStorageExportRouteImport
       parentRoute: typeof AppSettingsRoute
     }
     '/app/settings/social': {
@@ -1904,6 +1944,7 @@ interface AppSettingsRouteChildren {
   AppSettingsLeadRoutingRoute: typeof AppSettingsLeadRoutingRoute
   AppSettingsSidebarRoute: typeof AppSettingsSidebarRoute
   AppSettingsSocialRoute: typeof AppSettingsSocialRoute
+  AppSettingsStorageExportRoute: typeof AppSettingsStorageExportRoute
   AppSettingsTeamRoute: typeof AppSettingsTeamRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
 }
@@ -1912,6 +1953,7 @@ const AppSettingsRouteChildren: AppSettingsRouteChildren = {
   AppSettingsLeadRoutingRoute: AppSettingsLeadRoutingRoute,
   AppSettingsSidebarRoute: AppSettingsSidebarRoute,
   AppSettingsSocialRoute: AppSettingsSocialRoute,
+  AppSettingsStorageExportRoute: AppSettingsStorageExportRoute,
   AppSettingsTeamRoute: AppSettingsTeamRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
 }
@@ -2035,6 +2077,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  ApiStorageExportRoute: ApiStorageExportRoute,
   ImpTokenRoute: ImpTokenRoute,
   InvoiceTokenRoute: InvoiceTokenRoute,
   VerifyCodeRoute: VerifyCodeRoute,
