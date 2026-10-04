@@ -1,4 +1,6 @@
-﻿/** Node-only S3 adapter. Imported exclusively by API handlers and admin export. */
+/** Node-only S3 adapter. Imported exclusively by API handlers and admin export. */
+import { Agent } from "node:http";
+import { connect } from "node:net";
 import {
   S3Client,
   GetObjectCommand,
@@ -33,6 +35,14 @@ export interface StorageBackend {
 function status(error: unknown) {
   return (error as { $metadata?: { httpStatusCode?: number } })?.$metadata?.httpStatusCode;
 }
+/** Socket mode never performs TCP or DNS fallback, even when the socket is missing. */
+export function createMinioSocketAgent(path: string): Agent {
+  if (!path.startsWith("/") || path.includes("\0") || Buffer.byteLength(path) > 107)
+    throw new StorageError(503, "Invalid private storage socket");
+  const agent = new Agent({ keepAlive: true, maxSockets: 16 });
+  agent.createConnection = () => connect({ path });
+  return agent;
+}
 export function createMinioBackend(env: NodeJS.ProcessEnv = process.env): StorageBackend {
   if (typeof window !== "undefined") throw new Error("Storage credentials are server-only");
   const endpoint = env.MINIO_ENDPOINT;
@@ -51,6 +61,9 @@ export function createMinioBackend(env: NodeJS.ProcessEnv = process.env): Storag
   ) {
     throw new StorageError(503, "Invalid private storage endpoint");
   }
+  const socketPath = env.MINIO_SOCKET_PATH;
+  if (!socketPath || parsed.protocol !== "http:")
+    throw new StorageError(503, "Invalid private storage socket configuration");
   const client = new S3Client({
     endpoint,
     region: env.MINIO_REGION || "us-east-1",
@@ -59,6 +72,7 @@ export function createMinioBackend(env: NodeJS.ProcessEnv = process.env): Storag
     maxAttempts: 2,
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
+    requestHandler: { httpAgent: createMinioSocketAgent(socketPath) },
   });
   const checked = (bucket: StorageBucket, path: string) => {
     storageBucket(bucket);
