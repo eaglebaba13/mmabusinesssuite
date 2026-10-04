@@ -1,20 +1,19 @@
+import { storageService } from "@/lib/storage";
 // Invoice source documents live in the PRIVATE `invoice-sources` bucket.
 // We persist the storage path and open files only through short-lived signed
 // URLs, so financial attachments are never fetchable without authorization.
 // Legacy rows may hold a full public URL — the path is extracted from it.
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { legacyStoragePath } from "./storage-policy";
 
 const BUCKET = "invoice-sources";
 
 export function invoiceSourcePath(stored: string) {
-  const marker = `/${BUCKET}/`;
-  const i = stored.indexOf(marker);
-  return i >= 0 ? stored.slice(i + marker.length) : stored;
+  return legacyStoragePath(stored, BUCKET) ?? stored;
 }
 
 export async function openInvoiceSourceDoc(stored: string) {
-  const { data, error } = await supabase.storage
+  const { data, error } = await storageService
     .from(BUCKET)
     .createSignedUrl(invoiceSourcePath(stored), 300);
   if (error) {

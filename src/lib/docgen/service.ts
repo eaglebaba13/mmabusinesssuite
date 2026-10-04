@@ -1,3 +1,4 @@
+import { storageService } from "@/lib/storage";
 // Generation / regeneration, secure storage and version history for official
 // documents. All access is RLS-gated; files live in the private
 // `official-documents` bucket and are only ever served via short-lived
@@ -59,7 +60,7 @@ async function reserveNumber(prefix: string): Promise<string> {
 }
 
 async function upload(path: string, blob: Blob, contentType: string) {
-  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType, upsert: true });
+  const { error } = await storageService.from(BUCKET).upload(path, blob, { contentType, upsert: true });
   if (error) throw error;
 }
 
@@ -179,7 +180,7 @@ export async function documentVersions(documentId: string) {
 }
 
 export async function signedDocUrl(path: string, download?: string) {
-  const { data, error } = await supabase.storage
+  const { data, error } = await storageService
     .from(BUCKET)
     .createSignedUrl(path, 60 * 5, download ? { download } : undefined);
   if (error) throw error;
@@ -188,7 +189,7 @@ export async function signedDocUrl(path: string, download?: string) {
 
 /** Download as a blob object URL so the PDF embeds reliably in an iframe. */
 export async function docObjectUrl(path: string) {
-  const { data, error } = await supabase.storage.from(BUCKET).download(path);
+  const { data, error } = await storageService.from(BUCKET).download(path);
   if (error) throw error;
   return URL.createObjectURL(new Blob([await data.arrayBuffer()], { type: "application/pdf" }));
 }

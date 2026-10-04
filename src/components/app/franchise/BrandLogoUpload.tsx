@@ -1,10 +1,10 @@
+import { storageService } from "@/lib/storage";
 import * as React from "react";
 import { toast } from "sonner";
 import { Upload, X, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { BrandLogo } from "./BrandLogo";
 
 const BUCKET = "brand-logos";
@@ -57,13 +57,13 @@ export function BrandLogoUpload({
     try {
       const ext = extFromType(file.type, file.name);
       const path = `${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage
+      const { error } = await storageService
         .from(BUCKET)
         .upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw error;
       // Best-effort delete of previous file (only if it looks like a bucket path)
       if (value && !/^https?:\/\//i.test(value)) {
-        await supabase.storage.from(BUCKET).remove([value]).catch(() => {});
+        await storageService.from(BUCKET).remove([value]).catch(() => {});
       }
       onChange(path);
       onMetaChange?.({ name: file.name, size: file.size });
@@ -77,7 +77,7 @@ export function BrandLogoUpload({
 
   async function remove() {
     if (value && !/^https?:\/\//i.test(value)) {
-      await supabase.storage.from(BUCKET).remove([value]).catch(() => {});
+      await storageService.from(BUCKET).remove([value]).catch(() => {});
     }
     onChange(null);
     onMetaChange?.(null);

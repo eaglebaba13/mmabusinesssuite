@@ -106,8 +106,12 @@ SELECT cron.schedule(
   '0 * * * *',
   $$
   SELECT net.http_post(
-    url := 'https://tdcyyaoeatwwgriokwdc.supabase.co/functions/v1/sync-ad-leads',
-    headers := '{"Content-Type":"application/json","Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRkY3l5YW9lYXR3d2dyaW9rd2RjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NDkzMDEsImV4cCI6MjA5MjQyNTMwMX0.bfvhRWSy6zZZ3kyZpyNF9mFqDz3HDuOCCdpJfFbuemY"}'::jsonb,
+    -- Resolve deployment-specific values securely; never embed project credentials.
+    url := current_setting('app.settings.supabase_url') || '/functions/v1/sync-ad-leads',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || current_setting('app.settings.supabase_anon_key')
+    ),
     body := '{}'::jsonb
   );
   $$

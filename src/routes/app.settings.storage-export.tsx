@@ -1,3 +1,4 @@
+import { STORAGE_BUCKETS } from "@/lib/storage-policy";
 import * as React from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Archive, CheckCircle2, Download, HardDrive, Loader2, ShieldCheck } from "lucide-react";
@@ -10,15 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 
-const BUCKETS = [
-  "product-media",
-  "franchisee-docs",
-  "brand-logos",
-  "roi-claims",
-  "official-documents",
-  "invoice-sources",
-  "database_export_01_10_26",
-];
+const BUCKETS = STORAGE_BUCKETS;
 
 export const Route = createFileRoute("/app/settings/storage-export")({
   head: () => ({
@@ -157,7 +150,7 @@ function StorageExportPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Download complete private storage?</AlertDialogTitle>
             <AlertDialogDescription>
-              One ZIP will contain all files from the seven listed storage areas. Large exports may take several minutes.
+              One ZIP will contain all files from the six listed application storage areas. Large exports may take several minutes.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

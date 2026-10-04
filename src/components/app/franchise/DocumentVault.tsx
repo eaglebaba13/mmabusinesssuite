@@ -1,3 +1,5 @@
+import { storageService } from "@/lib/storage";
+import { legacyStoragePath } from "@/lib/storage-policy";
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -53,14 +55,14 @@ export function DocumentVault({ franchiseeId }: { franchiseeId: string }) {
     setUploading(true);
     try {
       const path = `${franchiseeId}/${kind}-${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
-      const { error: upErr } = await supabase.storage
+      const { error: upErr } = await storageService
         .from("franchisee-docs")
         .upload(path, file, { contentType: file.type, upsert: false });
       if (upErr) throw upErr;
 
-      const { data: signed } = await supabase.storage
+      const { data: signed } = await storageService
         .from("franchisee-docs")
-        .createSignedUrl(path, 60 * 60 * 24 * 365);
+        .createSignedUrl(path, 60 * 60);
 
       const { error: insErr } = await (supabase as any).from("franchisee_documents").insert({
         franchisee_id: franchiseeId,
@@ -105,7 +107,8 @@ export function DocumentVault({ franchiseeId }: { franchiseeId: string }) {
   const del = useMutation({
     mutationFn: async (doc: DocRow) => {
       if (doc.storage_path) {
-        await supabase.storage.from("franchisee-docs").remove([doc.storage_path]);
+        const { error: storageError } = await storageService.from("franchisee-docs").remove([doc.storage_path]);
+        if (storageError) throw storageError;
       }
       const { error } = await (supabase as any)
         .from("franchisee_documents")
@@ -121,13 +124,14 @@ export function DocumentVault({ franchiseeId }: { franchiseeId: string }) {
   });
 
   const openFile = async (doc: DocRow) => {
-    if (!doc.storage_path) {
-      window.open(doc.file_url, "_blank");
+    const path = doc.storage_path || legacyStoragePath(doc.file_url, "franchisee-docs");
+    if (!path) {
+      if (/^https?:\/\//i.test(doc.file_url)) window.open(doc.file_url, "_blank", "noopener");
       return;
     }
-    const { data, error } = await supabase.storage
+    const { data, error } = await storageService
       .from("franchisee-docs")
-      .createSignedUrl(doc.storage_path, 60 * 5);
+      .createSignedUrl(path, 60 * 5);
     if (error) return toast.error(error.message);
     window.open(data.signedUrl, "_blank");
   };

@@ -1,3 +1,4 @@
+import { storageService } from "@/lib/storage";
 // ROI Claim persistence: creates/updates the roi_claims record, renders the
 // PDF + DOCX, stores both in the private `roi-claims` bucket and writes an
 // audit/version row. All access is RLS-gated (finance staff manage, franchise
@@ -192,12 +193,12 @@ export async function generateClaimForPayout(opts: {
   const pdfPath = `${prefix}/${base}.pdf`;
   const docxPath = `${prefix}/${base}.docx`;
 
-  const up1 = await supabase.storage.from(BUCKET).upload(pdfPath, pdf, {
+  const up1 = await storageService.from(BUCKET).upload(pdfPath, pdf, {
     contentType: "application/pdf",
     upsert: true,
   });
   if (up1.error) throw up1.error;
-  const up2 = await supabase.storage.from(BUCKET).upload(docxPath, docx, {
+  const up2 = await storageService.from(BUCKET).upload(docxPath, docx, {
     contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     upsert: true,
   });
@@ -258,7 +259,7 @@ export async function generateClaimsForPayouts(payoutIds: string[]) {
 }
 
 export async function signedClaimUrl(path: string, download?: string) {
-  const { data, error } = await supabase.storage
+  const { data, error } = await storageService
     .from(BUCKET)
     .createSignedUrl(path, 60 * 5, download ? { download } : undefined);
   if (error) throw error;
@@ -267,7 +268,7 @@ export async function signedClaimUrl(path: string, download?: string) {
 
 /** Download the stored PDF as a blob object URL so it can be embedded reliably. */
 export async function claimObjectUrl(path: string) {
-  const { data, error } = await supabase.storage.from(BUCKET).download(path);
+  const { data, error } = await storageService.from(BUCKET).download(path);
   if (error) throw error;
   const bytes = await data.arrayBuffer();
   return {

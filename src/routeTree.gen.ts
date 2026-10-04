@@ -44,6 +44,7 @@ import { Route as AppAgreementsRouteImport } from './routes/app.agreements'
 import { Route as AppAccountsRouteImport } from './routes/app.accounts'
 import { Route as AppAcademyRouteImport } from './routes/app.academy'
 import { Route as ApiStorageExportRouteImport } from './routes/api/storage-export'
+import { Route as ApiStorageRouteImport } from './routes/api/storage'
 import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
 import { Route as AppPosIndexRouteImport } from './routes/app.pos.index'
@@ -275,6 +276,11 @@ const AppAcademyRoute = AppAcademyRouteImport.update({
 const ApiStorageExportRoute = ApiStorageExportRouteImport.update({
   id: '/api/storage-export',
   path: '/api/storage-export',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStorageRoute = ApiStorageRouteImport.update({
+  id: '/api/storage',
+  path: '/api/storage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppWebinarsIndexRoute = AppWebinarsIndexRouteImport.update({
@@ -574,6 +580,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/api/storage': typeof ApiStorageRoute
   '/api/storage-export': typeof ApiStorageExportRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/accounts': typeof AppAccountsRoute
@@ -666,6 +673,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/api/storage': typeof ApiStorageRoute
   '/api/storage-export': typeof ApiStorageExportRoute
   '/app/accounts': typeof AppAccountsRoute
   '/app/agreements': typeof AppAgreementsRoute
@@ -753,6 +761,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
+  '/api/storage': typeof ApiStorageRoute
   '/api/storage-export': typeof ApiStorageExportRoute
   '/app/academy': typeof AppAcademyRouteWithChildren
   '/app/accounts': typeof AppAccountsRoute
@@ -848,6 +857,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/api/storage'
     | '/api/storage-export'
     | '/app/academy'
     | '/app/accounts'
@@ -940,6 +950,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/api/storage'
     | '/api/storage-export'
     | '/app/accounts'
     | '/app/agreements'
@@ -1026,6 +1037,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/pricing'
     | '/signup'
+    | '/api/storage'
     | '/api/storage-export'
     | '/app/academy'
     | '/app/accounts'
@@ -1120,6 +1132,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
+  ApiStorageRoute: typeof ApiStorageRoute
   ApiStorageExportRoute: typeof ApiStorageExportRoute
   ImpTokenRoute: typeof ImpTokenRoute
   InvoiceTokenRoute: typeof InvoiceTokenRoute
@@ -1375,6 +1388,13 @@ declare module '@tanstack/react-router' {
       path: '/api/storage-export'
       fullPath: '/api/storage-export'
       preLoaderRoute: typeof ApiStorageExportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/storage': {
+      id: '/api/storage'
+      path: '/api/storage'
+      fullPath: '/api/storage'
+      preLoaderRoute: typeof ApiStorageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/webinars/': {
@@ -2077,6 +2097,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
+  ApiStorageRoute: ApiStorageRoute,
   ApiStorageExportRoute: ApiStorageExportRoute,
   ImpTokenRoute: ImpTokenRoute,
   InvoiceTokenRoute: InvoiceTokenRoute,

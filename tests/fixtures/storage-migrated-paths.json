@@ -1,0 +1,204 @@
+{
+  "buckets": [
+    "brand-logos",
+    "franchisee-docs",
+    "invoice-sources",
+    "official-documents",
+    "product-media",
+    "roi-claims"
+  ],
+  "objects": [
+    {
+      "bucket": "roi-claims",
+      "object_path": "27966b0f-7bb6-4184-af3a-48d58fdf366c/3230/ROI Claim - POONAM SONI (UJ204) - September 2026 - 3230.docx",
+      "source_size": 10361,
+      "source_sha256": "f1db664f435744ed2828b8159134880522b8d39cd4b80776ec383209aab5938d"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "27966b0f-7bb6-4184-af3a-48d58fdf366c/3230/ROI Claim - POONAM SONI (UJ204) - September 2026 - 3230.pdf",
+      "source_size": 63968,
+      "source_sha256": "99107b1c701d1555b72adec15b69562b1bfe02a29d65229cea08da78adfbe7ea"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "2c469d4d-45cb-421a-bcea-24165f782d1a/3234/ROI Claim - MAYUR DEEPAK GANDHI - September 2026 - 3234.docx",
+      "source_size": 10393,
+      "source_sha256": "25d0142c9684b57a3836fc0ae5f952736b1fa147aafaa934c65cbd7ba735a7ea"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "2c469d4d-45cb-421a-bcea-24165f782d1a/3234/ROI Claim - MAYUR DEEPAK GANDHI - September 2026 - 3234.pdf",
+      "source_size": 64054,
+      "source_sha256": "f0bd86a6fe400fa743aea13fb2581c1f2cf76f3a4755015ec940e1863d9e99b9"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "41451e8b-64e6-40c5-8ba5-b61a65c666c7/3228/ROI Claim - SATYAKRISHNA LIGHTING - September 2026 - 3228.docx",
+      "source_size": 10400,
+      "source_sha256": "26857203598fb9b9eafb6dbf0a1dadd7f537945e672c5f5b4225e109f18126ff"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "41451e8b-64e6-40c5-8ba5-b61a65c666c7/3228/ROI Claim - SATYAKRISHNA LIGHTING - September 2026 - 3228.pdf",
+      "source_size": 64045,
+      "source_sha256": "08fffdf85ff878bcad84b41d8273112a6a7489fdb31956830127dfddd2ffca3b"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "56fa1b8b-63a6-431d-b304-5a56e95e5bca/3235/ROI Claim - POOJA W-o Himanshu Bana - September 2026 - 3235.docx",
+      "source_size": 10443,
+      "source_sha256": "f9704f2644610a6a245ea1e4a5ea3d6437d216cd8dd53bae35f06d23ba0fb118"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "56fa1b8b-63a6-431d-b304-5a56e95e5bca/3235/ROI Claim - POOJA W-o Himanshu Bana - September 2026 - 3235.pdf",
+      "source_size": 64087,
+      "source_sha256": "855d6067c3e22819dce3d25989ec9c18933d0a48955b61df604f8917e59d136b"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "6677d27c-4660-418b-af03-59e7dd38a583/3231/ROI Claim - Manjusha V Jadhav - September 2026 - 3231.docx",
+      "source_size": 10434,
+      "source_sha256": "0f72bb59b70f820b75aced8cbd7dfabe19415ed2e8b2fa50cbd290e27e84280c"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "6677d27c-4660-418b-af03-59e7dd38a583/3231/ROI Claim - Manjusha V Jadhav - September 2026 - 3231.pdf",
+      "source_size": 64075,
+      "source_sha256": "e1e594fc0f8854c61e00bd17cdcd03f236b69c566b4e30dc2167c12e889acd7e"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "701ac6b8-8ae2-446f-bfb7-9e128b2703d0/3232/ROI Claim - NIKHIL TRIPATHI (ND202) - September 2026 - 3232.docx",
+      "source_size": 10379,
+      "source_sha256": "42d570aad255b790208290fc077c7adba8ca59431c1bc9692ffbf610904715de"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "701ac6b8-8ae2-446f-bfb7-9e128b2703d0/3232/ROI Claim - NIKHIL TRIPATHI (ND202) - September 2026 - 3232.pdf",
+      "source_size": 63993,
+      "source_sha256": "09e59fc899db59680bdc7dd55c87e4f18ec729632e78590229834ced38cdabb9"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "7f77d2e9-d43a-4ea2-8bc7-38beb3a2c025/3236/ROI Claim - Solanki Manjulaben Maheshbhai - September 2026 - 3236.docx",
+      "source_size": 10380,
+      "source_sha256": "0587470dcaeeda4903287f16aad81f29706fe42a3d4cca39651ee1ae76decdf6"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "7f77d2e9-d43a-4ea2-8bc7-38beb3a2c025/3236/ROI Claim - Solanki Manjulaben Maheshbhai - September 2026 - 3236.pdf",
+      "source_size": 63989,
+      "source_sha256": "b2555268e083adfbb5a05df289b7fbcf87087943030db6852e18be68f74e4c4a"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "a6cd9f45-52e3-4de0-9c13-5a91ddcdc45f/3226/ROI Claim - Blush Cosmetics and Nail Studio - October 2026 - 3226.docx",
+      "source_size": 10331,
+      "source_sha256": "c8e6db526f6843cd7737939cadc96f642c0c31293719b0df3bb0404129a0b0e1"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "a6cd9f45-52e3-4de0-9c13-5a91ddcdc45f/3226/ROI Claim - Blush Cosmetics and Nail Studio - October 2026 - 3226.pdf",
+      "source_size": 64059,
+      "source_sha256": "ce3d2f03e3be9aad1cae74fe5fec98e90f3011659156e4d77656b87ab7ade8fa"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "ab02c8b4-aad0-4b8b-be35-4b1c443d06fd/3227/ROI Claim - MOHD. SHAHBAZ - September 2026 - 3227.docx",
+      "source_size": 10371,
+      "source_sha256": "89b458be1a2b93ff24800e93e3323972fb2c43583f6a0dc7f6a1997fccb38eb8"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "ab02c8b4-aad0-4b8b-be35-4b1c443d06fd/3227/ROI Claim - MOHD. SHAHBAZ - September 2026 - 3227.pdf",
+      "source_size": 63989,
+      "source_sha256": "bc0161ff22a56752fe98cc3af44b0ad4354e8548a0b5b9876b45b22b3dd3572f"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "b5456af7-4be7-481d-b752-846430be7b55/3233/ROI Claim - MITHUN KUMAR SHAW (KL203) - September 2026 - 3233.docx",
+      "source_size": 10390,
+      "source_sha256": "a02d2ac80c17bd03a5e37d9ea1cf0bbc2f645e9092de7ba120d76c6cdff429f0"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "b5456af7-4be7-481d-b752-846430be7b55/3233/ROI Claim - MITHUN KUMAR SHAW (KL203) - September 2026 - 3233.pdf",
+      "source_size": 64041,
+      "source_sha256": "70e72de05cd34804ae361ce687bade7367f78f0429a3fafdb54d75b1bf82bc6e"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "c989607b-8a37-4a56-9c22-e9c56d1bb271/3229/ROI Claim - GAUTAM THAREJA - September 2026 - 3229.docx",
+      "source_size": 10382,
+      "source_sha256": "15c574e8d5c5ed6f4f18d72881d0ced90e5e1ceb4b4884cd313f9707c45eeed9"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "c989607b-8a37-4a56-9c22-e9c56d1bb271/3229/ROI Claim - GAUTAM THAREJA - September 2026 - 3229.pdf",
+      "source_size": 64013,
+      "source_sha256": "b7303863ac6f9dfcc8d1182a39088f4780a08ae53de958564ead31dbc4459677"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "cee85e23-faa5-43ec-bfd8-a7f4e809ea4b/3237/ROI Claim - Pushpak Pravin Baldota - September 2026 - 3237.docx",
+      "source_size": 10413,
+      "source_sha256": "33f9c585736dca6afbcb7a477bc7fcd72c397a6172f67697a03116a706556950"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "cee85e23-faa5-43ec-bfd8-a7f4e809ea4b/3237/ROI Claim - Pushpak Pravin Baldota - September 2026 - 3237.pdf",
+      "source_size": 64162,
+      "source_sha256": "406b78f01a4c4683d8c8ef9a84040fa6a60282bbab5138214989de7aa4b54828"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "d3d269bc-3b28-42f8-b678-43343267adfd/3238/ROI Claim - SHRADHA PUSHPAK BALDOTA - September 2026 - 3238.docx",
+      "source_size": 10434,
+      "source_sha256": "9e000815e13dc8157508dbf744c1df46d1e56712bb0cfa8f842b67d7388d8d3e"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "d3d269bc-3b28-42f8-b678-43343267adfd/3238/ROI Claim - SHRADHA PUSHPAK BALDOTA - September 2026 - 3238.pdf",
+      "source_size": 64198,
+      "source_sha256": "65d541813eb1286d2782d27cf6e063ee66c94ea1ff227befd8900b67bc377f96"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "ddffaeee-bcd0-441b-a6d3-a5c9281bfd97/3225/ROI Claim - RAJESH TRADING COMPANY (VD201) - September 2026 - 3225.docx",
+      "source_size": 10387,
+      "source_sha256": "eeba400cb6c89ad311a86837732593120b1e05e08eab298b2c1ee9334b5038a6"
+    },
+    {
+      "bucket": "roi-claims",
+      "object_path": "ddffaeee-bcd0-441b-a6d3-a5c9281bfd97/3225/ROI Claim - RAJESH TRADING COMPANY (VD201) - September 2026 - 3225.pdf",
+      "source_size": 64012,
+      "source_sha256": "6913c08c2a0aeb92b8da8d38b5d015b921922c6e49b63da581d01303aef8aa3f"
+    },
+    {
+      "bucket": "franchisee-docs",
+      "object_path": "30368fd4-c018-4a90-89e5-51fb4d4bfb03/aadhaar-1783693909590-IMG-20260706-WA0011.jpg",
+      "source_size": 126677,
+      "source_sha256": "8c9dc362fd44363151f4c262cc875035a429c3e675ef867a8c59b7c7719591c4"
+    },
+    {
+      "bucket": "official-documents",
+      "object_path": "payouts/PAY-2026-0001/Payout Statement - NIKHIL TRIPATHI (ND202) - June 2026 - PAY-2026-0001.docx",
+      "source_size": 197677,
+      "source_sha256": "8651f9e3a012d47a3ebf480561de82500db78b375948f20ba7ebd910853ea360"
+    },
+    {
+      "bucket": "invoice-sources",
+      "object_path": "2026/1187d076-9e62-409c-b65c-14a75439b553.pdf",
+      "source_size": 1543847,
+      "source_sha256": "0b18c9f8630f849fcb3b19fdf5f2e5bab962881767c8c3f85c417972954506fb"
+    },
+    {
+      "bucket": "brand-logos",
+      "object_path": "0ec97a4a-44f2-4e8c-a88a-3e6844c2b878.png",
+      "source_size": 12000,
+      "source_sha256": "e5f5354bf4ffcfe5348bf6749b1048464a2328b89711504d58f6127cfa5fadf3"
+    }
+  ]
+}

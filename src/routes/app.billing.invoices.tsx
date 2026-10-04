@@ -1,3 +1,4 @@
+import { storageService } from "@/lib/storage";
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -591,7 +592,7 @@ function SourceDocUpload({ currentUrl, onUploaded }: { currentUrl?: string; onUp
     try {
       const ext = file.name.split(".").pop() ?? "bin";
       const path = `${new Date().getFullYear()}/${crypto.randomUUID()}.${ext}`;
-      const { error } = await supabase.storage.from("invoice-sources").upload(path, file, { contentType: file.type, upsert: false });
+      const { error } = await storageService.from("invoice-sources").upload(path, file, { contentType: file.type, upsert: false });
       if (error) throw error;
       setName(file.name);
       onUploaded(path, file.name);
