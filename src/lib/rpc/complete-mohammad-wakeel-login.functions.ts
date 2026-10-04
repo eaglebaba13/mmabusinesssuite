@@ -1,10 +1,17 @@
-import { createServerFn } from "@tanstack/react-start";
+import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { supabase as browserSupabase } from "@/integrations/supabase/client";
 
 const TARGET_FRANCHISEE_ID = "f40bd753-5a21-4b6a-a55f-0073ccf786fc";
 const TARGET_NAME = "Mohammad Wakeel";
 const TARGET_EMAIL = "creation.diverse@gmail.com";
+
+const forwardAuthHeader = createMiddleware({ type: "function" }).client(async ({ next }) => {
+  const { data } = await browserSupabase.auth.getSession();
+  const token = data.session?.access_token;
+  return next({ headers: token ? { Authorization: `Bearer ${token}` } : {} });
+});
 
 const Input = z.object({
   franchisee_id: z.literal(TARGET_FRANCHISEE_ID),
@@ -32,7 +39,7 @@ function generateTemporaryPassword(length = 18) {
 }
 
 export const completeMohammadWakeelLogin = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([forwardAuthHeader, requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data, context }) => {
     const { data: isSuperAdmin, error: superAdminError } = await context.supabase.rpc(
