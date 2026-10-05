@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "test:storage": "node --experimental-strip-types --test tests/storage.test.ts"
+    "test:storage": "node --experimental-strip-types --test tests/storage.test.ts tests/storage-unix.test.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1146.0",

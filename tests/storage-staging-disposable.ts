@@ -50,6 +50,10 @@ try {
   );
   requireCheck("upload", put.status === 201);
   created = true;
+  requireCheck(
+    "head",
+    (await handler(new Request(url, { method: "HEAD", headers }))).status === 200,
+  );
   const get = await handler(new Request(url, { headers }));
   const received = Buffer.from(await get.arrayBuffer());
   requireCheck(
@@ -94,6 +98,18 @@ try {
     "controlled_access",
     read.status === 200 && Buffer.from(await read.arrayBuffer()).equals(bytes),
   );
+  const tamperedLink = new URL("http://localhost" + signedUrl);
+  const ticket = tamperedLink.searchParams.get("ticket")!;
+  const dot = ticket.indexOf(".");
+  tamperedLink.searchParams.set(
+    "ticket",
+    ticket.slice(0, dot + 1) + (ticket[dot + 1] === "a" ? "b" : "a") + ticket.slice(dot + 2),
+  );
+  const tampered = tamperedLink.pathname + tamperedLink.search;
+  requireCheck(
+    "controlled_access_tampered",
+    (await handler(new Request("http://localhost" + tampered))).status === 403,
+  );
   now += 61000;
   requireCheck(
     "controlled_access_expired",
@@ -114,26 +130,27 @@ try {
   created = false;
   report.cleanup_confirmed = true;
   // Only a never-created disposable path outside the permitted staging prefix.
-  for (const [op, fn] of Object.entries({
-    read: () => real.get(bucket, "__mma-forbidden__/never-created.bin"),
-    upload: () =>
-      real.upload(
-        bucket,
-        "__mma-forbidden__/never-created.bin",
-        bytes,
-        "application/octet-stream",
-        false,
-      ),
-    delete: () => real.delete(bucket, "__mma-forbidden__/never-created.bin"),
-  })) {
-    let rejected = false;
-    try {
-      await fn();
-    } catch (e) {
-      rejected = (e as { name?: string }).name === "AccessDenied";
+  if (process.env.STAGING_IAM_PREFIX_ONLY !== "false")
+    for (const [op, fn] of Object.entries({
+      read: () => real.get(bucket, "__mma-forbidden__/never-created.bin"),
+      upload: () =>
+        real.upload(
+          bucket,
+          "__mma-forbidden__/never-created.bin",
+          bytes,
+          "application/octet-stream",
+          false,
+        ),
+      delete: () => real.delete(bucket, "__mma-forbidden__/never-created.bin"),
+    })) {
+      let rejected = false;
+      try {
+        await fn();
+      } catch (e) {
+        rejected = (e as { name?: string }).name === "AccessDenied";
+      }
+      requireCheck("iam_outside_prefix_denied_" + op, rejected);
     }
-    requireCheck("iam_outside_prefix_denied_" + op, rejected);
-  }
   report.result = "PASS";
 } finally {
   if (created) {

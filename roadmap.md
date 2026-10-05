@@ -1,9 +1,5 @@
 # Roadmap
 
-## Complete Mohammad Wakeel franchise login
-- [x] Add a narrowly scoped Super Admin/founder login-completion action
-- [x] Verify one linked Auth account, one franchisee role, and one credential record
-
 ## Complete private storage ZIP export
 - [x] Add a Super Admin-only export endpoint for all seven private storage areas
 - [x] Preserve bucket names and nested folder paths in one ZIP archive

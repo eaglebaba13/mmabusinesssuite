@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, KeyRound, RefreshCw } from "lucide-react";
+import { Copy, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,9 +25,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductChangeTab } from "@/components/app/franchise/ProductChangeTab";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
-import { completeMohammadWakeelLogin } from "@/lib/rpc/complete-mohammad-wakeel-login.functions";
 import { formatINR } from "@/lib/format";
-import { useAuth } from "@/lib/auth-context";
 
 interface Franchisee {
   id: string;
@@ -82,14 +80,11 @@ const FEE_PRESETS = ["500000", "1000000", "custom"] as const;
 
 export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) {
   const qc = useQueryClient();
-  const { hasRole } = useAuth();
   const resetFn = useServerFn(resetFranchiseePassword);
-  const completeLoginFn = useServerFn(completeMohammadWakeelLogin);
   const [form, setForm] = React.useState<Franchisee | null>(franchisee);
   const [feePreset, setFeePreset] = React.useState<string>("500000");
   const [newPassword, setNewPassword] = React.useState<string | null>(null);
   const [resetting, setResetting] = React.useState(false);
-  const [completingLogin, setCompletingLogin] = React.useState(false);
 
   React.useEffect(() => {
     setForm(franchisee);
@@ -167,23 +162,6 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
       toast.error(e.message ?? "Reset failed");
     } finally {
       setResetting(false);
-    }
-  };
-
-  const onCompleteLogin = async () => {
-    if (!form) return;
-    setCompletingLogin(true);
-    try {
-      const result = await completeLoginFn({ data: { franchisee_id: form.id } });
-      if (result.temporary_password) setNewPassword(result.temporary_password);
-      setForm({ ...form, user_id: result.user_id });
-      toast.success(result.auth_user === "created" ? "Login created and linked" : "Existing login linked safely");
-      qc.invalidateQueries({ queryKey: ["franchisees"] });
-      qc.invalidateQueries({ queryKey: ["franchisee", form.id] });
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Login completion failed");
-    } finally {
-      setCompletingLogin(false);
     }
   };
 
@@ -431,16 +409,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
                 {resetting ? "Resetting…" : "Reset password"}
               </Button>
               {!form.user_id && (
-                <div className="mt-3 space-y-2">
-                  <p className="text-xs text-amber-400">No login account linked yet.</p>
-                  {form.id === "f40bd753-5a21-4b6a-a55f-0073ccf786fc" &&
-                    (hasRole("super_admin") || hasRole("founder")) && (
-                      <Button variant="outline" onClick={onCompleteLogin} disabled={completingLogin}>
-                        <KeyRound className={`mr-1 h-3.5 w-3.5 ${completingLogin ? "animate-pulse" : ""}`} />
-                        {completingLogin ? "Completing login…" : "Complete existing franchise login"}
-                      </Button>
-                    )}
-                </div>
+                <p className="mt-2 text-xs text-amber-400">No login account linked yet. Use the onboarding wizard to create one first.</p>
               )}
               {newPassword && (
                 <div className="mt-3 flex items-center justify-between rounded-lg bg-emerald-500/10 p-3">
