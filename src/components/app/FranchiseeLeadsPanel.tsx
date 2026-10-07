@@ -91,23 +91,12 @@ export function FranchiseeLeadsPanel({ territoryId, franchiseeName = "franchisee
   }
 
   const onSyncNow = async () => {
+    // Ad-provider sync is placeholder-only: no provider integration exists and
+    // the sync-ad-leads edge function is not deployed in NEW. Keep the button
+    // enabled for UX consistency, but never surface a 404 to the user.
     setSyncing(true);
     try {
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-ad-leads`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: "{}",
-        },
-      );
-      if (!res.ok) throw new Error("Sync failed");
-      toast.success("Sync triggered");
-    } catch (e: any) {
-      toast.error(e.message ?? "Sync failed");
+      toast.info("Ad sync is not connected yet. Auto-sync will appear once linked.");
     } finally {
       setSyncing(false);
     }
