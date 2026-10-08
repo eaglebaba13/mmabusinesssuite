@@ -31,6 +31,11 @@ function AppIndex() {
       navigate({ to: "/app/accounts", replace: true });
       return;
     }
+    // Sales must land on an authorized route; the master dashboard is admin-only.
+    if (hasRole("sales") && !isAdmin) {
+      navigate({ to: "/app/leads", replace: true });
+      return;
+    }
     navigate({ to: "/app/dashboard", replace: true });
   }, [loading, hasRole, isAdmin, hasAnyRole, navigate]);
 
