@@ -9,7 +9,7 @@ function DefaultErrorComponent({ error, reset }: ErrorComponentProps) {
       <div className="glass-strong max-w-md rounded-2xl p-8 text-center">
         <h1 className="font-display text-3xl text-gradient-gold">Something went wrong</h1>
         <p className="mt-3 text-sm text-muted-foreground">An unexpected error occurred. Please try again.</p>
-        {import.meta.env.DEV && error.message && (
+        {import.meta.env.DEV && error instanceof Error && error.message && (
           <pre className="mt-4 max-h-40 overflow-auto rounded-md bg-muted p-3 text-left font-mono text-xs text-destructive">
             {error.message}
           </pre>
