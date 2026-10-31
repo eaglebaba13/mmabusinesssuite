@@ -9,112 +9,102 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as WebinarSlugRouteImport } from './routes/webinar.$slug'
-import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
-import { Route as InvoiceTokenRouteImport } from './routes/invoice.$token'
-import { Route as ImpTokenRouteImport } from './routes/imp.$token'
-import { Route as AppWebinarsRouteImport } from './routes/app.webinars'
-import { Route as AppTrainerRouteImport } from './routes/app.trainer'
-import { Route as AppSupportRouteImport } from './routes/app.support'
-import { Route as AppStateFranchisesRouteImport } from './routes/app.state-franchises'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppReportsRouteImport } from './routes/app.reports'
-import { Route as AppPosRouteImport } from './routes/app.pos'
-import { Route as AppMyStateRouteImport } from './routes/app.my-state'
-import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
-import { Route as AppLeadsRouteImport } from './routes/app.leads'
-import { Route as AppInventoryRouteImport } from './routes/app.inventory'
-import { Route as AppImpersonationSessionsRouteImport } from './routes/app.impersonation-sessions'
-import { Route as AppHrRouteImport } from './routes/app.hr'
-import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
-import { Route as AppFranchiseMarketplaceRouteImport } from './routes/app.franchise-marketplace'
-import { Route as AppFranchiseCompareRouteImport } from './routes/app.franchise-compare'
-import { Route as AppFinanceRouteImport } from './routes/app.finance'
-import { Route as AppDocumentsRouteImport } from './routes/app.documents'
-import { Route as AppDashboardsRouteImport } from './routes/app.dashboards'
-import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
-import { Route as AppAuditLogsRouteImport } from './routes/app.audit-logs'
-import { Route as AppAgreementsRouteImport } from './routes/app.agreements'
-import { Route as AppAccountsRouteImport } from './routes/app.accounts'
-import { Route as AppAcademyRouteImport } from './routes/app.academy'
-import { Route as ApiStorageExportRouteImport } from './routes/api/storage-export'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ApiStorageRouteImport } from './routes/api/storage'
-import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
-import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
-import { Route as AppPosIndexRouteImport } from './routes/app.pos.index'
-import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
-import { Route as AppHrIndexRouteImport } from './routes/app.hr.index'
-import { Route as AppFranchiseProductsIndexRouteImport } from './routes/app.franchise-products.index'
-import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
-import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
-import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
-import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
-import { Route as AppStateFranchisesStateFranchiseIdRouteImport } from './routes/app.state-franchises.$stateFranchiseId'
-import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
-import { Route as AppSettingsStorageExportRouteImport } from './routes/app.settings.storage-export'
-import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.social'
-import { Route as AppSettingsSidebarRouteImport } from './routes/app.settings.sidebar'
-import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.settings.lead-routing'
-import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
-import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
-import { Route as AppPayoutsStateRouteImport } from './routes/app.payouts.state'
-import { Route as AppPayoutsCityRouteImport } from './routes/app.payouts.city'
-import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
-import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
-import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
-import { Route as AppInventoryStockRouteImport } from './routes/app.inventory.stock'
-import { Route as AppInventoryPurchaseOrdersRouteImport } from './routes/app.inventory.purchase-orders'
-import { Route as AppInventoryProductsRouteImport } from './routes/app.inventory.products'
-import { Route as AppInventoryMovementsRouteImport } from './routes/app.inventory.movements'
-import { Route as AppInventoryCategoriesRouteImport } from './routes/app.inventory.categories'
-import { Route as AppHrPayrollRouteImport } from './routes/app.hr.payroll'
-import { Route as AppHrLeaveRouteImport } from './routes/app.hr.leave'
-import { Route as AppHrEmployeesRouteImport } from './routes/app.hr.employees'
-import { Route as AppHrAttendanceRouteImport } from './routes/app.hr.attendance'
-import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
-import { Route as AppFranchiseProductsNewRouteImport } from './routes/app.franchise-products.new'
-import { Route as AppFranchiseProductsProductIdRouteImport } from './routes/app.franchise-products.$productId'
-import { Route as AppFinanceRevenueModelRouteImport } from './routes/app.finance.revenue-model'
-import { Route as AppFinanceRevenueRouteImport } from './routes/app.finance.revenue'
-import { Route as AppFinancePayoutsRouteImport } from './routes/app.finance.payouts'
-import { Route as AppFinanceExpensesRouteImport } from './routes/app.finance.expenses'
-import { Route as AppFinanceCategoriesRouteImport } from './routes/app.finance.categories'
-import { Route as AppDashboardsSalonRouteImport } from './routes/app.dashboards.salon'
-import { Route as AppDashboardsDarkStoreRouteImport } from './routes/app.dashboards.dark-store'
-import { Route as AppDashboardsAcademyRouteImport } from './routes/app.dashboards.academy'
-import { Route as AppBillingInvoicesRouteImport } from './routes/app.billing.invoices'
-import { Route as AppAcademyTrainersRouteImport } from './routes/app.academy.trainers'
-import { Route as AppAcademyStudentsRouteImport } from './routes/app.academy.students'
-import { Route as AppAcademyFeesRouteImport } from './routes/app.academy.fees'
-import { Route as AppAcademyCoursesRouteImport } from './routes/app.academy.courses'
-import { Route as AppAcademyCertificatesRouteImport } from './routes/app.academy.certificates'
-import { Route as AppAcademyBatchesRouteImport } from './routes/app.academy.batches'
-import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
-import { Route as ApiPublicWebinarRegisterHookRouteImport } from './routes/api/public/webinar-register-hook'
+import { Route as ApiStorageExportRouteImport } from './routes/api/storage-export'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppAcademyRouteImport } from './routes/app.academy'
+import { Route as AppAccountsRouteImport } from './routes/app.accounts'
+import { Route as AppAgreementsRouteImport } from './routes/app.agreements'
+import { Route as AppAuditLogsRouteImport } from './routes/app.audit-logs'
+import { Route as AppDashboardRouteImport } from './routes/app.dashboard'
+import { Route as AppDashboardsRouteImport } from './routes/app.dashboards'
+import { Route as AppDocumentsRouteImport } from './routes/app.documents'
+import { Route as AppFinanceRouteImport } from './routes/app.finance'
+import { Route as AppFranchiseCompareRouteImport } from './routes/app.franchise-compare'
+import { Route as AppFranchiseMarketplaceRouteImport } from './routes/app.franchise-marketplace'
+import { Route as AppFranchiseesRouteImport } from './routes/app.franchisees'
+import { Route as AppHrRouteImport } from './routes/app.hr'
+import { Route as AppImpersonationSessionsRouteImport } from './routes/app.impersonation-sessions'
+import { Route as AppInventoryRouteImport } from './routes/app.inventory'
+import { Route as AppLeadsRouteImport } from './routes/app.leads'
+import { Route as AppMyFranchiseRouteImport } from './routes/app.my-franchise'
+import { Route as AppMyStateRouteImport } from './routes/app.my-state'
+import { Route as AppPosRouteImport } from './routes/app.pos'
+import { Route as AppReportsRouteImport } from './routes/app.reports'
+import { Route as AppSettingsRouteImport } from './routes/app.settings'
+import { Route as AppStateFranchisesRouteImport } from './routes/app.state-franchises'
+import { Route as AppSupportRouteImport } from './routes/app.support'
+import { Route as AppTrainerRouteImport } from './routes/app.trainer'
+import { Route as AppWebinarsRouteImport } from './routes/app.webinars'
+import { Route as ImpTokenRouteImport } from './routes/imp.$token'
+import { Route as InvoiceTokenRouteImport } from './routes/invoice.$token'
+import { Route as VerifyCodeRouteImport } from './routes/verify.$code'
+import { Route as WebinarSlugRouteImport } from './routes/webinar.$slug'
 import { Route as ApiPublicSocialLeadHookRouteImport } from './routes/api/public/social-lead-hook'
-import { Route as AppPosOrdersOrderIdRouteImport } from './routes/app.pos.orders.$orderId'
-import { Route as AppBillingInvoicesInvoiceIdRouteImport } from './routes/app.billing.invoices.$invoiceId'
+import { Route as ApiPublicWebinarRegisterHookRouteImport } from './routes/api/public/webinar-register-hook'
+import { Route as ApiPublicWebinarRemindersRouteImport } from './routes/api/public/webinar-reminders'
+import { Route as AppAcademyIndexRouteImport } from './routes/app.academy.index'
+import { Route as AppAcademyBatchesRouteImport } from './routes/app.academy.batches'
+import { Route as AppAcademyCertificatesRouteImport } from './routes/app.academy.certificates'
+import { Route as AppAcademyCoursesRouteImport } from './routes/app.academy.courses'
+import { Route as AppAcademyFeesRouteImport } from './routes/app.academy.fees'
+import { Route as AppAcademyStudentsRouteImport } from './routes/app.academy.students'
+import { Route as AppAcademyTrainersRouteImport } from './routes/app.academy.trainers'
+import { Route as AppBillingInvoicesRouteImport } from './routes/app.billing.invoices'
+import { Route as AppDashboardsAcademyRouteImport } from './routes/app.dashboards.academy'
+import { Route as AppDashboardsDarkStoreRouteImport } from './routes/app.dashboards.dark-store'
+import { Route as AppDashboardsSalonRouteImport } from './routes/app.dashboards.salon'
+import { Route as AppFinanceIndexRouteImport } from './routes/app.finance.index'
+import { Route as AppFinanceCategoriesRouteImport } from './routes/app.finance.categories'
+import { Route as AppFinanceExpensesRouteImport } from './routes/app.finance.expenses'
+import { Route as AppFinancePayoutsRouteImport } from './routes/app.finance.payouts'
+import { Route as AppFinanceRevenueRouteImport } from './routes/app.finance.revenue'
+import { Route as AppFinanceRevenueModelRouteImport } from './routes/app.finance.revenue-model'
+import { Route as AppFranchiseProductsIndexRouteImport } from './routes/app.franchise-products.index'
+import { Route as AppFranchiseProductsProductIdRouteImport } from './routes/app.franchise-products.$productId'
+import { Route as AppFranchiseProductsNewRouteImport } from './routes/app.franchise-products.new'
+import { Route as AppFranchiseesFranchiseeIdRouteImport } from './routes/app.franchisees.$franchiseeId'
+import { Route as AppHrIndexRouteImport } from './routes/app.hr.index'
+import { Route as AppHrAttendanceRouteImport } from './routes/app.hr.attendance'
+import { Route as AppHrEmployeesRouteImport } from './routes/app.hr.employees'
+import { Route as AppHrLeaveRouteImport } from './routes/app.hr.leave'
+import { Route as AppHrPayrollRouteImport } from './routes/app.hr.payroll'
+import { Route as AppInventoryIndexRouteImport } from './routes/app.inventory.index'
+import { Route as AppInventoryCategoriesRouteImport } from './routes/app.inventory.categories'
+import { Route as AppInventoryMovementsRouteImport } from './routes/app.inventory.movements'
+import { Route as AppInventoryProductsRouteImport } from './routes/app.inventory.products'
+import { Route as AppInventoryPurchaseOrdersRouteImport } from './routes/app.inventory.purchase-orders'
+import { Route as AppInventoryStockRouteImport } from './routes/app.inventory.stock'
+import { Route as AppInventorySuppliersRouteImport } from './routes/app.inventory.suppliers'
+import { Route as AppInventoryWarehousesRouteImport } from './routes/app.inventory.warehouses'
+import { Route as AppLeadsLeadIdRouteImport } from './routes/app.leads.$leadId'
+import { Route as AppPayoutsCityRouteImport } from './routes/app.payouts.city'
+import { Route as AppPayoutsStateRouteImport } from './routes/app.payouts.state'
+import { Route as AppPosIndexRouteImport } from './routes/app.pos.index'
+import { Route as AppPosAnalyticsRouteImport } from './routes/app.pos.analytics'
+import { Route as AppPosOrdersRouteImport } from './routes/app.pos.orders'
+import { Route as AppSettingsIndexRouteImport } from './routes/app.settings.index'
+import { Route as AppSettingsLeadRoutingRouteImport } from './routes/app.settings.lead-routing'
+import { Route as AppSettingsSidebarRouteImport } from './routes/app.settings.sidebar'
+import { Route as AppSettingsSocialRouteImport } from './routes/app.settings.social'
+import { Route as AppSettingsStorageExportRouteImport } from './routes/app.settings.storage-export'
+import { Route as AppSettingsTeamRouteImport } from './routes/app.settings.team'
+import { Route as AppStateFranchisesStateFranchiseIdRouteImport } from './routes/app.state-franchises.$stateFranchiseId'
+import { Route as AppWebinarsIndexRouteImport } from './routes/app.webinars.index'
+import { Route as AppWebinarsWebinarIdRouteImport } from './routes/app.webinars.$webinarId'
+import { Route as AppWebinarsAnalyticsRouteImport } from './routes/app.webinars.analytics'
 import { Route as AppAcademyBatchesBatchIdRouteImport } from './routes/app.academy.batches.$batchId'
+import { Route as AppBillingInvoicesInvoiceIdRouteImport } from './routes/app.billing.invoices.$invoiceId'
+import { Route as AppPosOrdersOrderIdRouteImport } from './routes/app.pos.orders.$orderId'
 
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -122,9 +112,29 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStorageRoute = ApiStorageRouteImport.update({
+  id: '/api/storage',
+  path: '/api/storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStorageExportRoute = ApiStorageExportRouteImport.update({
+  id: '/api/storage-export',
+  path: '/api/storage-export',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -132,79 +142,64 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const WebinarSlugRoute = WebinarSlugRouteImport.update({
-  id: '/webinar/$slug',
-  path: '/webinar/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const VerifyCodeRoute = VerifyCodeRouteImport.update({
-  id: '/verify/$code',
-  path: '/verify/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InvoiceTokenRoute = InvoiceTokenRouteImport.update({
-  id: '/invoice/$token',
-  path: '/invoice/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ImpTokenRoute = ImpTokenRouteImport.update({
-  id: '/imp/$token',
-  path: '/imp/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppWebinarsRoute = AppWebinarsRouteImport.update({
-  id: '/webinars',
-  path: '/webinars',
+const AppAcademyRoute = AppAcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
   getParentRoute: () => AppRoute,
 } as any)
-const AppTrainerRoute = AppTrainerRouteImport.update({
-  id: '/trainer',
-  path: '/trainer',
+const AppAccountsRoute = AppAccountsRouteImport.update({
+  id: '/accounts',
+  path: '/accounts',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSupportRoute = AppSupportRouteImport.update({
-  id: '/support',
-  path: '/support',
+const AppAgreementsRoute = AppAgreementsRouteImport.update({
+  id: '/agreements',
+  path: '/agreements',
   getParentRoute: () => AppRoute,
 } as any)
-const AppStateFranchisesRoute = AppStateFranchisesRouteImport.update({
-  id: '/state-franchises',
-  path: '/state-franchises',
+const AppAuditLogsRoute = AppAuditLogsRouteImport.update({
+  id: '/audit-logs',
+  path: '/audit-logs',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
-const AppReportsRoute = AppReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
+const AppDashboardsRoute = AppDashboardsRouteImport.update({
+  id: '/dashboards',
+  path: '/dashboards',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPosRoute = AppPosRouteImport.update({
-  id: '/pos',
-  path: '/pos',
+const AppDocumentsRoute = AppDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMyStateRoute = AppMyStateRouteImport.update({
-  id: '/my-state',
-  path: '/my-state',
+const AppFinanceRoute = AppFinanceRouteImport.update({
+  id: '/finance',
+  path: '/finance',
   getParentRoute: () => AppRoute,
 } as any)
-const AppMyFranchiseRoute = AppMyFranchiseRouteImport.update({
-  id: '/my-franchise',
-  path: '/my-franchise',
+const AppFranchiseCompareRoute = AppFranchiseCompareRouteImport.update({
+  id: '/franchise-compare',
+  path: '/franchise-compare',
   getParentRoute: () => AppRoute,
 } as any)
-const AppLeadsRoute = AppLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
+const AppFranchiseMarketplaceRoute = AppFranchiseMarketplaceRouteImport.update({
+  id: '/franchise-marketplace',
+  path: '/franchise-marketplace',
   getParentRoute: () => AppRoute,
 } as any)
-const AppInventoryRoute = AppInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
+const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
+  id: '/franchisees',
+  path: '/franchisees',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppHrRoute = AppHrRouteImport.update({
+  id: '/hr',
+  path: '/hr',
   getParentRoute: () => AppRoute,
 } as any)
 const AppImpersonationSessionsRoute =
@@ -213,100 +208,182 @@ const AppImpersonationSessionsRoute =
     path: '/impersonation-sessions',
     getParentRoute: () => AppRoute,
   } as any)
-const AppHrRoute = AppHrRouteImport.update({
-  id: '/hr',
-  path: '/hr',
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFranchiseesRoute = AppFranchiseesRouteImport.update({
-  id: '/franchisees',
-  path: '/franchisees',
+const AppLeadsRoute = AppLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFranchiseMarketplaceRoute = AppFranchiseMarketplaceRouteImport.update({
-  id: '/franchise-marketplace',
-  path: '/franchise-marketplace',
+const AppMyFranchiseRoute = AppMyFranchiseRouteImport.update({
+  id: '/my-franchise',
+  path: '/my-franchise',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFranchiseCompareRoute = AppFranchiseCompareRouteImport.update({
-  id: '/franchise-compare',
-  path: '/franchise-compare',
+const AppMyStateRoute = AppMyStateRouteImport.update({
+  id: '/my-state',
+  path: '/my-state',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFinanceRoute = AppFinanceRouteImport.update({
-  id: '/finance',
-  path: '/finance',
+const AppPosRoute = AppPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
   getParentRoute: () => AppRoute,
 } as any)
-const AppDocumentsRoute = AppDocumentsRouteImport.update({
-  id: '/documents',
-  path: '/documents',
+const AppReportsRoute = AppReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
   getParentRoute: () => AppRoute,
 } as any)
-const AppDashboardsRoute = AppDashboardsRouteImport.update({
-  id: '/dashboards',
-  path: '/dashboards',
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
-const AppDashboardRoute = AppDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const AppStateFranchisesRoute = AppStateFranchisesRouteImport.update({
+  id: '/state-franchises',
+  path: '/state-franchises',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAuditLogsRoute = AppAuditLogsRouteImport.update({
-  id: '/audit-logs',
-  path: '/audit-logs',
+const AppSupportRoute = AppSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAgreementsRoute = AppAgreementsRouteImport.update({
-  id: '/agreements',
-  path: '/agreements',
+const AppTrainerRoute = AppTrainerRouteImport.update({
+  id: '/trainer',
+  path: '/trainer',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAccountsRoute = AppAccountsRouteImport.update({
-  id: '/accounts',
-  path: '/accounts',
+const AppWebinarsRoute = AppWebinarsRouteImport.update({
+  id: '/webinars',
+  path: '/webinars',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAcademyRoute = AppAcademyRouteImport.update({
+const ImpTokenRoute = ImpTokenRouteImport.update({
+  id: '/imp/$token',
+  path: '/imp/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoiceTokenRoute = InvoiceTokenRouteImport.update({
+  id: '/invoice/$token',
+  path: '/invoice/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyCodeRoute = VerifyCodeRouteImport.update({
+  id: '/verify/$code',
+  path: '/verify/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebinarSlugRoute = WebinarSlugRouteImport.update({
+  id: '/webinar/$slug',
+  path: '/webinar/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSocialLeadHookRoute = ApiPublicSocialLeadHookRouteImport.update({
+  id: '/api/public/social-lead-hook',
+  path: '/api/public/social-lead-hook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebinarRegisterHookRoute =
+  ApiPublicWebinarRegisterHookRouteImport.update({
+    id: '/api/public/webinar-register-hook',
+    path: '/api/public/webinar-register-hook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicWebinarRemindersRoute =
+  ApiPublicWebinarRemindersRouteImport.update({
+    id: '/api/public/webinar-reminders',
+    path: '/api/public/webinar-reminders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AppAcademyIndexRoute = AppAcademyIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyBatchesRoute = AppAcademyBatchesRouteImport.update({
+  id: '/batches',
+  path: '/batches',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyCertificatesRoute = AppAcademyCertificatesRouteImport.update({
+  id: '/certificates',
+  path: '/certificates',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyCoursesRoute = AppAcademyCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyFeesRoute = AppAcademyFeesRouteImport.update({
+  id: '/fees',
+  path: '/fees',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyStudentsRoute = AppAcademyStudentsRouteImport.update({
+  id: '/students',
+  path: '/students',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppAcademyTrainersRoute = AppAcademyTrainersRouteImport.update({
+  id: '/trainers',
+  path: '/trainers',
+  getParentRoute: () => AppAcademyRoute,
+} as any)
+const AppBillingInvoicesRoute = AppBillingInvoicesRouteImport.update({
+  id: '/billing/invoices',
+  path: '/billing/invoices',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDashboardsAcademyRoute = AppDashboardsAcademyRouteImport.update({
   id: '/academy',
   path: '/academy',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AppDashboardsRoute,
 } as any)
-const ApiStorageExportRoute = ApiStorageExportRouteImport.update({
-  id: '/api/storage-export',
-  path: '/api/storage-export',
-  getParentRoute: () => rootRouteImport,
+const AppDashboardsDarkStoreRoute = AppDashboardsDarkStoreRouteImport.update({
+  id: '/dark-store',
+  path: '/dark-store',
+  getParentRoute: () => AppDashboardsRoute,
 } as any)
-const ApiStorageRoute = ApiStorageRouteImport.update({
-  id: '/api/storage',
-  path: '/api/storage',
-  getParentRoute: () => rootRouteImport,
+const AppDashboardsSalonRoute = AppDashboardsSalonRouteImport.update({
+  id: '/salon',
+  path: '/salon',
+  getParentRoute: () => AppDashboardsRoute,
 } as any)
-const AppWebinarsIndexRoute = AppWebinarsIndexRouteImport.update({
+const AppFinanceIndexRoute = AppFinanceIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppWebinarsRoute,
+  getParentRoute: () => AppFinanceRoute,
 } as any)
-const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppSettingsRoute,
+const AppFinanceCategoriesRoute = AppFinanceCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AppFinanceRoute,
 } as any)
-const AppPosIndexRoute = AppPosIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppPosRoute,
+const AppFinanceExpensesRoute = AppFinanceExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => AppFinanceRoute,
 } as any)
-const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppInventoryRoute,
+const AppFinancePayoutsRoute = AppFinancePayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => AppFinanceRoute,
 } as any)
-const AppHrIndexRoute = AppHrIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppHrRoute,
+const AppFinanceRevenueRoute = AppFinanceRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => AppFinanceRoute,
+} as any)
+const AppFinanceRevenueModelRoute = AppFinanceRevenueModelRouteImport.update({
+  id: '/revenue-model',
+  path: '/revenue-model',
+  getParentRoute: () => AppFinanceRoute,
 } as any)
 const AppFranchiseProductsIndexRoute =
   AppFranchiseProductsIndexRouteImport.update({
@@ -314,96 +391,66 @@ const AppFranchiseProductsIndexRoute =
     path: '/franchise-products/',
     getParentRoute: () => AppRoute,
   } as any)
-const AppFinanceIndexRoute = AppFinanceIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppFinanceRoute,
-} as any)
-const AppAcademyIndexRoute = AppAcademyIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AppAcademyRoute,
-} as any)
-const AppWebinarsAnalyticsRoute = AppWebinarsAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AppWebinarsRoute,
-} as any)
-const AppWebinarsWebinarIdRoute = AppWebinarsWebinarIdRouteImport.update({
-  id: '/$webinarId',
-  path: '/$webinarId',
-  getParentRoute: () => AppWebinarsRoute,
-} as any)
-const AppStateFranchisesStateFranchiseIdRoute =
-  AppStateFranchisesStateFranchiseIdRouteImport.update({
-    id: '/$stateFranchiseId',
-    path: '/$stateFranchiseId',
-    getParentRoute: () => AppStateFranchisesRoute,
+const AppFranchiseProductsProductIdRoute =
+  AppFranchiseProductsProductIdRouteImport.update({
+    id: '/franchise-products/$productId',
+    path: '/franchise-products/$productId',
+    getParentRoute: () => AppRoute,
   } as any)
-const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
-  id: '/team',
-  path: '/team',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsStorageExportRoute =
-  AppSettingsStorageExportRouteImport.update({
-    id: '/storage-export',
-    path: '/storage-export',
-    getParentRoute: () => AppSettingsRoute,
-  } as any)
-const AppSettingsSocialRoute = AppSettingsSocialRouteImport.update({
-  id: '/social',
-  path: '/social',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsSidebarRoute = AppSettingsSidebarRouteImport.update({
-  id: '/sidebar',
-  path: '/sidebar',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppSettingsLeadRoutingRoute = AppSettingsLeadRoutingRouteImport.update({
-  id: '/lead-routing',
-  path: '/lead-routing',
-  getParentRoute: () => AppSettingsRoute,
-} as any)
-const AppPosOrdersRoute = AppPosOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => AppPosRoute,
-} as any)
-const AppPosAnalyticsRoute = AppPosAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AppPosRoute,
-} as any)
-const AppPayoutsStateRoute = AppPayoutsStateRouteImport.update({
-  id: '/payouts/state',
-  path: '/payouts/state',
+const AppFranchiseProductsNewRoute = AppFranchiseProductsNewRouteImport.update({
+  id: '/franchise-products/new',
+  path: '/franchise-products/new',
   getParentRoute: () => AppRoute,
 } as any)
-const AppPayoutsCityRoute = AppPayoutsCityRouteImport.update({
-  id: '/payouts/city',
-  path: '/payouts/city',
-  getParentRoute: () => AppRoute,
+const AppFranchiseesFranchiseeIdRoute =
+  AppFranchiseesFranchiseeIdRouteImport.update({
+    id: '/$franchiseeId',
+    path: '/$franchiseeId',
+    getParentRoute: () => AppFranchiseesRoute,
+  } as any)
+const AppHrIndexRoute = AppHrIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppHrRoute,
 } as any)
-const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
-  id: '/$leadId',
-  path: '/$leadId',
-  getParentRoute: () => AppLeadsRoute,
+const AppHrAttendanceRoute = AppHrAttendanceRouteImport.update({
+  id: '/attendance',
+  path: '/attendance',
+  getParentRoute: () => AppHrRoute,
 } as any)
-const AppInventoryWarehousesRoute = AppInventoryWarehousesRouteImport.update({
-  id: '/warehouses',
-  path: '/warehouses',
+const AppHrEmployeesRoute = AppHrEmployeesRouteImport.update({
+  id: '/employees',
+  path: '/employees',
+  getParentRoute: () => AppHrRoute,
+} as any)
+const AppHrLeaveRoute = AppHrLeaveRouteImport.update({
+  id: '/leave',
+  path: '/leave',
+  getParentRoute: () => AppHrRoute,
+} as any)
+const AppHrPayrollRoute = AppHrPayrollRouteImport.update({
+  id: '/payroll',
+  path: '/payroll',
+  getParentRoute: () => AppHrRoute,
+} as any)
+const AppInventoryIndexRoute = AppInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => AppInventoryRoute,
 } as any)
-const AppInventorySuppliersRoute = AppInventorySuppliersRouteImport.update({
-  id: '/suppliers',
-  path: '/suppliers',
+const AppInventoryCategoriesRoute = AppInventoryCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
   getParentRoute: () => AppInventoryRoute,
 } as any)
-const AppInventoryStockRoute = AppInventoryStockRouteImport.update({
-  id: '/stock',
-  path: '/stock',
+const AppInventoryMovementsRoute = AppInventoryMovementsRouteImport.update({
+  id: '/movements',
+  path: '/movements',
+  getParentRoute: () => AppInventoryRoute,
+} as any)
+const AppInventoryProductsRoute = AppInventoryProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
   getParentRoute: () => AppInventoryRoute,
 } as any)
 const AppInventoryPurchaseOrdersRoute =
@@ -412,167 +459,120 @@ const AppInventoryPurchaseOrdersRoute =
     path: '/purchase-orders',
     getParentRoute: () => AppInventoryRoute,
   } as any)
-const AppInventoryProductsRoute = AppInventoryProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
+const AppInventoryStockRoute = AppInventoryStockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
   getParentRoute: () => AppInventoryRoute,
 } as any)
-const AppInventoryMovementsRoute = AppInventoryMovementsRouteImport.update({
-  id: '/movements',
-  path: '/movements',
+const AppInventorySuppliersRoute = AppInventorySuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
   getParentRoute: () => AppInventoryRoute,
 } as any)
-const AppInventoryCategoriesRoute = AppInventoryCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
+const AppInventoryWarehousesRoute = AppInventoryWarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
   getParentRoute: () => AppInventoryRoute,
 } as any)
-const AppHrPayrollRoute = AppHrPayrollRouteImport.update({
-  id: '/payroll',
-  path: '/payroll',
-  getParentRoute: () => AppHrRoute,
+const AppLeadsLeadIdRoute = AppLeadsLeadIdRouteImport.update({
+  id: '/$leadId',
+  path: '/$leadId',
+  getParentRoute: () => AppLeadsRoute,
 } as any)
-const AppHrLeaveRoute = AppHrLeaveRouteImport.update({
-  id: '/leave',
-  path: '/leave',
-  getParentRoute: () => AppHrRoute,
-} as any)
-const AppHrEmployeesRoute = AppHrEmployeesRouteImport.update({
-  id: '/employees',
-  path: '/employees',
-  getParentRoute: () => AppHrRoute,
-} as any)
-const AppHrAttendanceRoute = AppHrAttendanceRouteImport.update({
-  id: '/attendance',
-  path: '/attendance',
-  getParentRoute: () => AppHrRoute,
-} as any)
-const AppFranchiseesFranchiseeIdRoute =
-  AppFranchiseesFranchiseeIdRouteImport.update({
-    id: '/$franchiseeId',
-    path: '/$franchiseeId',
-    getParentRoute: () => AppFranchiseesRoute,
-  } as any)
-const AppFranchiseProductsNewRoute = AppFranchiseProductsNewRouteImport.update({
-  id: '/franchise-products/new',
-  path: '/franchise-products/new',
+const AppPayoutsCityRoute = AppPayoutsCityRouteImport.update({
+  id: '/payouts/city',
+  path: '/payouts/city',
   getParentRoute: () => AppRoute,
 } as any)
-const AppFranchiseProductsProductIdRoute =
-  AppFranchiseProductsProductIdRouteImport.update({
-    id: '/franchise-products/$productId',
-    path: '/franchise-products/$productId',
-    getParentRoute: () => AppRoute,
-  } as any)
-const AppFinanceRevenueModelRoute = AppFinanceRevenueModelRouteImport.update({
-  id: '/revenue-model',
-  path: '/revenue-model',
-  getParentRoute: () => AppFinanceRoute,
-} as any)
-const AppFinanceRevenueRoute = AppFinanceRevenueRouteImport.update({
-  id: '/revenue',
-  path: '/revenue',
-  getParentRoute: () => AppFinanceRoute,
-} as any)
-const AppFinancePayoutsRoute = AppFinancePayoutsRouteImport.update({
-  id: '/payouts',
-  path: '/payouts',
-  getParentRoute: () => AppFinanceRoute,
-} as any)
-const AppFinanceExpensesRoute = AppFinanceExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
-  getParentRoute: () => AppFinanceRoute,
-} as any)
-const AppFinanceCategoriesRoute = AppFinanceCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AppFinanceRoute,
-} as any)
-const AppDashboardsSalonRoute = AppDashboardsSalonRouteImport.update({
-  id: '/salon',
-  path: '/salon',
-  getParentRoute: () => AppDashboardsRoute,
-} as any)
-const AppDashboardsDarkStoreRoute = AppDashboardsDarkStoreRouteImport.update({
-  id: '/dark-store',
-  path: '/dark-store',
-  getParentRoute: () => AppDashboardsRoute,
-} as any)
-const AppDashboardsAcademyRoute = AppDashboardsAcademyRouteImport.update({
-  id: '/academy',
-  path: '/academy',
-  getParentRoute: () => AppDashboardsRoute,
-} as any)
-const AppBillingInvoicesRoute = AppBillingInvoicesRouteImport.update({
-  id: '/billing/invoices',
-  path: '/billing/invoices',
+const AppPayoutsStateRoute = AppPayoutsStateRouteImport.update({
+  id: '/payouts/state',
+  path: '/payouts/state',
   getParentRoute: () => AppRoute,
 } as any)
-const AppAcademyTrainersRoute = AppAcademyTrainersRouteImport.update({
-  id: '/trainers',
-  path: '/trainers',
-  getParentRoute: () => AppAcademyRoute,
+const AppPosIndexRoute = AppPosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppPosRoute,
 } as any)
-const AppAcademyStudentsRoute = AppAcademyStudentsRouteImport.update({
-  id: '/students',
-  path: '/students',
-  getParentRoute: () => AppAcademyRoute,
+const AppPosAnalyticsRoute = AppPosAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppPosRoute,
 } as any)
-const AppAcademyFeesRoute = AppAcademyFeesRouteImport.update({
-  id: '/fees',
-  path: '/fees',
-  getParentRoute: () => AppAcademyRoute,
+const AppPosOrdersRoute = AppPosOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AppPosRoute,
 } as any)
-const AppAcademyCoursesRoute = AppAcademyCoursesRouteImport.update({
-  id: '/courses',
-  path: '/courses',
-  getParentRoute: () => AppAcademyRoute,
+const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppAcademyCertificatesRoute = AppAcademyCertificatesRouteImport.update({
-  id: '/certificates',
-  path: '/certificates',
-  getParentRoute: () => AppAcademyRoute,
+const AppSettingsLeadRoutingRoute = AppSettingsLeadRoutingRouteImport.update({
+  id: '/lead-routing',
+  path: '/lead-routing',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppAcademyBatchesRoute = AppAcademyBatchesRouteImport.update({
-  id: '/batches',
-  path: '/batches',
-  getParentRoute: () => AppAcademyRoute,
+const AppSettingsSidebarRoute = AppSettingsSidebarRouteImport.update({
+  id: '/sidebar',
+  path: '/sidebar',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const ApiPublicWebinarRemindersRoute =
-  ApiPublicWebinarRemindersRouteImport.update({
-    id: '/api/public/webinar-reminders',
-    path: '/api/public/webinar-reminders',
-    getParentRoute: () => rootRouteImport,
+const AppSettingsSocialRoute = AppSettingsSocialRouteImport.update({
+  id: '/social',
+  path: '/social',
+  getParentRoute: () => AppSettingsRoute,
+} as any)
+const AppSettingsStorageExportRoute =
+  AppSettingsStorageExportRouteImport.update({
+    id: '/storage-export',
+    path: '/storage-export',
+    getParentRoute: () => AppSettingsRoute,
   } as any)
-const ApiPublicWebinarRegisterHookRoute =
-  ApiPublicWebinarRegisterHookRouteImport.update({
-    id: '/api/public/webinar-register-hook',
-    path: '/api/public/webinar-register-hook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicSocialLeadHookRoute = ApiPublicSocialLeadHookRouteImport.update({
-  id: '/api/public/social-lead-hook',
-  path: '/api/public/social-lead-hook',
-  getParentRoute: () => rootRouteImport,
+const AppSettingsTeamRoute = AppSettingsTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AppSettingsRoute,
 } as any)
-const AppPosOrdersOrderIdRoute = AppPosOrdersOrderIdRouteImport.update({
-  id: '/$orderId',
-  path: '/$orderId',
-  getParentRoute: () => AppPosOrdersRoute,
-} as any)
-const AppBillingInvoicesInvoiceIdRoute =
-  AppBillingInvoicesInvoiceIdRouteImport.update({
-    id: '/$invoiceId',
-    path: '/$invoiceId',
-    getParentRoute: () => AppBillingInvoicesRoute,
+const AppStateFranchisesStateFranchiseIdRoute =
+  AppStateFranchisesStateFranchiseIdRouteImport.update({
+    id: '/$stateFranchiseId',
+    path: '/$stateFranchiseId',
+    getParentRoute: () => AppStateFranchisesRoute,
   } as any)
+const AppWebinarsIndexRoute = AppWebinarsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppWebinarsRoute,
+} as any)
+const AppWebinarsWebinarIdRoute = AppWebinarsWebinarIdRouteImport.update({
+  id: '/$webinarId',
+  path: '/$webinarId',
+  getParentRoute: () => AppWebinarsRoute,
+} as any)
+const AppWebinarsAnalyticsRoute = AppWebinarsAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppWebinarsRoute,
+} as any)
 const AppAcademyBatchesBatchIdRoute =
   AppAcademyBatchesBatchIdRouteImport.update({
     id: '/$batchId',
     path: '/$batchId',
     getParentRoute: () => AppAcademyBatchesRoute,
   } as any)
+const AppBillingInvoicesInvoiceIdRoute =
+  AppBillingInvoicesInvoiceIdRouteImport.update({
+    id: '/$invoiceId',
+    path: '/$invoiceId',
+    getParentRoute: () => AppBillingInvoicesRoute,
+  } as any)
+const AppPosOrdersOrderIdRoute = AppPosOrdersOrderIdRouteImport.update({
+  id: '/$orderId',
+  path: '/$orderId',
+  getParentRoute: () => AppPosOrdersRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -1145,25 +1145,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -1173,221 +1159,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
-      path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/webinar/$slug': {
-      id: '/webinar/$slug'
-      path: '/webinar/$slug'
-      fullPath: '/webinar/$slug'
-      preLoaderRoute: typeof WebinarSlugRouteImport
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/verify/$code': {
-      id: '/verify/$code'
-      path: '/verify/$code'
-      fullPath: '/verify/$code'
-      preLoaderRoute: typeof VerifyCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/invoice/$token': {
-      id: '/invoice/$token'
-      path: '/invoice/$token'
-      fullPath: '/invoice/$token'
-      preLoaderRoute: typeof InvoiceTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/imp/$token': {
-      id: '/imp/$token'
-      path: '/imp/$token'
-      fullPath: '/imp/$token'
-      preLoaderRoute: typeof ImpTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app/webinars': {
-      id: '/app/webinars'
-      path: '/webinars'
-      fullPath: '/app/webinars'
-      preLoaderRoute: typeof AppWebinarsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/trainer': {
-      id: '/app/trainer'
-      path: '/trainer'
-      fullPath: '/app/trainer'
-      preLoaderRoute: typeof AppTrainerRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/support': {
-      id: '/app/support'
-      path: '/support'
-      fullPath: '/app/support'
-      preLoaderRoute: typeof AppSupportRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/state-franchises': {
-      id: '/app/state-franchises'
-      path: '/state-franchises'
-      fullPath: '/app/state-franchises'
-      preLoaderRoute: typeof AppStateFranchisesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/reports': {
-      id: '/app/reports'
-      path: '/reports'
-      fullPath: '/app/reports'
-      preLoaderRoute: typeof AppReportsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/pos': {
-      id: '/app/pos'
-      path: '/pos'
-      fullPath: '/app/pos'
-      preLoaderRoute: typeof AppPosRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/my-state': {
-      id: '/app/my-state'
-      path: '/my-state'
-      fullPath: '/app/my-state'
-      preLoaderRoute: typeof AppMyStateRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/my-franchise': {
-      id: '/app/my-franchise'
-      path: '/my-franchise'
-      fullPath: '/app/my-franchise'
-      preLoaderRoute: typeof AppMyFranchiseRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/leads': {
-      id: '/app/leads'
-      path: '/leads'
-      fullPath: '/app/leads'
-      preLoaderRoute: typeof AppLeadsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/inventory': {
-      id: '/app/inventory'
-      path: '/inventory'
-      fullPath: '/app/inventory'
-      preLoaderRoute: typeof AppInventoryRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/impersonation-sessions': {
-      id: '/app/impersonation-sessions'
-      path: '/impersonation-sessions'
-      fullPath: '/app/impersonation-sessions'
-      preLoaderRoute: typeof AppImpersonationSessionsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/hr': {
-      id: '/app/hr'
-      path: '/hr'
-      fullPath: '/app/hr'
-      preLoaderRoute: typeof AppHrRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/franchisees': {
-      id: '/app/franchisees'
-      path: '/franchisees'
-      fullPath: '/app/franchisees'
-      preLoaderRoute: typeof AppFranchiseesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/franchise-marketplace': {
-      id: '/app/franchise-marketplace'
-      path: '/franchise-marketplace'
-      fullPath: '/app/franchise-marketplace'
-      preLoaderRoute: typeof AppFranchiseMarketplaceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/franchise-compare': {
-      id: '/app/franchise-compare'
-      path: '/franchise-compare'
-      fullPath: '/app/franchise-compare'
-      preLoaderRoute: typeof AppFranchiseCompareRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/finance': {
-      id: '/app/finance'
-      path: '/finance'
-      fullPath: '/app/finance'
-      preLoaderRoute: typeof AppFinanceRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/documents': {
-      id: '/app/documents'
-      path: '/documents'
-      fullPath: '/app/documents'
-      preLoaderRoute: typeof AppDocumentsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/dashboards': {
-      id: '/app/dashboards'
-      path: '/dashboards'
-      fullPath: '/app/dashboards'
-      preLoaderRoute: typeof AppDashboardsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/dashboard': {
-      id: '/app/dashboard'
-      path: '/dashboard'
-      fullPath: '/app/dashboard'
-      preLoaderRoute: typeof AppDashboardRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/audit-logs': {
-      id: '/app/audit-logs'
-      path: '/audit-logs'
-      fullPath: '/app/audit-logs'
-      preLoaderRoute: typeof AppAuditLogsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/agreements': {
-      id: '/app/agreements'
-      path: '/agreements'
-      fullPath: '/app/agreements'
-      preLoaderRoute: typeof AppAgreementsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/accounts': {
-      id: '/app/accounts'
-      path: '/accounts'
-      fullPath: '/app/accounts'
-      preLoaderRoute: typeof AppAccountsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/academy': {
-      id: '/app/academy'
-      path: '/academy'
-      fullPath: '/app/academy'
-      preLoaderRoute: typeof AppAcademyRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/api/storage-export': {
-      id: '/api/storage-export'
-      path: '/api/storage-export'
-      fullPath: '/api/storage-export'
-      preLoaderRoute: typeof ApiStorageExportRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/storage': {
@@ -1397,368 +1187,214 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiStorageRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/webinars/': {
-      id: '/app/webinars/'
-      path: '/'
-      fullPath: '/app/webinars/'
-      preLoaderRoute: typeof AppWebinarsIndexRouteImport
-      parentRoute: typeof AppWebinarsRoute
-    }
-    '/app/settings/': {
-      id: '/app/settings/'
-      path: '/'
-      fullPath: '/app/settings/'
-      preLoaderRoute: typeof AppSettingsIndexRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/pos/': {
-      id: '/app/pos/'
-      path: '/'
-      fullPath: '/app/pos/'
-      preLoaderRoute: typeof AppPosIndexRouteImport
-      parentRoute: typeof AppPosRoute
-    }
-    '/app/inventory/': {
-      id: '/app/inventory/'
-      path: '/'
-      fullPath: '/app/inventory/'
-      preLoaderRoute: typeof AppInventoryIndexRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/hr/': {
-      id: '/app/hr/'
-      path: '/'
-      fullPath: '/app/hr/'
-      preLoaderRoute: typeof AppHrIndexRouteImport
-      parentRoute: typeof AppHrRoute
-    }
-    '/app/franchise-products/': {
-      id: '/app/franchise-products/'
-      path: '/franchise-products'
-      fullPath: '/app/franchise-products/'
-      preLoaderRoute: typeof AppFranchiseProductsIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/finance/': {
-      id: '/app/finance/'
-      path: '/'
-      fullPath: '/app/finance/'
-      preLoaderRoute: typeof AppFinanceIndexRouteImport
-      parentRoute: typeof AppFinanceRoute
-    }
-    '/app/academy/': {
-      id: '/app/academy/'
-      path: '/'
-      fullPath: '/app/academy/'
-      preLoaderRoute: typeof AppAcademyIndexRouteImport
-      parentRoute: typeof AppAcademyRoute
-    }
-    '/app/webinars/analytics': {
-      id: '/app/webinars/analytics'
-      path: '/analytics'
-      fullPath: '/app/webinars/analytics'
-      preLoaderRoute: typeof AppWebinarsAnalyticsRouteImport
-      parentRoute: typeof AppWebinarsRoute
-    }
-    '/app/webinars/$webinarId': {
-      id: '/app/webinars/$webinarId'
-      path: '/$webinarId'
-      fullPath: '/app/webinars/$webinarId'
-      preLoaderRoute: typeof AppWebinarsWebinarIdRouteImport
-      parentRoute: typeof AppWebinarsRoute
-    }
-    '/app/state-franchises/$stateFranchiseId': {
-      id: '/app/state-franchises/$stateFranchiseId'
-      path: '/$stateFranchiseId'
-      fullPath: '/app/state-franchises/$stateFranchiseId'
-      preLoaderRoute: typeof AppStateFranchisesStateFranchiseIdRouteImport
-      parentRoute: typeof AppStateFranchisesRoute
-    }
-    '/app/settings/team': {
-      id: '/app/settings/team'
-      path: '/team'
-      fullPath: '/app/settings/team'
-      preLoaderRoute: typeof AppSettingsTeamRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/storage-export': {
-      id: '/app/settings/storage-export'
-      path: '/storage-export'
-      fullPath: '/app/settings/storage-export'
-      preLoaderRoute: typeof AppSettingsStorageExportRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/social': {
-      id: '/app/settings/social'
-      path: '/social'
-      fullPath: '/app/settings/social'
-      preLoaderRoute: typeof AppSettingsSocialRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/sidebar': {
-      id: '/app/settings/sidebar'
-      path: '/sidebar'
-      fullPath: '/app/settings/sidebar'
-      preLoaderRoute: typeof AppSettingsSidebarRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/settings/lead-routing': {
-      id: '/app/settings/lead-routing'
-      path: '/lead-routing'
-      fullPath: '/app/settings/lead-routing'
-      preLoaderRoute: typeof AppSettingsLeadRoutingRouteImport
-      parentRoute: typeof AppSettingsRoute
-    }
-    '/app/pos/orders': {
-      id: '/app/pos/orders'
-      path: '/orders'
-      fullPath: '/app/pos/orders'
-      preLoaderRoute: typeof AppPosOrdersRouteImport
-      parentRoute: typeof AppPosRoute
-    }
-    '/app/pos/analytics': {
-      id: '/app/pos/analytics'
-      path: '/analytics'
-      fullPath: '/app/pos/analytics'
-      preLoaderRoute: typeof AppPosAnalyticsRouteImport
-      parentRoute: typeof AppPosRoute
-    }
-    '/app/payouts/state': {
-      id: '/app/payouts/state'
-      path: '/payouts/state'
-      fullPath: '/app/payouts/state'
-      preLoaderRoute: typeof AppPayoutsStateRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/payouts/city': {
-      id: '/app/payouts/city'
-      path: '/payouts/city'
-      fullPath: '/app/payouts/city'
-      preLoaderRoute: typeof AppPayoutsCityRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/leads/$leadId': {
-      id: '/app/leads/$leadId'
-      path: '/$leadId'
-      fullPath: '/app/leads/$leadId'
-      preLoaderRoute: typeof AppLeadsLeadIdRouteImport
-      parentRoute: typeof AppLeadsRoute
-    }
-    '/app/inventory/warehouses': {
-      id: '/app/inventory/warehouses'
-      path: '/warehouses'
-      fullPath: '/app/inventory/warehouses'
-      preLoaderRoute: typeof AppInventoryWarehousesRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/inventory/suppliers': {
-      id: '/app/inventory/suppliers'
-      path: '/suppliers'
-      fullPath: '/app/inventory/suppliers'
-      preLoaderRoute: typeof AppInventorySuppliersRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/inventory/stock': {
-      id: '/app/inventory/stock'
-      path: '/stock'
-      fullPath: '/app/inventory/stock'
-      preLoaderRoute: typeof AppInventoryStockRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/inventory/purchase-orders': {
-      id: '/app/inventory/purchase-orders'
-      path: '/purchase-orders'
-      fullPath: '/app/inventory/purchase-orders'
-      preLoaderRoute: typeof AppInventoryPurchaseOrdersRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/inventory/products': {
-      id: '/app/inventory/products'
-      path: '/products'
-      fullPath: '/app/inventory/products'
-      preLoaderRoute: typeof AppInventoryProductsRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/inventory/movements': {
-      id: '/app/inventory/movements'
-      path: '/movements'
-      fullPath: '/app/inventory/movements'
-      preLoaderRoute: typeof AppInventoryMovementsRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/inventory/categories': {
-      id: '/app/inventory/categories'
-      path: '/categories'
-      fullPath: '/app/inventory/categories'
-      preLoaderRoute: typeof AppInventoryCategoriesRouteImport
-      parentRoute: typeof AppInventoryRoute
-    }
-    '/app/hr/payroll': {
-      id: '/app/hr/payroll'
-      path: '/payroll'
-      fullPath: '/app/hr/payroll'
-      preLoaderRoute: typeof AppHrPayrollRouteImport
-      parentRoute: typeof AppHrRoute
-    }
-    '/app/hr/leave': {
-      id: '/app/hr/leave'
-      path: '/leave'
-      fullPath: '/app/hr/leave'
-      preLoaderRoute: typeof AppHrLeaveRouteImport
-      parentRoute: typeof AppHrRoute
-    }
-    '/app/hr/employees': {
-      id: '/app/hr/employees'
-      path: '/employees'
-      fullPath: '/app/hr/employees'
-      preLoaderRoute: typeof AppHrEmployeesRouteImport
-      parentRoute: typeof AppHrRoute
-    }
-    '/app/hr/attendance': {
-      id: '/app/hr/attendance'
-      path: '/attendance'
-      fullPath: '/app/hr/attendance'
-      preLoaderRoute: typeof AppHrAttendanceRouteImport
-      parentRoute: typeof AppHrRoute
-    }
-    '/app/franchisees/$franchiseeId': {
-      id: '/app/franchisees/$franchiseeId'
-      path: '/$franchiseeId'
-      fullPath: '/app/franchisees/$franchiseeId'
-      preLoaderRoute: typeof AppFranchiseesFranchiseeIdRouteImport
-      parentRoute: typeof AppFranchiseesRoute
-    }
-    '/app/franchise-products/new': {
-      id: '/app/franchise-products/new'
-      path: '/franchise-products/new'
-      fullPath: '/app/franchise-products/new'
-      preLoaderRoute: typeof AppFranchiseProductsNewRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/franchise-products/$productId': {
-      id: '/app/franchise-products/$productId'
-      path: '/franchise-products/$productId'
-      fullPath: '/app/franchise-products/$productId'
-      preLoaderRoute: typeof AppFranchiseProductsProductIdRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/finance/revenue-model': {
-      id: '/app/finance/revenue-model'
-      path: '/revenue-model'
-      fullPath: '/app/finance/revenue-model'
-      preLoaderRoute: typeof AppFinanceRevenueModelRouteImport
-      parentRoute: typeof AppFinanceRoute
-    }
-    '/app/finance/revenue': {
-      id: '/app/finance/revenue'
-      path: '/revenue'
-      fullPath: '/app/finance/revenue'
-      preLoaderRoute: typeof AppFinanceRevenueRouteImport
-      parentRoute: typeof AppFinanceRoute
-    }
-    '/app/finance/payouts': {
-      id: '/app/finance/payouts'
-      path: '/payouts'
-      fullPath: '/app/finance/payouts'
-      preLoaderRoute: typeof AppFinancePayoutsRouteImport
-      parentRoute: typeof AppFinanceRoute
-    }
-    '/app/finance/expenses': {
-      id: '/app/finance/expenses'
-      path: '/expenses'
-      fullPath: '/app/finance/expenses'
-      preLoaderRoute: typeof AppFinanceExpensesRouteImport
-      parentRoute: typeof AppFinanceRoute
-    }
-    '/app/finance/categories': {
-      id: '/app/finance/categories'
-      path: '/categories'
-      fullPath: '/app/finance/categories'
-      preLoaderRoute: typeof AppFinanceCategoriesRouteImport
-      parentRoute: typeof AppFinanceRoute
-    }
-    '/app/dashboards/salon': {
-      id: '/app/dashboards/salon'
-      path: '/salon'
-      fullPath: '/app/dashboards/salon'
-      preLoaderRoute: typeof AppDashboardsSalonRouteImport
-      parentRoute: typeof AppDashboardsRoute
-    }
-    '/app/dashboards/dark-store': {
-      id: '/app/dashboards/dark-store'
-      path: '/dark-store'
-      fullPath: '/app/dashboards/dark-store'
-      preLoaderRoute: typeof AppDashboardsDarkStoreRouteImport
-      parentRoute: typeof AppDashboardsRoute
-    }
-    '/app/dashboards/academy': {
-      id: '/app/dashboards/academy'
-      path: '/academy'
-      fullPath: '/app/dashboards/academy'
-      preLoaderRoute: typeof AppDashboardsAcademyRouteImport
-      parentRoute: typeof AppDashboardsRoute
-    }
-    '/app/billing/invoices': {
-      id: '/app/billing/invoices'
-      path: '/billing/invoices'
-      fullPath: '/app/billing/invoices'
-      preLoaderRoute: typeof AppBillingInvoicesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/academy/trainers': {
-      id: '/app/academy/trainers'
-      path: '/trainers'
-      fullPath: '/app/academy/trainers'
-      preLoaderRoute: typeof AppAcademyTrainersRouteImport
-      parentRoute: typeof AppAcademyRoute
-    }
-    '/app/academy/students': {
-      id: '/app/academy/students'
-      path: '/students'
-      fullPath: '/app/academy/students'
-      preLoaderRoute: typeof AppAcademyStudentsRouteImport
-      parentRoute: typeof AppAcademyRoute
-    }
-    '/app/academy/fees': {
-      id: '/app/academy/fees'
-      path: '/fees'
-      fullPath: '/app/academy/fees'
-      preLoaderRoute: typeof AppAcademyFeesRouteImport
-      parentRoute: typeof AppAcademyRoute
-    }
-    '/app/academy/courses': {
-      id: '/app/academy/courses'
-      path: '/courses'
-      fullPath: '/app/academy/courses'
-      preLoaderRoute: typeof AppAcademyCoursesRouteImport
-      parentRoute: typeof AppAcademyRoute
-    }
-    '/app/academy/certificates': {
-      id: '/app/academy/certificates'
-      path: '/certificates'
-      fullPath: '/app/academy/certificates'
-      preLoaderRoute: typeof AppAcademyCertificatesRouteImport
-      parentRoute: typeof AppAcademyRoute
-    }
-    '/app/academy/batches': {
-      id: '/app/academy/batches'
-      path: '/batches'
-      fullPath: '/app/academy/batches'
-      preLoaderRoute: typeof AppAcademyBatchesRouteImport
-      parentRoute: typeof AppAcademyRoute
-    }
-    '/api/public/webinar-reminders': {
-      id: '/api/public/webinar-reminders'
-      path: '/api/public/webinar-reminders'
-      fullPath: '/api/public/webinar-reminders'
-      preLoaderRoute: typeof ApiPublicWebinarRemindersRouteImport
+    '/api/storage-export': {
+      id: '/api/storage-export'
+      path: '/api/storage-export'
+      fullPath: '/api/storage-export'
+      preLoaderRoute: typeof ApiStorageExportRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/webinar-register-hook': {
-      id: '/api/public/webinar-register-hook'
-      path: '/api/public/webinar-register-hook'
-      fullPath: '/api/public/webinar-register-hook'
-      preLoaderRoute: typeof ApiPublicWebinarRegisterHookRouteImport
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/academy': {
+      id: '/app/academy'
+      path: '/academy'
+      fullPath: '/app/academy'
+      preLoaderRoute: typeof AppAcademyRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/accounts': {
+      id: '/app/accounts'
+      path: '/accounts'
+      fullPath: '/app/accounts'
+      preLoaderRoute: typeof AppAccountsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/agreements': {
+      id: '/app/agreements'
+      path: '/agreements'
+      fullPath: '/app/agreements'
+      preLoaderRoute: typeof AppAgreementsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/audit-logs': {
+      id: '/app/audit-logs'
+      path: '/audit-logs'
+      fullPath: '/app/audit-logs'
+      preLoaderRoute: typeof AppAuditLogsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboard': {
+      id: '/app/dashboard'
+      path: '/dashboard'
+      fullPath: '/app/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboards': {
+      id: '/app/dashboards'
+      path: '/dashboards'
+      fullPath: '/app/dashboards'
+      preLoaderRoute: typeof AppDashboardsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/documents': {
+      id: '/app/documents'
+      path: '/documents'
+      fullPath: '/app/documents'
+      preLoaderRoute: typeof AppDocumentsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/finance': {
+      id: '/app/finance'
+      path: '/finance'
+      fullPath: '/app/finance'
+      preLoaderRoute: typeof AppFinanceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchise-compare': {
+      id: '/app/franchise-compare'
+      path: '/franchise-compare'
+      fullPath: '/app/franchise-compare'
+      preLoaderRoute: typeof AppFranchiseCompareRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchise-marketplace': {
+      id: '/app/franchise-marketplace'
+      path: '/franchise-marketplace'
+      fullPath: '/app/franchise-marketplace'
+      preLoaderRoute: typeof AppFranchiseMarketplaceRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchisees': {
+      id: '/app/franchisees'
+      path: '/franchisees'
+      fullPath: '/app/franchisees'
+      preLoaderRoute: typeof AppFranchiseesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/hr': {
+      id: '/app/hr'
+      path: '/hr'
+      fullPath: '/app/hr'
+      preLoaderRoute: typeof AppHrRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/impersonation-sessions': {
+      id: '/app/impersonation-sessions'
+      path: '/impersonation-sessions'
+      fullPath: '/app/impersonation-sessions'
+      preLoaderRoute: typeof AppImpersonationSessionsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/inventory': {
+      id: '/app/inventory'
+      path: '/inventory'
+      fullPath: '/app/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/leads': {
+      id: '/app/leads'
+      path: '/leads'
+      fullPath: '/app/leads'
+      preLoaderRoute: typeof AppLeadsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/my-franchise': {
+      id: '/app/my-franchise'
+      path: '/my-franchise'
+      fullPath: '/app/my-franchise'
+      preLoaderRoute: typeof AppMyFranchiseRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/my-state': {
+      id: '/app/my-state'
+      path: '/my-state'
+      fullPath: '/app/my-state'
+      preLoaderRoute: typeof AppMyStateRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pos': {
+      id: '/app/pos'
+      path: '/pos'
+      fullPath: '/app/pos'
+      preLoaderRoute: typeof AppPosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/reports': {
+      id: '/app/reports'
+      path: '/reports'
+      fullPath: '/app/reports'
+      preLoaderRoute: typeof AppReportsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/settings': {
+      id: '/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/state-franchises': {
+      id: '/app/state-franchises'
+      path: '/state-franchises'
+      fullPath: '/app/state-franchises'
+      preLoaderRoute: typeof AppStateFranchisesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/support': {
+      id: '/app/support'
+      path: '/support'
+      fullPath: '/app/support'
+      preLoaderRoute: typeof AppSupportRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/trainer': {
+      id: '/app/trainer'
+      path: '/trainer'
+      fullPath: '/app/trainer'
+      preLoaderRoute: typeof AppTrainerRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/webinars': {
+      id: '/app/webinars'
+      path: '/webinars'
+      fullPath: '/app/webinars'
+      preLoaderRoute: typeof AppWebinarsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/imp/$token': {
+      id: '/imp/$token'
+      path: '/imp/$token'
+      fullPath: '/imp/$token'
+      preLoaderRoute: typeof ImpTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoice/$token': {
+      id: '/invoice/$token'
+      path: '/invoice/$token'
+      fullPath: '/invoice/$token'
+      preLoaderRoute: typeof InvoiceTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify/$code': {
+      id: '/verify/$code'
+      path: '/verify/$code'
+      fullPath: '/verify/$code'
+      preLoaderRoute: typeof VerifyCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/webinar/$slug': {
+      id: '/webinar/$slug'
+      path: '/webinar/$slug'
+      fullPath: '/webinar/$slug'
+      preLoaderRoute: typeof WebinarSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/social-lead-hook': {
@@ -1768,12 +1404,376 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicSocialLeadHookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/pos/orders/$orderId': {
-      id: '/app/pos/orders/$orderId'
-      path: '/$orderId'
-      fullPath: '/app/pos/orders/$orderId'
-      preLoaderRoute: typeof AppPosOrdersOrderIdRouteImport
-      parentRoute: typeof AppPosOrdersRoute
+    '/api/public/webinar-register-hook': {
+      id: '/api/public/webinar-register-hook'
+      path: '/api/public/webinar-register-hook'
+      fullPath: '/api/public/webinar-register-hook'
+      preLoaderRoute: typeof ApiPublicWebinarRegisterHookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webinar-reminders': {
+      id: '/api/public/webinar-reminders'
+      path: '/api/public/webinar-reminders'
+      fullPath: '/api/public/webinar-reminders'
+      preLoaderRoute: typeof ApiPublicWebinarRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/academy/': {
+      id: '/app/academy/'
+      path: '/'
+      fullPath: '/app/academy/'
+      preLoaderRoute: typeof AppAcademyIndexRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/batches': {
+      id: '/app/academy/batches'
+      path: '/batches'
+      fullPath: '/app/academy/batches'
+      preLoaderRoute: typeof AppAcademyBatchesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/certificates': {
+      id: '/app/academy/certificates'
+      path: '/certificates'
+      fullPath: '/app/academy/certificates'
+      preLoaderRoute: typeof AppAcademyCertificatesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/courses': {
+      id: '/app/academy/courses'
+      path: '/courses'
+      fullPath: '/app/academy/courses'
+      preLoaderRoute: typeof AppAcademyCoursesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/fees': {
+      id: '/app/academy/fees'
+      path: '/fees'
+      fullPath: '/app/academy/fees'
+      preLoaderRoute: typeof AppAcademyFeesRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/students': {
+      id: '/app/academy/students'
+      path: '/students'
+      fullPath: '/app/academy/students'
+      preLoaderRoute: typeof AppAcademyStudentsRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/academy/trainers': {
+      id: '/app/academy/trainers'
+      path: '/trainers'
+      fullPath: '/app/academy/trainers'
+      preLoaderRoute: typeof AppAcademyTrainersRouteImport
+      parentRoute: typeof AppAcademyRoute
+    }
+    '/app/billing/invoices': {
+      id: '/app/billing/invoices'
+      path: '/billing/invoices'
+      fullPath: '/app/billing/invoices'
+      preLoaderRoute: typeof AppBillingInvoicesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/dashboards/academy': {
+      id: '/app/dashboards/academy'
+      path: '/academy'
+      fullPath: '/app/dashboards/academy'
+      preLoaderRoute: typeof AppDashboardsAcademyRouteImport
+      parentRoute: typeof AppDashboardsRoute
+    }
+    '/app/dashboards/dark-store': {
+      id: '/app/dashboards/dark-store'
+      path: '/dark-store'
+      fullPath: '/app/dashboards/dark-store'
+      preLoaderRoute: typeof AppDashboardsDarkStoreRouteImport
+      parentRoute: typeof AppDashboardsRoute
+    }
+    '/app/dashboards/salon': {
+      id: '/app/dashboards/salon'
+      path: '/salon'
+      fullPath: '/app/dashboards/salon'
+      preLoaderRoute: typeof AppDashboardsSalonRouteImport
+      parentRoute: typeof AppDashboardsRoute
+    }
+    '/app/finance/': {
+      id: '/app/finance/'
+      path: '/'
+      fullPath: '/app/finance/'
+      preLoaderRoute: typeof AppFinanceIndexRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/categories': {
+      id: '/app/finance/categories'
+      path: '/categories'
+      fullPath: '/app/finance/categories'
+      preLoaderRoute: typeof AppFinanceCategoriesRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/expenses': {
+      id: '/app/finance/expenses'
+      path: '/expenses'
+      fullPath: '/app/finance/expenses'
+      preLoaderRoute: typeof AppFinanceExpensesRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/payouts': {
+      id: '/app/finance/payouts'
+      path: '/payouts'
+      fullPath: '/app/finance/payouts'
+      preLoaderRoute: typeof AppFinancePayoutsRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/revenue': {
+      id: '/app/finance/revenue'
+      path: '/revenue'
+      fullPath: '/app/finance/revenue'
+      preLoaderRoute: typeof AppFinanceRevenueRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/finance/revenue-model': {
+      id: '/app/finance/revenue-model'
+      path: '/revenue-model'
+      fullPath: '/app/finance/revenue-model'
+      preLoaderRoute: typeof AppFinanceRevenueModelRouteImport
+      parentRoute: typeof AppFinanceRoute
+    }
+    '/app/franchise-products/': {
+      id: '/app/franchise-products/'
+      path: '/franchise-products'
+      fullPath: '/app/franchise-products/'
+      preLoaderRoute: typeof AppFranchiseProductsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchise-products/$productId': {
+      id: '/app/franchise-products/$productId'
+      path: '/franchise-products/$productId'
+      fullPath: '/app/franchise-products/$productId'
+      preLoaderRoute: typeof AppFranchiseProductsProductIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchise-products/new': {
+      id: '/app/franchise-products/new'
+      path: '/franchise-products/new'
+      fullPath: '/app/franchise-products/new'
+      preLoaderRoute: typeof AppFranchiseProductsNewRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/franchisees/$franchiseeId': {
+      id: '/app/franchisees/$franchiseeId'
+      path: '/$franchiseeId'
+      fullPath: '/app/franchisees/$franchiseeId'
+      preLoaderRoute: typeof AppFranchiseesFranchiseeIdRouteImport
+      parentRoute: typeof AppFranchiseesRoute
+    }
+    '/app/hr/': {
+      id: '/app/hr/'
+      path: '/'
+      fullPath: '/app/hr/'
+      preLoaderRoute: typeof AppHrIndexRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/hr/attendance': {
+      id: '/app/hr/attendance'
+      path: '/attendance'
+      fullPath: '/app/hr/attendance'
+      preLoaderRoute: typeof AppHrAttendanceRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/hr/employees': {
+      id: '/app/hr/employees'
+      path: '/employees'
+      fullPath: '/app/hr/employees'
+      preLoaderRoute: typeof AppHrEmployeesRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/hr/leave': {
+      id: '/app/hr/leave'
+      path: '/leave'
+      fullPath: '/app/hr/leave'
+      preLoaderRoute: typeof AppHrLeaveRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/hr/payroll': {
+      id: '/app/hr/payroll'
+      path: '/payroll'
+      fullPath: '/app/hr/payroll'
+      preLoaderRoute: typeof AppHrPayrollRouteImport
+      parentRoute: typeof AppHrRoute
+    }
+    '/app/inventory/': {
+      id: '/app/inventory/'
+      path: '/'
+      fullPath: '/app/inventory/'
+      preLoaderRoute: typeof AppInventoryIndexRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/categories': {
+      id: '/app/inventory/categories'
+      path: '/categories'
+      fullPath: '/app/inventory/categories'
+      preLoaderRoute: typeof AppInventoryCategoriesRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/movements': {
+      id: '/app/inventory/movements'
+      path: '/movements'
+      fullPath: '/app/inventory/movements'
+      preLoaderRoute: typeof AppInventoryMovementsRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/products': {
+      id: '/app/inventory/products'
+      path: '/products'
+      fullPath: '/app/inventory/products'
+      preLoaderRoute: typeof AppInventoryProductsRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/purchase-orders': {
+      id: '/app/inventory/purchase-orders'
+      path: '/purchase-orders'
+      fullPath: '/app/inventory/purchase-orders'
+      preLoaderRoute: typeof AppInventoryPurchaseOrdersRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/stock': {
+      id: '/app/inventory/stock'
+      path: '/stock'
+      fullPath: '/app/inventory/stock'
+      preLoaderRoute: typeof AppInventoryStockRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/suppliers': {
+      id: '/app/inventory/suppliers'
+      path: '/suppliers'
+      fullPath: '/app/inventory/suppliers'
+      preLoaderRoute: typeof AppInventorySuppliersRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/inventory/warehouses': {
+      id: '/app/inventory/warehouses'
+      path: '/warehouses'
+      fullPath: '/app/inventory/warehouses'
+      preLoaderRoute: typeof AppInventoryWarehousesRouteImport
+      parentRoute: typeof AppInventoryRoute
+    }
+    '/app/leads/$leadId': {
+      id: '/app/leads/$leadId'
+      path: '/$leadId'
+      fullPath: '/app/leads/$leadId'
+      preLoaderRoute: typeof AppLeadsLeadIdRouteImport
+      parentRoute: typeof AppLeadsRoute
+    }
+    '/app/payouts/city': {
+      id: '/app/payouts/city'
+      path: '/payouts/city'
+      fullPath: '/app/payouts/city'
+      preLoaderRoute: typeof AppPayoutsCityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/payouts/state': {
+      id: '/app/payouts/state'
+      path: '/payouts/state'
+      fullPath: '/app/payouts/state'
+      preLoaderRoute: typeof AppPayoutsStateRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/pos/': {
+      id: '/app/pos/'
+      path: '/'
+      fullPath: '/app/pos/'
+      preLoaderRoute: typeof AppPosIndexRouteImport
+      parentRoute: typeof AppPosRoute
+    }
+    '/app/pos/analytics': {
+      id: '/app/pos/analytics'
+      path: '/analytics'
+      fullPath: '/app/pos/analytics'
+      preLoaderRoute: typeof AppPosAnalyticsRouteImport
+      parentRoute: typeof AppPosRoute
+    }
+    '/app/pos/orders': {
+      id: '/app/pos/orders'
+      path: '/orders'
+      fullPath: '/app/pos/orders'
+      preLoaderRoute: typeof AppPosOrdersRouteImport
+      parentRoute: typeof AppPosRoute
+    }
+    '/app/settings/': {
+      id: '/app/settings/'
+      path: '/'
+      fullPath: '/app/settings/'
+      preLoaderRoute: typeof AppSettingsIndexRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/lead-routing': {
+      id: '/app/settings/lead-routing'
+      path: '/lead-routing'
+      fullPath: '/app/settings/lead-routing'
+      preLoaderRoute: typeof AppSettingsLeadRoutingRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/sidebar': {
+      id: '/app/settings/sidebar'
+      path: '/sidebar'
+      fullPath: '/app/settings/sidebar'
+      preLoaderRoute: typeof AppSettingsSidebarRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/social': {
+      id: '/app/settings/social'
+      path: '/social'
+      fullPath: '/app/settings/social'
+      preLoaderRoute: typeof AppSettingsSocialRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/storage-export': {
+      id: '/app/settings/storage-export'
+      path: '/storage-export'
+      fullPath: '/app/settings/storage-export'
+      preLoaderRoute: typeof AppSettingsStorageExportRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/settings/team': {
+      id: '/app/settings/team'
+      path: '/team'
+      fullPath: '/app/settings/team'
+      preLoaderRoute: typeof AppSettingsTeamRouteImport
+      parentRoute: typeof AppSettingsRoute
+    }
+    '/app/state-franchises/$stateFranchiseId': {
+      id: '/app/state-franchises/$stateFranchiseId'
+      path: '/$stateFranchiseId'
+      fullPath: '/app/state-franchises/$stateFranchiseId'
+      preLoaderRoute: typeof AppStateFranchisesStateFranchiseIdRouteImport
+      parentRoute: typeof AppStateFranchisesRoute
+    }
+    '/app/webinars/': {
+      id: '/app/webinars/'
+      path: '/'
+      fullPath: '/app/webinars/'
+      preLoaderRoute: typeof AppWebinarsIndexRouteImport
+      parentRoute: typeof AppWebinarsRoute
+    }
+    '/app/webinars/$webinarId': {
+      id: '/app/webinars/$webinarId'
+      path: '/$webinarId'
+      fullPath: '/app/webinars/$webinarId'
+      preLoaderRoute: typeof AppWebinarsWebinarIdRouteImport
+      parentRoute: typeof AppWebinarsRoute
+    }
+    '/app/webinars/analytics': {
+      id: '/app/webinars/analytics'
+      path: '/analytics'
+      fullPath: '/app/webinars/analytics'
+      preLoaderRoute: typeof AppWebinarsAnalyticsRouteImport
+      parentRoute: typeof AppWebinarsRoute
+    }
+    '/app/academy/batches/$batchId': {
+      id: '/app/academy/batches/$batchId'
+      path: '/$batchId'
+      fullPath: '/app/academy/batches/$batchId'
+      preLoaderRoute: typeof AppAcademyBatchesBatchIdRouteImport
+      parentRoute: typeof AppAcademyBatchesRoute
     }
     '/app/billing/invoices/$invoiceId': {
       id: '/app/billing/invoices/$invoiceId'
@@ -1782,12 +1782,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBillingInvoicesInvoiceIdRouteImport
       parentRoute: typeof AppBillingInvoicesRoute
     }
-    '/app/academy/batches/$batchId': {
-      id: '/app/academy/batches/$batchId'
-      path: '/$batchId'
-      fullPath: '/app/academy/batches/$batchId'
-      preLoaderRoute: typeof AppAcademyBatchesBatchIdRouteImport
-      parentRoute: typeof AppAcademyBatchesRoute
+    '/app/pos/orders/$orderId': {
+      id: '/app/pos/orders/$orderId'
+      path: '/$orderId'
+      fullPath: '/app/pos/orders/$orderId'
+      preLoaderRoute: typeof AppPosOrdersOrderIdRouteImport
+      parentRoute: typeof AppPosOrdersRoute
     }
   }
 }
