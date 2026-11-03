@@ -478,7 +478,7 @@ function PosTerminal() {
                 <div className="mt-2 flex items-center gap-2">
                   <div className="flex items-center rounded-md border border-border/50">
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateCart(idx, { quantity: Math.max(1, it.quantity - 1) })}><Minus className="h-3 w-3" /></Button>
-                    <span className="w-8 text-center text-sm font-medium">{it.quantity}</span>
+                    <Input type="number" min={1} inputMode="numeric" value={it.quantity} onChange={(e) => updateCart(idx, { quantity: Math.max(1, Math.floor(Number(e.target.value) || 1)) })} onFocus={(e) => e.target.select()} className="h-7 w-14 border-0 px-1 text-center text-sm font-medium" aria-label="Quantity" />
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateCart(idx, { quantity: it.quantity + 1 })}><Plus className="h-3 w-3" /></Button>
                   </div>
                   <Input type="number" value={it.discount_pct} onChange={(e) => updateCart(idx, { discount_pct: Number(e.target.value) || 0 })} className="h-7 w-16 text-xs" placeholder="0" title="Discount %" />

@@ -31,10 +31,10 @@ type DocRow = {
   created_at: string;
 };
 
-export function DocumentVault({ franchiseeId }: { franchiseeId: string }) {
+export function DocumentVault({ franchiseeId, defaultKind = "aadhaar" }: { franchiseeId: string; defaultKind?: Kind }) {
   const { isAdmin, user } = useAuth();
   const qc = useQueryClient();
-  const [kind, setKind] = React.useState<Kind>("aadhaar");
+  const [kind, setKind] = React.useState<Kind>(defaultKind);
   const [uploading, setUploading] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 

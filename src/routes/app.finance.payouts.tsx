@@ -18,6 +18,7 @@ import { ImportButton } from "@/components/app/ImportButton";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { RoiClaimActions } from "@/components/app/RoiClaimActions";
 import { generateClaimForPayout, generateClaimsForPayouts } from "@/lib/roi-claim-service";
+import { effectiveTermsForMonth, computeRoi } from "@/lib/roi-effective";
 
 export const Route = createFileRoute("/app/finance/payouts")({
   component: PayoutsPage,
@@ -128,74 +129,83 @@ function PayoutsPage() {
   });
 
 
+  const [genMonth, setGenMonth] = React.useState(() => new Date().toISOString().slice(0, 7));
+
+  // Generates / corrects pending ROI rows for EVERY active franchisee for the chosen month.
+  // Uses the terms that were in force that month (investment upgrades apply only from their effective month).
   const autoGenerate = useMutation({
     mutationFn: async () => {
-      // Compute current month boundaries
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-      const payoutMonth = monthStart.toISOString().slice(0, 10);
-
-      const [{ data: frs }, { data: sales }, { data: existing }] = await Promise.all([
-        supabase.from("franchisees").select("id, full_name, base_roi_pct, academy_pct, dark_store_pct, emporium_pct").eq("status", "active"),
+      const payoutMonth = `${genMonth}-01`;
+      const [{ data: frs, error: fe }, { data: changes }, { data: existing }] = await Promise.all([
         supabase
-          .from("sales_orders")
-          .select("franchisee_id, grand_total")
-          .eq("status", "completed")
-          .gte("completed_at", monthStart.toISOString())
-          .lt("completed_at", monthEnd.toISOString()),
-        supabase.from("roi_payouts").select("franchisee_id").eq("payout_month", payoutMonth),
+          .from("franchisees")
+          .select("id, investment_amount, mg_percent, tns_percent, academy_percent, mall_percent, joined_at")
+          .eq("status", "active")
+          .eq("is_demo", false),
+        (supabase as any).from("franchise_product_changes").select("franchisee_id, effective_date, old_values_json"),
+        supabase.from("roi_payouts").select("id, franchisee_id, status, auto_computed").eq("payout_month", payoutMonth),
       ]);
-
-      const existingSet = new Set((existing ?? []).map((p: any) => p.franchisee_id));
-      const totals = new Map<string, number>();
-      (sales ?? []).forEach((s: any) => {
-        if (!s.franchisee_id) return;
-        totals.set(s.franchisee_id, (totals.get(s.franchisee_id) ?? 0) + Number(s.grand_total ?? 0));
-      });
-
+      if (fe) throw fe;
+      const monthEnd = new Date(Number(genMonth.slice(0, 4)), Number(genMonth.slice(5, 7)), 0).toISOString().slice(0, 10);
+      const existingBy = new Map((existing ?? []).map((p: any) => [p.franchisee_id, p]));
       const toInsert: any[] = [];
+      let updated = 0;
       for (const f of frs ?? []) {
-        if (existingSet.has(f.id)) continue;
-        const sales_total = totals.get(f.id) ?? 0;
-        if (sales_total <= 0) continue;
-        const base = (sales_total * Number(f.base_roi_pct ?? 0)) / 100;
-        const ai = (sales_total * Number(f.academy_pct ?? 0)) / 100;
-        const ds = (sales_total * Number(f.dark_store_pct ?? 0)) / 100;
-        const em = (sales_total * Number(f.emporium_pct ?? 0)) / 100;
-        toInsert.push({
-          franchisee_id: f.id,
-          payout_month: payoutMonth,
-          base_roi: base,
-          academy_incentive: ai,
-          dark_store_incentive: ds,
-          emporium_incentive: em,
-          total_amount: base + ai + ds + em,
-          status: "pending",
-        });
-      }
-
-      if (!toInsert.length) return { inserted: 0, claims: null as Awaited<ReturnType<typeof generateClaimsForPayouts>> | null };
-      const { data: rows, error } = await supabase.from("roi_payouts").insert(toInsert).select("id");
-      if (error) throw error;
-      // Each new payout gets its ROI Claim letter automatically.
-      const claims = await generateClaimsForPayouts((rows ?? []).map((r) => r.id));
-      return { inserted: toInsert.length, claims };
-    },
-    onSuccess: (r) => {
-      if (!r || r.inserted === 0) {
-        toast.info("No new payouts — all active franchisees with sales this month already have payouts.");
-      } else {
-        toast.success(`Generated ${r.inserted} payout${r.inserted > 1 ? "s" : ""} from this month's sales`);
-        if (r.claims) {
-          if (r.claims.created) toast.success(`${r.claims.created} ROI Claim letter${r.claims.created > 1 ? "s" : ""} generated`);
-          if (r.claims.failed.length)
-            toast.warning(`${r.claims.failed.length} ROI Claim(s) not generated: ${r.claims.failed[0].message}`);
+        if (f.joined_at && f.joined_at.slice(0, 10) > monthEnd) continue; // not yet joined
+        const ex: any = existingBy.get(f.id);
+        if (ex && (ex.status === "paid" || ex.auto_computed === false)) continue; // never touch paid / manual rows
+        const { data: r } = await supabase.rpc("compute_franchisee_monthly_roi", { _franchisee_id: f.id, _month: payoutMonth });
+        const tot = (r ?? [])[0] as any;
+        const terms = effectiveTermsForMonth(
+          {
+            investment_amount: Number(f.investment_amount ?? 0),
+            mg_percent: Number(f.mg_percent ?? 0),
+            tns_percent: Number(f.tns_percent ?? 0),
+            academy_percent: Number(f.academy_percent ?? 0),
+            mall_percent: Number(f.mall_percent ?? 0),
+          },
+          (changes ?? []).filter((c: any) => c.franchisee_id === f.id),
+          payoutMonth,
+        );
+        const totals = { tns: Number(tot?.tns_total ?? 0), academy: Number(tot?.academy_total ?? 0), mall: Number(tot?.mall_total ?? 0) };
+        const roi = computeRoi(terms, totals);
+        const row = {
+          tns_amount: totals.tns,
+          academy_amount: totals.academy,
+          mall_amount: totals.mall,
+          mg_amount: roi.mg,
+          variable_roi: roi.variable,
+          final_payable: roi.final,
+          payable_reason: roi.reason,
+          base_roi: roi.mg,
+          emporium_incentive: roi.a,
+          academy_incentive: roi.b,
+          dark_store_incentive: roi.c,
+          total_amount: roi.final,
+        };
+        if (ex) {
+          const { error } = await supabase.from("roi_payouts").update(row).eq("id", ex.id).neq("status", "paid");
+          if (error) throw error;
+          updated++;
+        } else {
+          toInsert.push({ ...row, franchisee_id: f.id, payout_month: payoutMonth, status: "pending", auto_computed: true });
         }
       }
+      let claims: Awaited<ReturnType<typeof generateClaimsForPayouts>> | null = null;
+      if (toInsert.length) {
+        const { data: rows, error } = await supabase.from("roi_payouts").insert(toInsert).select("id");
+        if (error) throw error;
+        claims = await generateClaimsForPayouts((rows ?? []).map((r) => r.id));
+      }
+      return { inserted: toInsert.length, updated, claims };
+    },
+    onSuccess: (r) => {
+      toast.success(`${r.inserted} new payout(s), ${r.updated} recalculated for ${genMonth}`);
+      if (r.claims?.failed.length) toast.warning(`${r.claims.failed.length} ROI Claim(s) not generated: ${r.claims.failed[0].message}`);
       qc.invalidateQueries({ queryKey: ["roi-list"] });
       qc.invalidateQueries({ queryKey: ["fin-overview"] });
       qc.invalidateQueries({ queryKey: ["roi-claims"] });
+      qc.invalidateQueries({ queryKey: ["fr-dash-payouts"] });
     },
     onError: (e: any) => toast.error(e.message),
   });

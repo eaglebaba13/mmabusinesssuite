@@ -226,7 +226,7 @@ function FranchiseeDetailPage() {
               </div>
               <div className="rounded-xl bg-background/40 p-4">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Territory</div>
-                <div className="mt-1 text-sm">{f.territory_id ? f.territory_id.slice(0, 8) : "—"}</div>
+                <div className="mt-1 text-sm">{[(f as any).territory_area, (f as any).territory_city, (f as any).territory_district, (f as any).territory_state, (f as any).territory_pincode].filter(Boolean).join(", ") || "Not allotted"}</div>
               </div>
               <div className="rounded-xl bg-background/40 p-4">
                 <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Agreement status</div>
