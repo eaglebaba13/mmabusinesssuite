@@ -26,6 +26,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductChangeTab } from "@/components/app/franchise/ProductChangeTab";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 import { formatINR } from "@/lib/format";
+import { DocumentVault } from "@/components/app/franchise/DocumentVault";
+import { TerritoryFields, ProductPctSync } from "@/components/app/franchise/TerritoryAndProductPct";
 
 interface Franchisee {
   id: string;
@@ -68,6 +70,19 @@ interface Franchisee {
   bank_account_number?: string | null;
   bank_ifsc?: string | null;
   bank_branch?: string | null;
+  // territory
+  territory_id?: string | null;
+  territory_country?: string | null;
+  territory_state?: string | null;
+  territory_district?: string | null;
+  territory_city?: string | null;
+  territory_area?: string | null;
+  territory_pincode?: string | null;
+  territory_radius_km?: number | null;
+  territory_exclusive?: boolean;
+  territory_approved?: boolean;
+  territory_start_date?: string | null;
+  territory_end_date?: string | null;
 }
 
 interface Props {
@@ -136,6 +151,18 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
           mall_percent: Number(form.mall_percent ?? 3),
           royalty_percent: Number(form.royalty_percent ?? 5),
           franchise_commission_amount: Number(form.franchise_commission_amount ?? 46500),
+          territory_id: form.territory_id || null,
+          territory_country: form.territory_country || null,
+          territory_state: form.territory_state || null,
+          territory_district: form.territory_district || null,
+          territory_city: form.territory_city || null,
+          territory_area: form.territory_area || null,
+          territory_pincode: form.territory_pincode || null,
+          territory_radius_km: form.territory_radius_km ? Number(form.territory_radius_km) : null,
+          territory_exclusive: !!form.territory_exclusive,
+          territory_approved: !!form.territory_approved,
+          territory_start_date: form.territory_start_date || null,
+          territory_end_date: form.territory_end_date || null,
         } as any)
         .eq("id", form.id);
       if (error) throw error;
@@ -183,11 +210,11 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
         </DialogHeader>
 
         <Tabs defaultValue="partner" className="mt-2">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
             <TabsTrigger value="partner">Partner</TabsTrigger>
             <TabsTrigger value="product">Product</TabsTrigger>
             <TabsTrigger value="agreement">Agreement</TabsTrigger>
-            <TabsTrigger value="roi">Legacy ROI</TabsTrigger>
+            <TabsTrigger value="territory">Territory</TabsTrigger>
             <TabsTrigger value="banking">Banking</TabsTrigger>
             <TabsTrigger value="premises">Premises</TabsTrigger>
             <TabsTrigger value="access">Access</TabsTrigger>
@@ -300,6 +327,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
               </div>
             </div>
 
+            <ProductPctSync franchiseProductId={form.franchise_product_id ?? null} onApply={(v) => setForm({ ...form, ...v })} current={form} />
             <div className="grid grid-cols-3 gap-3">
               <PctField label="MG %" value={form.mg_percent ?? 3} onChange={(v) => setForm({ ...form, mg_percent: v })} />
               <PctField label="TNS %" value={form.tns_percent ?? 10} onChange={(v) => setForm({ ...form, tns_percent: v })} />
@@ -321,21 +349,14 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Live monthly MG (Investment × MG%)</div>
               <div className="mt-1 font-display text-2xl text-gradient-gold">{formatINR(monthlyMG)}</div>
               <p className="mt-1 text-[11px] text-muted-foreground">
-                {formatINR(Number(form.investment_amount ?? form.franchise_fee))} × {Number(form.mg_percent ?? 3)}% ÷ 12
+                {formatINR(Number(form.investment_amount ?? form.franchise_fee))} × {Number(form.mg_percent ?? 3)}% per month
               </p>
             </div>
+            <DocumentVault franchiseeId={form.id} defaultKind="agreement" />
           </TabsContent>
 
-          <TabsContent value="roi" className="mt-4 space-y-3">
-            <p className="text-[11px] text-muted-foreground">
-              Legacy percentages retained for existing dashboards. New ROI engine uses the Agreement tab.
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <PctField label="Base monthly ROI %" value={Number(form.base_roi_pct)} onChange={(v) => setForm({ ...form, base_roi_pct: v })} />
-              <PctField label="Nail Emporium %" value={Number(form.emporium_pct)} onChange={(v) => setForm({ ...form, emporium_pct: v })} />
-              <PctField label="Academy % (legacy)" value={Number(form.academy_pct)} onChange={(v) => setForm({ ...form, academy_pct: v })} />
-              <PctField label="Dark store %" value={Number(form.dark_store_pct)} onChange={(v) => setForm({ ...form, dark_store_pct: v })} />
-            </div>
+          <TabsContent value="territory" className="mt-4 space-y-3">
+            <TerritoryFields form={form} setForm={setForm} />
           </TabsContent>
 
           <TabsContent value="banking" className="mt-4 space-y-3">
