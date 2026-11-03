@@ -18,6 +18,7 @@ import { ImportButton } from "@/components/app/ImportButton";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { RoiClaimActions } from "@/components/app/RoiClaimActions";
 import { generateClaimForPayout, generateClaimsForPayouts } from "@/lib/roi-claim-service";
+import { effectiveTermsForMonth, computeRoi } from "@/lib/roi-effective";
 
 export const Route = createFileRoute("/app/finance/payouts")({
   component: PayoutsPage,
