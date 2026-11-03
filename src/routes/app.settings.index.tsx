@@ -144,9 +144,9 @@ function RoiEngineSettings() {
 
   return (
     <div className="rounded-2xl glass p-6">
-      <h2 className="font-display text-xl">ROI Engine — global defaults</h2>
+      <h2 className="font-display text-xl">ROI Engine — fallback defaults</h2>
       <p className="mt-1 text-xs text-muted-foreground">
-        Applied to new franchisees. Existing franchisees keep their per-agreement overrides.
+        ROI % are taken from each franchisee's Franchise Product (Franchise Products → commissions). These values are used only when a franchisee has no product assigned.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div><Label>Default MG %</Label><Input type="number" step="0.01" value={form.default_mg_percent} onChange={setNum("default_mg_percent")} className="mt-1" /></div>
