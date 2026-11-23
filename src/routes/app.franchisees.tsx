@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, Search, Building2, Copy, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Building2, Copy, CheckCircle2, MapPin } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -144,11 +144,21 @@ function FranchiseesPage() {
   const { data: franchisees = [] } = useQuery({
     queryKey: ["franchisees", isTesting],
     queryFn: async () => {
-      let q = supabase.from("franchisees").select("*").order("created_at", { ascending: false });
+      let q = (supabase as any)
+        .from("franchisees")
+        .select("*, franchisee_territories(id, territory_id, is_primary, ownership_type, exclusivity_radius_km, area_name, territories(id, name, state, ownership_type))")
+        .order("created_at", { ascending: false });
       if (!isTesting) q = q.eq("is_demo", false);
       const { data, error } = await q;
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.warn("Franchisees query with nested territories fell back:", error);
+        let fb = supabase.from("franchisees").select("*").order("created_at", { ascending: false });
+        if (!isTesting) fb = fb.eq("is_demo", false);
+        const { data: fbData, error: fbError } = await fb;
+        if (fbError) throw fbError;
+        return fbData ?? [];
+      }
+      return data ?? [];
     },
   });
 
@@ -384,7 +394,7 @@ function FranchiseesPage() {
       columns: pdfExportCols,
       totals: [
         { label: "Total franchisees", value: String(filtered.length) },
-        { label: "Total invested", value: formatINRCompact(filtered.reduce((s, f) => s + Number(f.investment_amount ?? 0), 0)) },
+        { label: "Total invested", value: formatINRCompact(filtered.reduce((s: number, f: any) => s + Number(f.investment_amount ?? 0), 0)) },
       ],
     });
 
@@ -768,7 +778,7 @@ function FranchiseesPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filtered.map((f) => {
+        {filtered.map((f: any) => {
           const isInactive = f.status === "suspended" || f.status === "closed";
           return <FranchiseeCard key={f.id} franchisee={f} isInactive={isInactive} />;
         })}
@@ -787,6 +797,18 @@ function FranchiseeCard({ franchisee: f, isInactive }: { franchisee: any; isInac
     if ((e.target as HTMLElement).closest("[data-actions]")) return;
     navigate({ to: "/app/franchisees/$franchiseeId", params: { franchiseeId: f.id } });
   };
+
+  const allotments: any[] = f.franchisee_territories || [];
+  const primaryAllotment = allotments.find((a: any) => a.is_primary) || allotments[0];
+  const primaryTerritoryName = primaryAllotment?.territories?.name || f.territory_city;
+  const primaryState = primaryAllotment?.territories?.state || f.territory_state;
+  const primaryArea = primaryAllotment?.area_name || f.territory_area;
+  const primaryOwnership =
+    primaryAllotment?.ownership_type ||
+    primaryAllotment?.territories?.ownership_type ||
+    (primaryTerritoryName === "Udaipur" ? "DIRECT_COMPANY" : "FRANCHISE");
+  const extraTerritoriesCount = Math.max(0, allotments.length - 1);
+
   return (
     <div
       role="link"
@@ -821,10 +843,39 @@ function FranchiseeCard({ franchisee: f, isInactive }: { franchisee: any; isInac
         </div>
       </div>
       <h3 className="mt-4 font-display text-xl">{f.full_name}</h3>
-      <div className="mt-1 flex flex-wrap items-center gap-2">
+      <div className="mt-1 flex flex-wrap items-center gap-1.5">
         <span className="rounded-md border border-gold/30 bg-gold/10 px-2 py-0.5 font-mono text-[11px] tracking-wider text-gold">
           {f.franchisee_code || "Code pending"}
         </span>
+
+        {primaryTerritoryName ? (
+          <>
+            <Badge variant="secondary" className="border border-sky-500/30 bg-sky-500/10 text-sky-400 text-[11px] font-normal">
+              <MapPin className="mr-1 h-3 w-3 inline text-sky-400" />
+              {primaryTerritoryName}{primaryState ? ` · ${primaryState}` : ""}
+              {primaryArea && primaryArea !== primaryTerritoryName ? ` (${primaryArea})` : ""}
+            </Badge>
+            {extraTerritoriesCount > 0 && (
+              <Badge variant="outline" className="border-border text-muted-foreground text-[10px]">
+                +{extraTerritoriesCount} more
+              </Badge>
+            )}
+            <Badge
+              variant="outline"
+              className={`text-[10px] font-mono uppercase tracking-wider ${
+                primaryOwnership === "DIRECT_COMPANY"
+                  ? "border-purple-500/30 bg-purple-500/10 text-purple-400"
+                  : "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+              }`}
+            >
+              {primaryOwnership === "DIRECT_COMPANY" ? "Direct Co." : "Franchise"}
+            </Badge>
+          </>
+        ) : (
+          <Badge variant="outline" className="border-amber-500/40 bg-amber-500/5 text-amber-400 text-[11px]">
+            Unallotted Territory
+          </Badge>
+        )}
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{f.email ?? f.phone ?? "—"}</p>
 

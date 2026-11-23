@@ -53,20 +53,35 @@
   - Fixed conditional `React.useState` in `src/routes/invoice.$token.tsx` (moved above early return).
   - Fixed hook-in-lowercase-component in `src/routes/app.academy.batches.$batchId.tsx` (extracted `BatchErrorComponent`).
 
+- [VERIFIED] **Franchise Territory / Outlet Allotment & ROI Territory Accuracy (`supabase/migrations/20261123151500_franchise_territories_multi_allotment.sql`)**:
+  - Operational Ownership Model: added `ownership_type` (`DIRECT_COMPANY` vs `FRANCHISE`) to `territories` and `salon_branches`.
+  - Multi-Territory Junction Table: created `public.franchisee_territories` with unique constraint `(franchisee_id, territory_id)`, foreign keys, cascade rules, and query indexes.
+  - Strict `super_admin` Governance: created PostgreSQL RPC `manage_franchisee_territory` with strict `has_role(auth.uid(), 'super_admin'::app_role)` check and automated `audit_logs` entries for all `add`, `update`, `set_primary`, and `delete` actions.
+  - Row Level Security (RLS): enforced `SELECT` for authenticated users; `INSERT`/`UPDATE`/`DELETE` strictly locked to `super_admin`.
+  - Data Integrity & Historical Snapshot Repair:
+    - Mayur Deepak Gandhi (`2c469d4d-45cb-421a-bcea-24165f782d1a`): unlinked central company warehouse (`fb6df109-a8a8-4b89-9aab-4fbc28fe3d5c` / Udaipur), allotted primary territory **Pune, Maharashtra**, and repaired historical ROI claim snapshots from Udaipur to Pune.
+    - Mohammad Wakeel (`f40bd753-5a21-4b6a-a55f-0073ccf786fc`): allotted primary territory **Jhotwara, Jaipur, Rajasthan**.
+    - All remaining franchisees backfilled into `franchisee_territories`.
+  - Service & Engine Resolution: updated `resolveTerritoryContext` in `src/lib/roi-claim-service.ts` and `src/lib/roi-claim.ts` to prioritize primary junction allotments and permanently eliminate fallback to central company warehouse (Udaipur HQ) for franchise partners.
+  - User Experience:
+    - `src/routes/app.franchisees.tsx`: Added territory badges on franchisee directory cards showing primary territory, area, multi-territory count (`+N more`), and operational badge (`Direct Co.` vs `Franchise`), or `Unallotted Territory` badge in amber outline.
+    - `src/components/app/FranchiseeEditDialog.tsx` & `src/components/app/franchise/TerritoryAndProductPct.tsx`: Added full multi-territory allotment tab with live management (allot territory, make primary, remove allotment) for `super_admin` and locked view-only mode for other roles.
+  - TypeScript Compilation: `npm run typecheck` passed with 0 errors.
+
 ---
 
-### DOING (Phase 2 Deployment & Release)
-- Final typecheck verification, commit to `main`, push to GitHub, Coolify redeployment on VPS, and live endpoint verification.
+### DOING (Production Release & Deployment)
+- Push changes to `origin/main` and trigger Coolify deployment on VPS `root@200.234.35.116`.
 
 ---
 
-### TODO (Upcoming Phase 3 & Subsequent Milestones)
-- **Phase 3: Database Cryptographic Storage**:
+### TODO (Upcoming Milestones)
+- **Phase 4: Database Cryptographic Storage**:
   - Integrate PostgreSQL `pgcrypto` / Supabase Vault column encryption for PAN, Aadhaar, Bank details.
   - Implement blind HMAC-SHA256 indexing for searchable encrypted KYC.
-- **Phase 4: Automated Testing & Continuous Verification**:
+- **Phase 5: Automated Testing & Continuous Verification**:
   - Vitest / Playwright test harnesses for invoice generation and franchise commission settlement.
-- **Phase 5: Commercial Ledger Hardening**:
+- **Phase 6: Commercial Ledger Hardening**:
   - Strict audit logging triggers on `sales_orders`, `invoices`, and `roi_payouts`.
 
 ---

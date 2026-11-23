@@ -28,6 +28,7 @@ import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 import { formatINR } from "@/lib/format";
 import { DocumentVault } from "@/components/app/franchise/DocumentVault";
 import { TerritoryFields, ProductPctSync } from "@/components/app/franchise/TerritoryAndProductPct";
+import { useAuth } from "@/lib/auth-context";
 
 interface Franchisee {
   id: string;
@@ -95,6 +96,8 @@ const FEE_PRESETS = ["500000", "1000000", "custom"] as const;
 
 export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) {
   const qc = useQueryClient();
+  const { hasRole } = useAuth();
+  const isSuperAdmin = hasRole("super_admin");
   const resetFn = useServerFn(resetFranchiseePassword);
   const [form, setForm] = React.useState<Franchisee | null>(franchisee);
   const [feePreset, setFeePreset] = React.useState<string>("500000");
@@ -356,7 +359,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
           </TabsContent>
 
           <TabsContent value="territory" className="mt-4 space-y-3">
-            <TerritoryFields form={form} setForm={setForm} />
+            <TerritoryFields form={form} setForm={setForm} franchiseeId={form.id} isSuperAdmin={isSuperAdmin} />
           </TabsContent>
 
           <TabsContent value="banking" className="mt-4 space-y-3">

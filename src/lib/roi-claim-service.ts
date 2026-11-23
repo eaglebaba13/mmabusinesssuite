@@ -27,14 +27,38 @@ const FRANCHISEE_FIELDS =
 type FranchiseeRecord = FranchiseeForClaim & { territory_id?: string | null; warehouse_id?: string | null };
 
 /**
- * Resolves Location / Territory from related records when the franchisee row has
- * no territory columns: territory mapping → own warehouse → state franchise.
- * Never invents values; returns nulls when nothing exists.
+ * Resolves Location / Territory accurately from related records:
+ * 1. Multi-territory junction table (franchisee_territories) - prioritizes primary allotment
+ * 2. Directly assigned territory_id -> territories
+ * 3. Stored territory columns on franchisee record (territory_city, territory_state, territory_area)
+ * 4. Dedicated franchisee warehouse ONLY if NOT central company warehouse (Udaipur HQ)
+ * Never defaults franchise partners to central company HQ (Udaipur).
  */
 async function resolveTerritoryContext(f: FranchiseeRecord) {
   let location: string | null = null;
   let territory: string | null = null;
 
+  // 1. Multi-territory allotment junction table (franchisee_territories)
+  try {
+    const { data: ftData } = await (supabase as any)
+      .from("franchisee_territories")
+      .select("territory_id, is_primary, area_name, ownership_type, territories(name, state, region)")
+      .eq("franchisee_id", f.id)
+      .order("is_primary", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (ftData && ftData.territories) {
+      const t = ftData.territories;
+      territory = ftData.area_name || t.name || t.region || null;
+      location = [t.name || t.region, t.state].filter(Boolean).join(", ") || null;
+      return { location, territory };
+    }
+  } catch (err) {
+    console.warn("Could not query franchisee_territories:", err);
+  }
+
+  // 2. Direct territory_id on franchisee record
   if (f.territory_id) {
     const { data } = await supabase
       .from("territories")
@@ -42,17 +66,27 @@ async function resolveTerritoryContext(f: FranchiseeRecord) {
       .eq("id", f.territory_id)
       .maybeSingle();
     if (data) {
-      territory = data.name || data.region || null;
-      location = [data.region || data.name, data.state].filter(Boolean).join(", ") || null;
+      territory = f.territory_area || data.name || data.region || null;
+      location = [data.name || data.region, data.state].filter(Boolean).join(", ") || null;
+      return { location, territory };
     }
   }
 
-  if (!location) {
-    const wq = supabase.from("warehouses").select("name, city, state").limit(1);
-    const { data } = f.warehouse_id
-      ? await wq.eq("id", f.warehouse_id).maybeSingle()
-      : await wq.eq("franchisee_id", f.id).maybeSingle();
-    if (data && (data.city || data.state)) {
+  // 3. Directly stored territory columns on franchisee row
+  if (f.territory_city || f.territory_state) {
+    location = [f.territory_city, f.territory_state].filter(Boolean).join(", ") || null;
+    territory = f.territory_area || f.territory_city || null;
+    return { location, territory };
+  }
+
+  // 4. Warehouse fallback ONLY if dedicated non-HQ warehouse (never fallback to central Udaipur HQ)
+  if (f.warehouse_id) {
+    const { data } = await supabase
+      .from("warehouses")
+      .select("id, name, city, state")
+      .eq("id", f.warehouse_id)
+      .maybeSingle();
+    if (data && data.id !== "fb6df109-a8a8-4b89-9aab-4fbc28fe3d5c" && data.city?.toLowerCase() !== "udaipur") {
       location = [data.city, data.state].filter(Boolean).join(", ") || null;
       territory = territory || data.city || data.name || null;
     }

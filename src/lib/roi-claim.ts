@@ -164,16 +164,28 @@ export function buildClaimData(opts: {
   const approved = n(p.total_amount ?? p.final_payable);
 
   const derived = deriveFromAddress(f.address);
-  const cityLike =
-    clean(f.territory_city) || clean(f.territory_district) || clean(opts.locationFallback) || derived.city;
-  const stateLike = clean(f.territory_state) || derived.state;
-  const location = [cityLike, stateLike].filter(Boolean).join(", ") || NA;
-  const territory =
-    clean(f.territory_area) ||
-    clean(opts.territoryFallback) ||
-    cityLike ||
-    stateLike ||
-    NA;
+  let location: string;
+  let territory: string;
+
+  if (opts.locationFallback && opts.locationFallback.includes(",")) {
+    location = opts.locationFallback;
+    territory =
+      clean(f.territory_area) ||
+      clean(opts.territoryFallback) ||
+      clean(f.territory_city) ||
+      opts.locationFallback.split(",")[0].trim();
+  } else {
+    const cityLike =
+      clean(f.territory_city) || clean(f.territory_district) || clean(opts.locationFallback) || derived.city;
+    const stateLike = clean(f.territory_state) || derived.state;
+    location = [cityLike, stateLike].filter(Boolean).join(", ") || NA;
+    territory =
+      clean(f.territory_area) ||
+      clean(opts.territoryFallback) ||
+      cityLike ||
+      stateLike ||
+      NA;
+  }
 
   const activityType = opts.activityType?.trim() || CLAIM_ACTIVITY_TYPES[0];
   const description = opts.description?.trim() || DEFAULT_CLAIM_DESCRIPTION;
