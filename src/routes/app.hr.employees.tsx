@@ -1,9 +1,10 @@
 import * as React from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Search, Pencil } from "lucide-react";
+import { Plus, Search, Pencil, Lock, ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,25 @@ const STATUS_COLOR: Record<string, string> = {
   resigned: "border-slate-400/40 text-slate-400",
 };
 
+export function maskIdentity(val?: string | null, type: "pan" | "aadhaar" | "bank" | "ifsc" = "pan"): string {
+  if (!val) return "—";
+  const str = val.trim();
+  if (type === "pan") {
+    if (str.length < 10) return "••••••••••";
+    return `${str.slice(0, 2)}•••••${str.slice(-2)}`.toUpperCase();
+  }
+  if (type === "aadhaar") {
+    const digits = str.replace(/\D/g, "");
+    if (digits.length < 4) return "••••••••••••";
+    return `XXXX-XXXX-${digits.slice(-4)}`;
+  }
+  if (type === "bank") {
+    if (str.length < 4) return "••••••••";
+    return `••••••••${str.slice(-4)}`;
+  }
+  return str;
+}
+
 function blankForm() {
   return {
     employee_code: "",
@@ -48,14 +68,22 @@ function blankForm() {
     allowances: "",
     city: "",
     state: "",
+    pan: "",
+    aadhar: "",
+    bank_account: "",
+    bank_ifsc: "",
   };
 }
 
 function EmployeesPage() {
   const qc = useQueryClient();
+  const { isAdmin, hasAnyRole } = useAuth();
+  const canAccessSensitive = isAdmin || hasAnyRole(["hr", "super_admin", "founder"]);
+
   const [open, setOpen] = React.useState(false);
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [form, setForm] = React.useState(blankForm());
+  const [showSensitive, setShowSensitive] = React.useState(false);
   const [search, setSearch] = React.useState("");
   const [deptFilter, setDeptFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState("all");
@@ -71,18 +99,41 @@ function EmployeesPage() {
   const list = useQuery({
     queryKey: ["hr-employees"],
     queryFn: async () => {
-      const { data } = await supabase
+      // Security: Select explicit operational fields only.
+      // High-risk identity PII (pan, aadhar, bank_account, bank_ifsc) is omitted
+      // from list projections to prevent mass leakage over the network wire.
+      const { data, error } = await supabase
         .from("employees")
-        .select("*, departments(name, code)")
+        .select(`
+          id,
+          employee_code,
+          full_name,
+          email,
+          phone,
+          designation,
+          department_id,
+          employment_type,
+          status,
+          date_of_joining,
+          monthly_ctc,
+          basic_salary,
+          hra,
+          allowances,
+          city,
+          state,
+          created_at,
+          departments(name, code)
+        `)
         .order("created_at", { ascending: false })
         .limit(500);
+      if (error) throw error;
       return data ?? [];
     },
   });
 
   const upsert = useMutation({
     mutationFn: async () => {
-      const payload = {
+      const payload: any = {
         employee_code: form.employee_code,
         full_name: form.full_name,
         email: form.email || null,
@@ -99,6 +150,14 @@ function EmployeesPage() {
         city: form.city || null,
         state: form.state || null,
       };
+
+      if (canAccessSensitive) {
+        if (form.pan) payload.pan = form.pan.toUpperCase().trim();
+        if (form.aadhar) payload.aadhar = form.aadhar.trim();
+        if (form.bank_account) payload.bank_account = form.bank_account.trim();
+        if (form.bank_ifsc) payload.bank_ifsc = form.bank_ifsc.toUpperCase().trim();
+      }
+
       if (editingId) {
         const { error } = await supabase.from("employees").update(payload).eq("id", editingId);
         if (error) throw error;
@@ -112,6 +171,7 @@ function EmployeesPage() {
       setOpen(false);
       setEditingId(null);
       setForm(blankForm());
+      setShowSensitive(false);
       qc.invalidateQueries({ queryKey: ["hr-employees"] });
       qc.invalidateQueries({ queryKey: ["hr-overview"] });
     },
@@ -133,8 +193,32 @@ function EmployeesPage() {
     });
   }, [list.data, search, deptFilter, statusFilter]);
 
-  const openEdit = (e: any) => {
+  const openEdit = async (e: any) => {
     setEditingId(e.id);
+    let pan = "";
+    let aadhar = "";
+    let bank_account = "";
+    let bank_ifsc = "";
+
+    // Role-gated single-record fetch for sensitive banking/KYC fields
+    if (canAccessSensitive && e.id) {
+      try {
+        const { data: sens } = await supabase
+          .from("employees")
+          .select("pan, aadhar, bank_account, bank_ifsc")
+          .eq("id", e.id)
+          .maybeSingle();
+        if (sens) {
+          pan = sens.pan ?? "";
+          aadhar = sens.aadhar ?? "";
+          bank_account = sens.bank_account ?? "";
+          bank_ifsc = sens.bank_ifsc ?? "";
+        }
+      } catch {
+        // Fallback gracefully without revealing error details
+      }
+    }
+
     setForm({
       employee_code: e.employee_code,
       full_name: e.full_name,
@@ -151,7 +235,12 @@ function EmployeesPage() {
       allowances: String(e.allowances ?? ""),
       city: e.city ?? "",
       state: e.state ?? "",
+      pan,
+      aadhar,
+      bank_account,
+      bank_ifsc,
     });
+    setShowSensitive(false);
     setOpen(true);
   };
 
@@ -222,7 +311,7 @@ function EmployeesPage() {
           </SelectContent>
         </Select>
         <ImportButton configKey="employees" />
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditingId(null); setForm(blankForm()); } }}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditingId(null); setForm(blankForm()); setShowSensitive(false); } }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-background"><Plus className="mr-1 h-4 w-4" />Add employee</Button>
           </DialogTrigger>
@@ -269,6 +358,81 @@ function EmployeesPage() {
               <div><Label>City</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="mt-1" /></div>
               <div><Label>State</Label><Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} className="mt-1" /></div>
             </div>
+
+            {/* Role-gated Confidential KYC & Banking Section */}
+            <div className="mt-4 rounded-xl border border-border/60 bg-muted/20 p-4">
+              <div className="flex items-center justify-between pb-2">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-gold" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                    Confidential KYC & Banking
+                  </span>
+                </div>
+                {canAccessSensitive && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowSensitive((s) => !s)}
+                    className="h-7 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    {showSensitive ? <EyeOff className="mr-1 h-3.5 w-3.5" /> : <Eye className="mr-1 h-3.5 w-3.5" />}
+                    {showSensitive ? "Mask fields" : "Reveal fields"}
+                  </Button>
+                )}
+              </div>
+
+              {!canAccessSensitive ? (
+                <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span>Access restricted to HR and administrative personnel.</span>
+                </div>
+              ) : (
+                <div className="grid gap-3 pt-2 sm:grid-cols-2">
+                  <div>
+                    <Label className="text-xs">PAN Card</Label>
+                    <Input
+                      type={showSensitive ? "text" : "password"}
+                      value={form.pan}
+                      onChange={(e) => setForm({ ...form, pan: e.target.value.toUpperCase() })}
+                      placeholder={showSensitive ? "ABCDE1234F" : "••••••••••"}
+                      className="mt-1 font-mono text-xs uppercase"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Aadhaar Card (UID)</Label>
+                    <Input
+                      type={showSensitive ? "text" : "password"}
+                      value={form.aadhar}
+                      onChange={(e) => setForm({ ...form, aadhar: e.target.value })}
+                      placeholder={showSensitive ? "12-digit UID" : "••••••••••••"}
+                      className="mt-1 font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Bank Account Number</Label>
+                    <Input
+                      type={showSensitive ? "text" : "password"}
+                      value={form.bank_account}
+                      onChange={(e) => setForm({ ...form, bank_account: e.target.value })}
+                      placeholder={showSensitive ? "Account number" : "••••••••••••"}
+                      className="mt-1 font-mono text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Bank IFSC Code</Label>
+                    <Input
+                      type={showSensitive ? "text" : "password"}
+                      value={form.bank_ifsc}
+                      onChange={(e) => setForm({ ...form, bank_ifsc: e.target.value.toUpperCase() })}
+                      placeholder={showSensitive ? "SBIN0001234" : "•••••••••••"}
+                      className="mt-1 font-mono text-xs uppercase"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <DialogFooter>
               <Button onClick={() => upsert.mutate()} disabled={upsert.isPending || !form.employee_code || !form.full_name} className="bg-gradient-gold text-background">
                 {upsert.isPending ? "Saving…" : editingId ? "Save changes" : "Add employee"}

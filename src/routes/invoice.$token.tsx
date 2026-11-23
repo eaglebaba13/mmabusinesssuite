@@ -16,6 +16,7 @@ export const Route = createFileRoute("/invoice/$token")({
 
 function PublicInvoicePage() {
   const { token } = Route.useParams();
+  const [previewOpen, setPreviewOpen] = React.useState(false);
 
   const tokenRow = useQuery({
     queryKey: ["invoice-token", token],
@@ -59,8 +60,6 @@ function PublicInvoicePage() {
   const items = order.data?.items ?? [];
   const payments = order.data?.payments ?? [];
   if (!o) return <div className="p-12 text-center text-muted-foreground">Loading…</div>;
-
-  const [previewOpen, setPreviewOpen] = React.useState(false);
 
   const invoiceInput: InvoicePdfInput = {
     invoiceNumber: o.invoice_number ?? `DRAFT-${o.id.slice(0, 8)}`,

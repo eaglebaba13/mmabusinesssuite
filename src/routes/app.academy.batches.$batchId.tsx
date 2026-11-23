@@ -16,18 +16,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "sonner";
 import { formatINR } from "@/lib/format";
 
+function BatchErrorComponent() {
+  const router = useRouter();
+  return (
+    <div className="p-8 text-center">
+      <p className="text-rose-400">Couldn't load batch.</p>
+      <Button onClick={() => router.invalidate()} className="mt-4">Retry</Button>
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/app/academy/batches/$batchId")({
   head: () => ({ meta: [{ title: "Batch — Academy" }] }),
   component: BatchDetail,
-  errorComponent: ({ error }) => {
-    const router = useRouter();
-    return (
-      <div className="p-8 text-center">
-        <p className="text-rose-400">Couldn't load batch.</p>
-        <Button onClick={() => router.invalidate()} className="mt-4">Retry</Button>
-      </div>
-    );
-  },
+  errorComponent: BatchErrorComponent,
 });
 
 const ATT_STYLES: Record<string, string> = {
