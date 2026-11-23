@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/lib/auth-context";
 import { FranchiseeDashboard } from "@/components/app/FranchiseeDashboard";
 import { FranchiseeEditDialog } from "@/components/app/FranchiseeEditDialog";
+import { TerritoryManager } from "@/components/app/franchise/TerritoryAndProductPct";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 import { RoiClaimsPanel } from "@/components/app/RoiClaimsPanel";
 import { MonthlyRoiPanel } from "@/components/app/MonthlyRoiPanel";
@@ -48,6 +49,7 @@ function FranchiseeDetailPage() {
   const { franchiseeId } = useParams({ from: "/app/franchisees/$franchiseeId" });
   const { isAdmin, hasRole } = useAuth();
   const canManage = isAdmin || hasRole("accounts");
+  const isSuperAdmin = hasRole("super_admin") || hasRole("founder") || isAdmin;
   const qc = useQueryClient();
   const resetFn = useServerFn(resetFranchiseePassword);
   const [editOpen, setEditOpen] = React.useState(false);
@@ -211,6 +213,16 @@ function FranchiseeDetailPage() {
                   )}
                 </div>
               </div>
+              {canManage && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-gold/40 text-gold hover:bg-gold/10"
+                  onClick={() => setEditOpen(true)}
+                >
+                  <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit profile
+                </Button>
+              )}
             </div>
 
             {/* Agreement tile row — replaces single Investment card */}
@@ -235,6 +247,11 @@ function FranchiseeDetailPage() {
                 </div>
                 <div className="text-[11px] text-muted-foreground">exp {(f as any).agreement_expiry ?? "—"}</div>
               </div>
+            </div>
+
+            {/* Dedicated Allotted Territories & Outlets section */}
+            <div className="mt-6">
+              <TerritoryManager franchiseeId={f.id} isSuperAdmin={isSuperAdmin} />
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -353,6 +370,13 @@ function FranchiseeDetailPage() {
         />
       )}
 
+      {canManage && (
+        <FranchiseeEditDialog
+          franchisee={f as any}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+        />
+      )}
     </div>
   );
 }

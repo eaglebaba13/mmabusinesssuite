@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, ShieldAlert, ShieldCheck, Plus, Trash2, Star, MapPin } from "lucide-react";
+import { Package, ShieldAlert, ShieldCheck, Plus, Trash2, Star, MapPin, Pencil, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,30 +10,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { productDefaults, type ProductCommission, type ProductTemplate } from "@/lib/franchise-product-map";
 
-/** Territory allotment editor with multi-territory support and super_admin governance */
-export function TerritoryFields({
-  form,
-  setForm,
-  franchiseeId,
-  isSuperAdmin = false,
-}: {
-  form: any;
-  setForm: (f: any) => void;
+export interface TerritoryManagerProps {
   franchiseeId?: string;
   isSuperAdmin?: boolean;
-}) {
+  form?: any;
+  setForm?: (f: any) => void;
+}
+
+/**
+ * Dedicated Territory Manager component:
+ * - Displays all allotted territories (1-to-many)
+ * - Allows super_admin to Add, Change / Edit, Set Primary, or Delete allotments
+ * - Supports inline creation of new cities/territories
+ * - Synchronizes primary territory changes with the parent form state
+ */
+export function TerritoryManager({
+  franchiseeId,
+  isSuperAdmin = false,
+  form,
+  setForm,
+}: TerritoryManagerProps) {
   const qc = useQueryClient();
   const fId = franchiseeId || form?.id;
 
   // 1. Territories catalog
-  const { data: territories = [] } = useQuery<any[]>({
+  const { data: territories = [], refetch: refetchTerritories } = useQuery<any[]>({
     queryKey: ["territories-list"],
     queryFn: async () =>
       ((await (supabase as any).from("territories").select("id, name, state, ownership_type").order("name")).data ?? []) as any[],
   });
 
   // 2. Multi-territory allotments for this franchisee
-  const { data: allotments = [], refetch: refetchAllotments } = useQuery({
+  const { data: allotments = [], refetch: refetchAllotments } = useQuery<any[]>({
     queryKey: ["franchisee_territories", fId],
     enabled: !!fId,
     queryFn: async () => {
@@ -50,59 +58,164 @@ export function TerritoryFields({
     },
   });
 
-  // Add allotment local state
+  // Add form local state
   const [showAddForm, setShowAddForm] = React.useState(false);
   const [selectedTerritoryId, setSelectedTerritoryId] = React.useState<string>("");
-  const [areaName, setAreaName] = React.useState<string>("");
-  const [ownershipType, setOwnershipType] = React.useState<string>("FRANCHISE");
-  const [radiusKm, setRadiusKm] = React.useState<string>("5.0");
-  const [makePrimary, setMakePrimary] = React.useState<boolean>(true);
-  const [submitting, setSubmitting] = React.useState<boolean>(false);
+  const [isCustomCity, setIsCustomCity] = React.useState(false);
+  const [customCityName, setCustomCityName] = React.useState("");
+  const [customCityState, setCustomCityState] = React.useState("");
+  const [areaName, setAreaName] = React.useState("");
+  const [ownershipType, setOwnershipType] = React.useState("FRANCHISE");
+  const [radiusKm, setRadiusKm] = React.useState("5.0");
+  const [makePrimary, setMakePrimary] = React.useState(true);
+  const [submitting, setSubmitting] = React.useState(false);
+
+  // Edit / Change state for existing row
+  const [editingRowTerritoryId, setEditingRowTerritoryId] = React.useState<string | null>(null);
+  const [editTerritoryId, setEditTerritoryId] = React.useState<string>("");
+  const [editAreaName, setEditAreaName] = React.useState<string>("");
+  const [editOwnershipType, setEditOwnershipType] = React.useState<string>("FRANCHISE");
+  const [editRadiusKm, setEditRadiusKm] = React.useState<string>("5.0");
+  const [editIsPrimary, setEditIsPrimary] = React.useState<boolean>(false);
+  const [editIsCustomCity, setEditIsCustomCity] = React.useState<boolean>(false);
+  const [editCustomCityName, setEditCustomCityName] = React.useState<string>("");
+  const [editCustomCityState, setEditCustomCityState] = React.useState<string>("");
+  const [editSubmitting, setEditSubmitting] = React.useState<boolean>(false);
+
+  const startEditRow = (a: any) => {
+    setEditingRowTerritoryId(a.territory_id);
+    setEditTerritoryId(a.territory_id);
+    setEditAreaName(a.area_name ?? "");
+    setEditOwnershipType(a.ownership_type ?? "FRANCHISE");
+    setEditRadiusKm(String(a.exclusivity_radius_km ?? 5.0));
+    setEditIsPrimary(!!a.is_primary);
+    setEditIsCustomCity(false);
+    setEditCustomCityName("");
+    setEditCustomCityState("");
+  };
+
+  const cancelEditRow = () => {
+    setEditingRowTerritoryId(null);
+    setEditSubmitting(false);
+  };
+
+  const handleSaveRowChange = async () => {
+    if (!fId || !editingRowTerritoryId) return;
+    if (!isSuperAdmin) {
+      toast.error("Forbidden: Only super_admin or founder can change territory allotments");
+      return;
+    }
+
+    setEditSubmitting(true);
+    try {
+      const payload: any = {
+        p_action: "update",
+        p_franchisee_id: fId,
+        p_old_territory_id: editingRowTerritoryId,
+        p_is_primary: editIsPrimary,
+        p_ownership_type: editOwnershipType,
+        p_radius_km: parseFloat(editRadiusKm) || 5.0,
+        p_area_name: editAreaName.trim() || null,
+      };
+
+      if (editIsCustomCity && editCustomCityName.trim()) {
+        payload.p_territory_id = null;
+        payload.p_new_territory_name = editCustomCityName.trim();
+        payload.p_new_territory_state = editCustomCityState.trim() || null;
+      } else {
+        payload.p_territory_id = editTerritoryId;
+      }
+
+      const { data, error } = await (supabase as any).rpc("manage_franchisee_territory", payload);
+      if (error) throw error;
+
+      toast.success("Territory allotment updated successfully");
+      cancelEditRow();
+      refetchAllotments();
+      refetchTerritories();
+      qc.invalidateQueries({ queryKey: ["franchisees"] });
+      qc.invalidateQueries({ queryKey: ["franchisee_territories", fId] });
+
+      // Update parent form if setForm provided
+      if (setForm && form && editIsPrimary) {
+        const resolvedT = territories.find((t: any) => t.id === editTerritoryId);
+        setForm({
+          ...form,
+          territory_id: data?.territory_id ?? editTerritoryId,
+          territory_city: editIsCustomCity ? editCustomCityName.trim() : (resolvedT?.name ?? form.territory_city),
+          territory_state: editIsCustomCity ? editCustomCityState.trim() : (resolvedT?.state ?? form.territory_state),
+          territory_area: editAreaName.trim() || resolvedT?.name || form.territory_area,
+          territory_radius_km: parseFloat(editRadiusKm) || 5.0,
+        });
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update territory allotment");
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
 
   const handleAddAllotment = async () => {
     if (!fId) {
       toast.error("Franchisee ID not found");
       return;
     }
-    if (!selectedTerritoryId) {
-      toast.error("Please select a territory from the catalog");
+    if (!isSuperAdmin) {
+      toast.error("Forbidden: Only super_admin or founder can add territory allotments");
       return;
     }
-    if (!isSuperAdmin) {
-      toast.error("Forbidden: Only super_admin can add territory allotments");
+    if (isCustomCity && !customCityName.trim()) {
+      toast.error("Please enter a new city name");
+      return;
+    }
+    if (!isCustomCity && !selectedTerritoryId) {
+      toast.error("Please select a territory from the catalog");
       return;
     }
 
     setSubmitting(true);
     try {
-      const { error } = await (supabase as any).rpc("manage_franchisee_territory", {
+      const payload: any = {
         p_action: "add",
         p_franchisee_id: fId,
-        p_territory_id: selectedTerritoryId,
         p_is_primary: makePrimary,
         p_ownership_type: ownershipType,
         p_radius_km: parseFloat(radiusKm) || 5.0,
         p_area_name: areaName.trim() || null,
-      });
+      };
 
+      if (isCustomCity) {
+        payload.p_territory_id = null;
+        payload.p_new_territory_name = customCityName.trim();
+        payload.p_new_territory_state = customCityState.trim() || null;
+      } else {
+        payload.p_territory_id = selectedTerritoryId;
+      }
+
+      const { data, error } = await (supabase as any).rpc("manage_franchisee_territory", payload);
       if (error) throw error;
 
       toast.success("Territory allotted successfully");
       const chosenT = territories.find((t: any) => t.id === selectedTerritoryId);
-      if (makePrimary && chosenT) {
+      if (makePrimary && setForm && form) {
         setForm({
           ...form,
-          territory_id: chosenT.id,
-          territory_city: chosenT.name,
-          territory_state: chosenT.state,
-          territory_area: areaName.trim() || chosenT.name,
+          territory_id: data?.territory_id ?? selectedTerritoryId,
+          territory_city: isCustomCity ? customCityName.trim() : (chosenT?.name ?? form.territory_city),
+          territory_state: isCustomCity ? customCityState.trim() : (chosenT?.state ?? form.territory_state),
+          territory_area: areaName.trim() || chosenT?.name || form.territory_area,
           territory_radius_km: parseFloat(radiusKm) || 5.0,
         });
       }
+
       setShowAddForm(false);
       setSelectedTerritoryId("");
+      setIsCustomCity(false);
+      setCustomCityName("");
+      setCustomCityState("");
       setAreaName("");
       refetchAllotments();
+      refetchTerritories();
       qc.invalidateQueries({ queryKey: ["franchisees"] });
       qc.invalidateQueries({ queryKey: ["franchisee_territories", fId] });
     } catch (err: any) {
@@ -114,7 +227,7 @@ export function TerritoryFields({
 
   const handleSetPrimary = async (territoryId: string) => {
     if (!fId || !isSuperAdmin) {
-      toast.error("Forbidden: Only super_admin can change primary territory");
+      toast.error("Forbidden: Only super_admin or founder can change primary territory");
       return;
     }
 
@@ -129,7 +242,7 @@ export function TerritoryFields({
 
       toast.success("Primary territory updated");
       const chosenT = territories.find((t: any) => t.id === territoryId);
-      if (chosenT) {
+      if (chosenT && setForm && form) {
         setForm({
           ...form,
           territory_id: chosenT.id,
@@ -147,7 +260,7 @@ export function TerritoryFields({
 
   const handleDeleteAllotment = async (territoryId: string, territoryName: string) => {
     if (!fId || !isSuperAdmin) {
-      toast.error("Forbidden: Only super_admin can delete territory allotments");
+      toast.error("Forbidden: Only super_admin or founder can delete territory allotments");
       return;
     }
 
@@ -173,6 +286,420 @@ export function TerritoryFields({
     }
   };
 
+  return (
+    <div className="space-y-3 rounded-xl border border-gold/30 bg-card/60 p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-3">
+        <div className="flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-gold" />
+          <div>
+            <h4 className="font-display text-base font-semibold">Allotted Territories & Outlets</h4>
+            <p className="text-[11px] text-muted-foreground">
+              Official assigned cities, operational ownership (Direct Company vs Franchise), and exclusive radii.
+            </p>
+          </div>
+        </div>
+
+        {isSuperAdmin && !showAddForm && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="h-8 text-xs border-gold/40 text-gold hover:bg-gold/10"
+            onClick={() => {
+              setShowAddForm(true);
+              setIsCustomCity(false);
+            }}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" /> Allot Territory
+          </Button>
+        )}
+      </div>
+
+      {/* Role Notice */}
+      {!isSuperAdmin ? (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-300">
+          <ShieldAlert className="h-4 w-4 shrink-0 text-amber-400" />
+          <span>View-only: Only super_admin or founder can add, change, or delete territory allotments.</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-xs text-emerald-300">
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+          <span>Executive access verified: full authority to add, change, reassign primary, or delete allotments.</span>
+        </div>
+      )}
+
+      {/* List of Allotted Territories */}
+      {allotments.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-amber-500/30 bg-amber-500/5 p-4 text-center text-xs text-amber-300">
+          No territory currently allotted to this partner. Click &quot;Allot Territory&quot; to assign a city.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {allotments.map((a: any) => {
+            const t = a.territories || {};
+            const isPrimary = a.is_primary;
+            const isEditing = editingRowTerritoryId === a.territory_id;
+
+            if (isEditing) {
+              return (
+                <div key={a.id || a.territory_id} className="rounded-xl border border-gold/40 bg-gold/5 p-3.5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-gold">
+                      Change Allotment: {t.name || "Territory"}
+                    </span>
+                    <Button type="button" size="sm" variant="ghost" className="h-6 text-xs" onClick={cancelEditRow}>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Territory City</Label>
+                      {!editIsCustomCity ? (
+                        <Select
+                          value={editTerritoryId}
+                          onValueChange={(v) => {
+                            if (v === "__new__") {
+                              setEditIsCustomCity(true);
+                            } else {
+                              setEditTerritoryId(v);
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="mt-1 h-9 bg-card">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60">
+                            {territories.map((item: any) => (
+                              <SelectItem key={item.id} value={item.id}>
+                                {item.name}{item.state ? ` (${item.state})` : ""}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="__new__" className="text-gold font-medium">
+                              + Create New City / Territory...
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="space-y-1.5 mt-1">
+                          <Input
+                            placeholder="New city name (e.g. Bhopal)"
+                            value={editCustomCityName}
+                            onChange={(e) => setEditCustomCityName(e.target.value)}
+                            className="h-8 text-xs bg-card"
+                          />
+                          <Input
+                            placeholder="State (e.g. Madhya Pradesh)"
+                            value={editCustomCityState}
+                            onChange={(e) => setEditCustomCityState(e.target.value)}
+                            className="h-8 text-xs bg-card"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setEditIsCustomCity(false)}
+                            className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                          >
+                            Back to existing catalog
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">Specific Area / Outlet Name</Label>
+                      <Input
+                        value={editAreaName}
+                        onChange={(e) => setEditAreaName(e.target.value)}
+                        placeholder="e.g. Jhotwara, Main Market"
+                        className="mt-1 h-9 bg-card text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs">Operational Ownership</Label>
+                      <Select value={editOwnershipType} onValueChange={setEditOwnershipType}>
+                        <SelectTrigger className="mt-1 h-9 bg-card">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="FRANCHISE">FRANCHISE (Franchisee Outlet)</SelectItem>
+                          <SelectItem value="DIRECT_COMPANY">DIRECT_COMPANY (Company Owned Branch)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-xs">Exclusivity Radius (km)</Label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        value={editRadiusKm}
+                        onChange={(e) => setEditRadiusKm(e.target.value)}
+                        className="mt-1 h-9 bg-card text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <label className="flex items-center gap-2 text-xs cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editIsPrimary}
+                        onChange={(e) => setEditIsPrimary(e.target.checked)}
+                        className="rounded border-border"
+                      />
+                      <span>Primary territory (used for ROI calculation)</span>
+                    </label>
+
+                    <div className="flex gap-2">
+                      <Button type="button" size="sm" variant="ghost" className="h-8 text-xs" onClick={cancelEditRow}>
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={editSubmitting}
+                        onClick={handleSaveRowChange}
+                        className="bg-gradient-gold text-background h-8 px-4"
+                      >
+                        {editSubmitting ? "Saving..." : "Save Change"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
+              <div
+                key={a.id || a.territory_id}
+                className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 ${
+                  isPrimary
+                    ? "border-sky-500/40 bg-sky-500/5 shadow-sm"
+                    : "border-border/50 bg-card/40"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <MapPin className={`h-4 w-4 ${isPrimary ? "text-sky-400" : "text-muted-foreground"}`} />
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-sm">
+                        {t.name || "Unknown territory"}
+                        {t.state ? ` (${t.state})` : ""}
+                      </span>
+                      {a.area_name && a.area_name !== t.name && (
+                        <span className="text-xs text-muted-foreground font-medium">· {a.area_name}</span>
+                      )}
+                      {isPrimary && (
+                        <Badge variant="secondary" className="bg-sky-500/20 text-sky-400 border-sky-500/30 text-[10px]">
+                          <Star className="mr-1 h-2.5 w-2.5 fill-sky-400" /> Primary
+                        </Badge>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] font-mono uppercase tracking-wider ${
+                          a.ownership_type === "DIRECT_COMPANY"
+                            ? "border-purple-500/40 text-purple-400 bg-purple-500/10"
+                            : "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
+                        }`}
+                      >
+                        {a.ownership_type === "DIRECT_COMPANY" ? "Direct Co." : "Franchise"}
+                      </Badge>
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      Radius: {a.exclusivity_radius_km ?? 5} km
+                      {a.effective_from ? ` · Effective from ${a.effective_from}` : ""}
+                    </div>
+                  </div>
+                </div>
+
+                {isSuperAdmin && (
+                  <div className="flex items-center gap-1.5 ml-auto">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-border/60 hover:bg-muted"
+                      onClick={() => startEditRow(a)}
+                    >
+                      <Pencil className="mr-1 h-3 w-3" /> Change
+                    </Button>
+                    {!isPrimary && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs border-border/60 hover:bg-muted"
+                        onClick={() => handleSetPrimary(a.territory_id)}
+                      >
+                        Set Primary
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                      onClick={() => handleDeleteAllotment(a.territory_id, t.name || "territory")}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add Territory Inline Panel (super_admin / founder only) */}
+      {isSuperAdmin && showAddForm && (
+        <div className="rounded-xl border border-gold/40 bg-gold/5 p-4 space-y-3 mt-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gold">Allot New Territory</span>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="h-6 text-xs text-muted-foreground"
+              onClick={() => setShowAddForm(false)}
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Territory *</Label>
+              {!isCustomCity ? (
+                <Select
+                  value={selectedTerritoryId}
+                  onValueChange={(v) => {
+                    if (v === "__new__") {
+                      setIsCustomCity(true);
+                      setSelectedTerritoryId("");
+                    } else {
+                      setSelectedTerritoryId(v);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1 h-9 bg-card">
+                    <SelectValue placeholder="Select territory" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-60">
+                    {territories.map((t: any) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}{t.state ? ` (${t.state})` : ""} — {t.ownership_type || "FRANCHISE"}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="__new__" className="text-gold font-medium">
+                      + Create New City / Territory...
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="space-y-1.5 mt-1">
+                  <Input
+                    placeholder="New city name (e.g. Bhopal)"
+                    value={customCityName}
+                    onChange={(e) => setCustomCityName(e.target.value)}
+                    className="h-8 text-xs bg-card"
+                  />
+                  <Input
+                    placeholder="State (e.g. Madhya Pradesh)"
+                    value={customCityState}
+                    onChange={(e) => setCustomCityState(e.target.value)}
+                    className="h-8 text-xs bg-card"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsCustomCity(false)}
+                    className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                  >
+                    Back to existing catalog
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <Label className="text-xs">Specific Area / Outlet Name</Label>
+              <Input
+                value={areaName}
+                onChange={(e) => setAreaName(e.target.value)}
+                placeholder="e.g. Jhotwara, Pune Main"
+                className="mt-1 h-9 bg-card text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Operational Ownership</Label>
+              <Select value={ownershipType} onValueChange={setOwnershipType}>
+                <SelectTrigger className="mt-1 h-9 bg-card">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FRANCHISE">FRANCHISE (Franchisee Outlet)</SelectItem>
+                  <SelectItem value="DIRECT_COMPANY">DIRECT_COMPANY (Company Owned Branch)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-xs">Exclusivity Radius (km)</Label>
+              <Input
+                type="number"
+                step="0.5"
+                value={radiusKm}
+                onChange={(e) => setRadiusKm(e.target.value)}
+                className="mt-1 h-9 bg-card text-xs"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-2 text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                checked={makePrimary}
+                onChange={(e) => setMakePrimary(e.target.checked)}
+                className="rounded border-border"
+              />
+              <span>Set as primary territory for ROI & invoices</span>
+            </label>
+
+            <Button
+              type="button"
+              size="sm"
+              disabled={submitting || (!isCustomCity && !selectedTerritoryId) || (isCustomCity && !customCityName.trim())}
+              onClick={handleAddAllotment}
+              className="bg-gradient-gold text-background h-8 px-4"
+            >
+              {submitting ? "Allotting..." : "Confirm Allotment"}
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Territory allotment editor with boundary profile inputs and manager */
+export function TerritoryFields({
+  form,
+  setForm,
+  franchiseeId,
+  isSuperAdmin = false,
+}: {
+  form: any;
+  setForm: (f: any) => void;
+  franchiseeId?: string;
+  isSuperAdmin?: boolean;
+}) {
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [k]: e.target.value });
   const txt = (k: string, label: string, ph?: string) => (
     <div>
@@ -189,218 +716,18 @@ export function TerritoryFields({
 
   return (
     <div className="space-y-4">
-      {/* Governance & Role Banner */}
-      {!isSuperAdmin ? (
-        <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
-          <ShieldAlert className="h-4 w-4 shrink-0 text-amber-400" />
-          <span>Territory allotment restricted to super_admin. View-only mode.</span>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-xs text-emerald-300">
-          <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-400" />
-          <span>super_admin authorized: manage territory allotments, primary territory, and operational ownership.</span>
-        </div>
-      )}
+      {/* Territory Manager: Allotments, Add, Change, Delete */}
+      <TerritoryManager
+        franchiseeId={franchiseeId || form?.id}
+        isSuperAdmin={isSuperAdmin}
+        form={form}
+        setForm={setForm}
+      />
 
-      {/* Multi-Territory Allotments List */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-sm font-medium">
-            Allotted Territories ({allotments.length})
-          </Label>
-          {isSuperAdmin && !showAddForm && (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-7 text-xs border-gold/40 text-gold hover:bg-gold/10"
-              onClick={() => setShowAddForm(true)}
-            >
-              <Plus className="mr-1 h-3 w-3" /> Allot Territory
-            </Button>
-          )}
-        </div>
-
-        {allotments.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border/60 p-4 text-center text-xs text-muted-foreground">
-            No territories currently allotted to this franchisee.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {allotments.map((a: any) => {
-              const t = a.territories || {};
-              const isPrimary = a.is_primary;
-              return (
-                <div
-                  key={a.id || a.territory_id}
-                  className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 ${
-                    isPrimary
-                      ? "border-sky-500/40 bg-sky-500/5 shadow-sm"
-                      : "border-border/50 bg-card/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <MapPin className={`h-4 w-4 ${isPrimary ? "text-sky-400" : "text-muted-foreground"}`} />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">
-                          {t.name || "Unknown territory"}
-                          {t.state ? ` (${t.state})` : ""}
-                        </span>
-                        {a.area_name && a.area_name !== t.name && (
-                          <span className="text-xs text-muted-foreground">· {a.area_name}</span>
-                        )}
-                        {isPrimary && (
-                          <Badge variant="secondary" className="bg-sky-500/20 text-sky-400 border-sky-500/30 text-[10px]">
-                            <Star className="mr-1 h-2.5 w-2.5 fill-sky-400" /> Primary
-                          </Badge>
-                        )}
-                        <Badge
-                          variant="outline"
-                          className={`text-[10px] font-mono uppercase tracking-wider ${
-                            a.ownership_type === "DIRECT_COMPANY"
-                              ? "border-purple-500/40 text-purple-400 bg-purple-500/10"
-                              : "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
-                          }`}
-                        >
-                          {a.ownership_type === "DIRECT_COMPANY" ? "Direct Co." : "Franchise"}
-                        </Badge>
-                      </div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">
-                        Radius: {a.exclusivity_radius_km ?? 5} km
-                        {a.effective_from ? ` · Effective from ${a.effective_from}` : ""}
-                      </div>
-                    </div>
-                  </div>
-
-                  {isSuperAdmin && (
-                    <div className="flex items-center gap-1.5 ml-auto">
-                      {!isPrimary && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs border-border/60 hover:bg-muted"
-                          onClick={() => handleSetPrimary(a.territory_id)}
-                        >
-                          Set Primary
-                        </Button>
-                      )}
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 px-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
-                        onClick={() => handleDeleteAllotment(a.territory_id, t.name || "territory")}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Add Territory Inline Panel (super_admin only) */}
-        {isSuperAdmin && showAddForm && (
-          <div className="rounded-xl border border-gold/40 bg-gold/5 p-4 space-y-3 mt-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gold">Allot New Territory</span>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="h-6 text-xs text-muted-foreground"
-                onClick={() => setShowAddForm(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Territory *</Label>
-                <Select value={selectedTerritoryId} onValueChange={setSelectedTerritoryId}>
-                  <SelectTrigger className="mt-1 h-9 bg-card">
-                    <SelectValue placeholder="Select territory" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {territories.map((t: any) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}{t.state ? ` (${t.state})` : ""} — {t.ownership_type || "FRANCHISE"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs">Specific Area / Outlet Name</Label>
-                <Input
-                  value={areaName}
-                  onChange={(e) => setAreaName(e.target.value)}
-                  placeholder="e.g. Jhotwara, Pune Main"
-                  className="mt-1 h-9 bg-card"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Operational Ownership</Label>
-                <Select value={ownershipType} onValueChange={setOwnershipType}>
-                  <SelectTrigger className="mt-1 h-9 bg-card">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="FRANCHISE">FRANCHISE (Franchisee Outlet)</SelectItem>
-                    <SelectItem value="DIRECT_COMPANY">DIRECT_COMPANY (Company Owned Branch)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs">Exclusivity Radius (km)</Label>
-                <Input
-                  type="number"
-                  step="0.5"
-                  value={radiusKm}
-                  onChange={(e) => setRadiusKm(e.target.value)}
-                  className="mt-1 h-9 bg-card"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={makePrimary}
-                  onChange={(e) => setMakePrimary(e.target.checked)}
-                  className="rounded border-border"
-                />
-                <span>Set as primary territory for ROI & invoices</span>
-              </label>
-
-              <Button
-                type="button"
-                size="sm"
-                disabled={submitting || !selectedTerritoryId}
-                onClick={handleAddAllotment}
-                className="bg-gradient-gold text-background h-8 px-4"
-              >
-                {submitting ? "Allotting..." : "Confirm Allotment"}
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-
+      {/* Primary Boundaries & Registration Details */}
       <div className="border-t border-border/40 pt-3">
         <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-          Primary Territory Details & Boundaries
+          Primary Territory Boundaries & Registration
         </Label>
         <div className="mt-3 grid grid-cols-2 gap-3">
           {txt("territory_country", "Country", "India")}

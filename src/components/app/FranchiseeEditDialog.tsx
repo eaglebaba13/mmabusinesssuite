@@ -2,7 +2,7 @@ import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, RefreshCw } from "lucide-react";
+import { Copy, RefreshCw, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +27,7 @@ import { ProductChangeTab } from "@/components/app/franchise/ProductChangeTab";
 import { resetFranchiseePassword } from "@/lib/rpc/franchisee-user.functions";
 import { formatINR } from "@/lib/format";
 import { DocumentVault } from "@/components/app/franchise/DocumentVault";
-import { TerritoryFields, ProductPctSync } from "@/components/app/franchise/TerritoryAndProductPct";
+import { TerritoryFields, TerritoryManager, ProductPctSync } from "@/components/app/franchise/TerritoryAndProductPct";
 import { useAuth } from "@/lib/auth-context";
 
 interface Franchisee {
@@ -96,8 +96,8 @@ const FEE_PRESETS = ["500000", "1000000", "custom"] as const;
 
 export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) {
   const qc = useQueryClient();
-  const { hasRole } = useAuth();
-  const isSuperAdmin = hasRole("super_admin");
+  const { hasRole, isAdmin } = useAuth();
+  const isSuperAdmin = hasRole("super_admin") || hasRole("founder") || isAdmin;
   const resetFn = useServerFn(resetFranchiseePassword);
   const [form, setForm] = React.useState<Franchisee | null>(franchisee);
   const [feePreset, setFeePreset] = React.useState<string>("500000");
@@ -213,14 +213,16 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
         </DialogHeader>
 
         <Tabs defaultValue="partner" className="mt-2">
-          <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7">
-            <TabsTrigger value="partner">Partner</TabsTrigger>
-            <TabsTrigger value="product">Product</TabsTrigger>
-            <TabsTrigger value="agreement">Agreement</TabsTrigger>
-            <TabsTrigger value="territory">Territory</TabsTrigger>
-            <TabsTrigger value="banking">Banking</TabsTrigger>
-            <TabsTrigger value="premises">Premises</TabsTrigger>
-            <TabsTrigger value="access">Access</TabsTrigger>
+          <TabsList className="flex flex-wrap w-full h-auto p-1.5 gap-1 bg-card/60 border border-border/40">
+            <TabsTrigger value="partner" className="text-xs">Partner & Territory</TabsTrigger>
+            <TabsTrigger value="territory" className="text-xs flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-gold" /> Territory Boundaries
+            </TabsTrigger>
+            <TabsTrigger value="product" className="text-xs">Product</TabsTrigger>
+            <TabsTrigger value="agreement" className="text-xs">Agreement</TabsTrigger>
+            <TabsTrigger value="banking" className="text-xs">Banking</TabsTrigger>
+            <TabsTrigger value="premises" className="text-xs">Premises</TabsTrigger>
+            <TabsTrigger value="access" className="text-xs">Access</TabsTrigger>
           </TabsList>
 
           <TabsContent value="product" className="mt-4">
@@ -244,7 +246,7 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
             />
           </TabsContent>
 
-          <TabsContent value="partner" className="mt-4 space-y-3">
+          <TabsContent value="partner" className="mt-4 space-y-4">
             <div>
               <Label>Full name</Label>
               <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="mt-1" />
@@ -273,6 +275,17 @@ export function FranchiseeEditDialog({ franchisee, open, onOpenChange }: Props) 
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Prominently mounted Allotted Territories & Outlets */}
+            <div className="pt-2">
+              <TerritoryManager
+                franchiseeId={form.id}
+                isSuperAdmin={isSuperAdmin}
+                form={form}
+                setForm={setForm}
+              />
+            </div>
+
             <div>
               <Label>Notes</Label>
               <Textarea value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="mt-1" rows={3} />
